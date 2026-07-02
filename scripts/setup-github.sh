@@ -1,0 +1,91 @@
+#!/usr/bin/env bash
+# GitHub repository governance bootstrap — Policy as Code for the settings GitHub
+# doesn't read from files. Idempotent; safe to re-run. Requires: gh CLI authenticated
+# with admin on the repo (`gh auth status`).
+#
+# Usage:
+#   bash scripts/setup-github.sh              # apply to the repo of the current dir
+#   DRY_RUN=1 bash scripts/setup-github.sh    # print what would be done
+#
+# Configures: branch protection on main (PR + status checks + review), squash-only
+# merges, secret scanning + push protection, private vulnerability reporting,
+# Dependabot alerts, Discussions. Prints the remaining manual steps at the end.
+
+set -euo pipefail
+
+DRY_RUN="${DRY_RUN:-}"
+# Status checks required to merge — must match job names in .github/workflows/ci.yml
+# and security.yml. Adjust when adding/renaming jobs.
+REQUIRED_CHECKS='["lint", "test", "build", "secret-scan"]'
+
+repo="$(gh repo view --json nameWithOwner --jq .nameWithOwner)"
+echo "==> Configuring governance for: $repo"
+
+api() {
+  if [ -n "$DRY_RUN" ]; then
+    echo "[dry-run] gh api $*"
+  else
+    gh api "$@" >/dev/null
+  fi
+}
+
+step() { echo "--> $1"; }
+warn() { echo "    WARN: $1 (continuing — may need a paid plan / public repo / admin rights)"; }
+
+step "Repository merge & hygiene settings (squash-only, PR-title commits, auto-delete branches)"
+api -X PATCH "repos/$repo" \
+  -F allow_squash_merge=true \
+  -F allow_merge_commit=false \
+  -F allow_rebase_merge=false \
+  -f squash_merge_commit_title=PR_TITLE \
+  -f squash_merge_commit_message=PR_BODY \
+  -F delete_branch_on_merge=true \
+  -F has_discussions=true \
+  || warn "repo settings PATCH failed"
+
+step "Secret scanning + push protection (SEC-002)"
+api -X PATCH "repos/$repo" \
+  --input - <<'JSON' || warn "secret scanning unavailable (private repo without GHAS?)"
+{"security_and_analysis": {"secret_scanning": {"status": "enabled"}, "secret_scanning_push_protection": {"status": "enabled"}}}
+JSON
+
+step "Private vulnerability reporting (SECURITY.md flow)"
+api -X PUT "repos/$repo/private-vulnerability-reporting" \
+  || warn "private vulnerability reporting unavailable"
+
+step "Dependabot alerts + automated security fixes (SEC-030)"
+api -X PUT "repos/$repo/vulnerability-alerts" || warn "vulnerability alerts failed"
+api -X PUT "repos/$repo/automated-security-fixes" || warn "automated security fixes failed"
+
+step "Branch protection on main (GR-010..012: PR required, checks required, no force push)"
+if [ -n "$DRY_RUN" ]; then
+  echo "[dry-run] gh api -X PUT repos/$repo/branches/main/protection (checks: $REQUIRED_CHECKS)"
+else
+  gh api -X PUT "repos/$repo/branches/main/protection" --input - >/dev/null <<JSON || warn "branch protection failed (branch 'main' must exist and have at least one push)"
+{
+  "required_status_checks": {"strict": true, "contexts": $REQUIRED_CHECKS},
+  "enforce_admins": true,
+  "required_pull_request_reviews": {
+    "required_approving_review_count": 1,
+    "require_last_push_approval": true
+  },
+  "restrictions": null,
+  "required_linear_history": true,
+  "allow_force_pushes": false,
+  "allow_deletions": false,
+  "required_conversation_resolution": true
+}
+JSON
+fi
+
+echo ""
+echo "==> Done. Remaining MANUAL steps (cannot be automated via API):"
+echo "  1. Install the Renovate GitHub App and grant it this repo (renovate.json is ready)."
+echo "  2. Create Discussion categories per .github/discussion-categories.md."
+echo "  3. Set CodeQL languages in .github/workflows/codeql.yml (matrix is empty by default)."
+echo "  4. Optional — AI PR review: set repo variable ENABLE_AI_REVIEW=true and secret"
+echo "     ANTHROPIC_API_KEY (see .github/workflows/ai-review.yml)."
+echo "  5. Optional — DAST: set repo variable DAST_TARGET_URL to your staging URL."
+echo "  6. If this repo IS the template: Settings -> General -> check 'Template repository'."
+echo "  7. Downstream repos: set TEMPLATE_SYNC source in .github/workflows/template-sync.yml"
+echo "     (replace {{ORG}}) so foundation updates arrive as PRs."

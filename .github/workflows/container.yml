@@ -1,0 +1,36 @@
+# Container image scan (REL-020). Runs only when a Dockerfile exists.
+name: Container Scan
+
+on:
+  pull_request:
+    paths:
+      - "Dockerfile"
+      - "**/Dockerfile"
+      - ".github/workflows/container.yml"
+  push:
+    branches: [main]
+    paths:
+      - "Dockerfile"
+      - "**/Dockerfile"
+
+permissions:
+  contents: read
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build image
+        run: docker build -t local/scan-target:${{ github.sha }} .
+      - name: Trivy image scan
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: local/scan-target:${{ github.sha }}
+          severity: HIGH,CRITICAL
+          exit-code: "1"
+          ignore-unfixed: true
+      - name: Dockerfile best practices (hadolint)
+        uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: Dockerfile

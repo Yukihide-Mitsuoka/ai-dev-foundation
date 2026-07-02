@@ -1,0 +1,26 @@
+# Dependabot — kept for GitHub-native SECURITY updates only (SEC-030).
+# Renovate (renovate.json) is the primary update automation; if you don't install the
+# Renovate app, uncomment the version-update blocks below.
+
+version: 2
+updates:
+  # GitHub Actions security updates (supply chain — SEC-031)
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    labels: ["type:dependencies", "type:ci"]
+    commit-message:
+      prefix: "build"
+
+  # TEMPLATE: uncomment the ecosystem(s) your project uses if not using Renovate.
+  # - package-ecosystem: "npm"          # or pip / gomod / cargo / maven / bundler
+  #   directory: "/"
+  #   schedule:
+  #     interval: "weekly"
+  #   labels: ["type:dependencies"]
+  #   commit-message:
+  #     prefix: "build"
+  #   groups:
+  #     non-major:
+  #       update-types: ["minor", "patch"]

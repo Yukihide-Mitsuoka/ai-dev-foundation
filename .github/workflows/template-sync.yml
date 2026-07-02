@@ -1,0 +1,30 @@
+# Distributes foundation updates to repos created from this template: opens a PR in
+# the downstream repo whenever the template changes (files listed in .templatesyncignore
+# are never touched). In the template repo itself this workflow is inert (guard below).
+name: Template Sync
+
+on:
+  schedule:
+    - cron: "0 7 * * 1"   # weekly, Monday 07:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  sync:
+    # TEMPLATE: replace {{ORG}} — guard prevents the template syncing from itself
+    if: github.repository != '{{ORG}}/ai-dev-foundation'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: AndreasAugustin/actions-template-sync@v2
+        with:
+          source_repo_path: "{{ORG}}/ai-dev-foundation"
+          upstream_branch: main
+          pr_title: "build: sync with ai-dev-foundation template"
+          pr_labels: "type:ci,type:dependencies"
+          pr_commit_msg: "build: sync with ai-dev-foundation template"

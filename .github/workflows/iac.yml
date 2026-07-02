@@ -1,0 +1,39 @@
+# IaC misconfiguration scan (Terraform / Kubernetes / CloudFormation / Helm) — SEC-021.
+name: IaC Scan
+
+on:
+  pull_request:
+    paths:
+      - "**/*.tf"
+      - "**/*.tfvars"
+      - "infra/**"
+      - "k8s/**"
+      - "helm/**"
+      - ".github/workflows/iac.yml"
+  push:
+    branches: [main]
+    paths:
+      - "**/*.tf"
+      - "infra/**"
+      - "k8s/**"
+      - "helm/**"
+
+permissions:
+  contents: read
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Trivy config scan
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          scan-type: config
+          severity: MEDIUM,HIGH,CRITICAL
+          exit-code: "1"
+      - name: Checkov (second opinion — defense in depth)
+        uses: bridgecrewio/checkov-action@v12
+        with:
+          soft_fail: false
+          quiet: true

@@ -87,5 +87,6 @@ echo "  4. Optional — AI PR review: set repo variable ENABLE_AI_REVIEW=true an
 echo "     ANTHROPIC_API_KEY (see .github/workflows/ai-review.yml)."
 echo "  5. Optional — DAST: set repo variable DAST_TARGET_URL to your staging URL."
 echo "  6. If this repo IS the template: Settings -> General -> check 'Template repository'."
-echo "  7. Downstream repos: set TEMPLATE_SYNC source in .github/workflows/template-sync.yml"
-echo "     (replace {{ORG}}) so foundation updates arrive as PRs."
+echo "  7. Downstream repos wanting template updates: set variable TEMPLATE_SYNC_ENABLED=true"
+echo "     and replace {{ORG}} in .github/workflows/template-sync.yml so foundation updates"
+echo "     arrive as PRs. (Left unset, the sync workflow stays safely inert.)"

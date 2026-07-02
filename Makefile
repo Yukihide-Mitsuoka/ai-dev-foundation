@@ -46,7 +46,7 @@ security-scan: ## Local security sweep (secrets + deps + config)
 
 sbom: ## Generate SBOM (SPDX + CycloneDX) into ./dist — REL-020
 	@mkdir -p dist
-	@command -v syft >/dev/null 2>&1 && { syft . -o spdx-json=dist/sbom.spdx.json -o cyclonedx-json=dist/sbom.cdx.json && echo "SBOM written to dist/"; } || echo "[template] syft not installed — release workflow generates the authoritative SBOM"
+	@if command -v syft >/dev/null 2>&1; then syft . -o spdx-json=dist/sbom.spdx.json -o cyclonedx-json=dist/sbom.cdx.json && echo "SBOM written to dist/"; else echo "[template] syft not installed — release workflow generates the authoritative SBOM"; fi
 
 clean: ## Remove build artifacts
 	@rm -rf dist

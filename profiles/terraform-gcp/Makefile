@@ -76,13 +76,13 @@ build: ## IaC "build" = credential-free validate of every terraform config
 run: plan ## For IaC, "run" shows the execution plan
 
 security-scan: ## Local sweep: secrets + IaC misconfig + policy syntax
-	@command -v gitleaks >/dev/null 2>&1 && gitleaks detect --no-banner || echo "gitleaks not installed — CI still enforces SEC-002"
-	@command -v trivy >/dev/null 2>&1 && trivy config --exit-code 1 terraform || echo "trivy not installed — CI still enforces SEC-030"
+	@if command -v gitleaks >/dev/null 2>&1; then gitleaks detect --no-banner; else echo "gitleaks not installed — CI still enforces SEC-002"; fi
+	@if command -v trivy >/dev/null 2>&1; then trivy config --exit-code 1 terraform; else echo "trivy not installed — CI still enforces SEC-030"; fi
 	opa check policies/*.rego
 
 sbom: ## SBOM (SPDX + CycloneDX) into dist/ — REL-020
 	@mkdir -p dist
-	@command -v syft >/dev/null 2>&1 && { syft . -o spdx-json=dist/sbom.spdx.json -o cyclonedx-json=dist/sbom.cdx.json && echo "SBOM written to dist/"; } || echo "syft not installed — release workflow generates the authoritative SBOM"
+	@if command -v syft >/dev/null 2>&1; then syft . -o spdx-json=dist/sbom.spdx.json -o cyclonedx-json=dist/sbom.cdx.json && echo "SBOM written to dist/"; else echo "syft not installed — release workflow generates the authoritative SBOM"; fi
 
 clean: ## Remove caches/artifacts inside the workspace only (GR-031)
 	find terraform -type d -name ".terraform" -exec rm -rf {} +

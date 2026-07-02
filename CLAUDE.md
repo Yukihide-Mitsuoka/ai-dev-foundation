@@ -102,8 +102,12 @@ tooling directly, so commands stay stable across stacks:
 
 ```
 make setup   make format   make lint   make test   make test-unit
-make coverage   make build   make run   make security-scan   make sbom
+make test-integration   make coverage   make build   make run
+make security-scan   make sbom   make clean
 ```
+
+The full binding target contract (semantics of each) is in
+[profiles/README.md](profiles/README.md).
 
 Implementations live in the Makefile; on a fresh template they are no-op placeholders.
 

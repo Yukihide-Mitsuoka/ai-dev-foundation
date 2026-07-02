@@ -1,6 +1,6 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "description": "Primary dependency automation (SEC-030/031). Dependabot (.github/dependabot.yml) is kept for GitHub-native security alerts only.",
+  "description": "Sole dependency-update automation (SEC-030/031). Dependabot version updates are disabled (.github/dependabot.yml is inert); Dependabot security alerts remain on via repository settings, not that file.",
   "extends": [
     "config:best-practices",
     ":semanticCommits",

@@ -43,6 +43,8 @@ direct, decide, and review.
 6. **Point your agent at it**: open the repo with Claude Code (reads `CLAUDE.md`
    automatically) or tell any other agent to read `AGENTS.md`. Assign it an issue.
 
+Full walkthrough (new machine, different account, gotchas): [docs/usage.md](docs/usage.md).
+
 ## Design principles
 
 AI First · Secure by Default · Least Privilege · Defense in Depth · Everything as Code

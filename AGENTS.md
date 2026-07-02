@@ -17,10 +17,10 @@ in your own runtime:
 Minimum protocol, in order:
 
 1. Read [CLAUDE.md](CLAUDE.md) (operating manual).
-2. Read [.ai/guardrails.md](.ai/guardrails.md) (absolute prohibitions — authority 1).
-3. Use the task routing table in [.ai/README.md](.ai/README.md) to load only the rules
+1. Read [.ai/guardrails.md](.ai/guardrails.md) (absolute prohibitions — authority 1).
+1. Use the task routing table in [.ai/README.md](.ai/README.md) to load only the rules
    and skill relevant to your current task.
-4. Use only the canonical `make` targets for build/test/lint (CLAUDE.md §11).
+1. Use only the canonical `make` targets for build/test/lint (CLAUDE.md §11).
 
 Conflict resolution: guardrails > security > CLAUDE.md/AGENTS.md > other `.ai/` > `docs/`.
 Never resolve a conflict silently — apply the higher rule and report it.

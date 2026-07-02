@@ -1,9 +1,6 @@
----
-id: decision-log
-title: Decision Log
-authority: 4
-read_when: [architecture-change, planning, onboarding]
----
+______________________________________________________________________
+
+## id: decision-log title: Decision Log authority: 4 read_when: [architecture-change, planning, onboarding]
 
 # Decision Log
 

@@ -1,7 +1,6 @@
----
-id: adr-index
-title: Architecture Decision Records
----
+______________________________________________________________________
+
+## id: adr-index title: Architecture Decision Records
 
 # Architecture Decision Records (ADR)
 

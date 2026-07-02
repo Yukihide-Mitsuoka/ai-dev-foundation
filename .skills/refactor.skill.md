@@ -1,17 +1,16 @@
----
-name: refactor
-description: Restructure code without changing behavior, protected by tests at every step
-triggers: [refactor, restructure, clean up, reduce debt, extract module]
-reads: [.ai/architecture.md, .ai/coding-rules.md, .ai/testing.md]
----
+______________________________________________________________________
+
+## name: refactor description: Restructure code without changing behavior, protected by tests at every step triggers: [refactor, restructure, clean up, reduce debt, extract module] reads: [.ai/architecture.md, .ai/coding-rules.md, .ai/testing.md]
 
 # Skill: Refactoring
 
 ## Purpose
+
 Improve structure (readability, cohesion, coupling, layer compliance) with **provably
 unchanged behavior**.
 
 ## Inputs
+
 - A stated goal: which quality problem, in which files, and what "better" looks like.
   "Clean up X" is not a goal — convert it into one before starting.
 - Behavior lock: the affected code's tests are green AND meaningfully cover the code
@@ -19,18 +18,20 @@ unchanged behavior**.
   current behavior, even oddities), refactor is the second PR.
 
 ## Process
+
 1. Verify green baseline; assess coverage of the target code specifically.
-2. (If needed) add characterization tests — separate PR.
-3. Refactor in small mechanical steps: rename → move → extract → inline. Run
+1. (If needed) add characterization tests — separate PR.
+1. Refactor in small mechanical steps: rename → move → extract → inline. Run
    `make test-unit` after each step; commit each step separately.
-4. Keep public contracts frozen: MODULE.md APIs, wire formats, CLI flags, persisted
+1. Keep public contracts frozen: MODULE.md APIs, wire formats, CLI flags, persisted
    data. If a contract must change, that is not a refactor — use architecture.skill.md.
-5. Delete what the refactor obsoleted (old helpers, dead branches, stale comments).
-6. Run `make test` + `make lint`; confirm coverage did not drop (TST-003).
-7. PR titled `refactor(scope): ...`, description states "no behavior change" and the
+1. Delete what the refactor obsoleted (old helpers, dead branches, stale comments).
+1. Run `make test` + `make lint`; confirm coverage did not drop (TST-003).
+1. PR titled `refactor(scope): ...`, description states "no behavior change" and the
    structural goal achieved.
 
 ## Decision criteria
+
 - **Test change needed?** Only mechanical updates (imports, names). If an assertion
   must change, behavior changed — stop and reclassify.
 - **Scope creep?** Found a bug mid-refactor → do NOT fix it here; file an issue, or
@@ -41,10 +42,12 @@ unchanged behavior**.
   name a concrete maintenance cost it removes.
 
 ## Outputs
+
 - PR(s) with unchanged behavior, green unchanged tests, structural goal met.
 - Updated MODULE.md/docs only where structure descriptions changed.
 
 ## Checklist
+
 - [ ] Baseline was green; every intermediate commit is green
 - [ ] No public contract changed; no behavior change (assertions untouched)
 - [ ] Stated structural goal achieved and named in the PR

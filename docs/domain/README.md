@@ -1,7 +1,6 @@
----
-id: domain-docs
-title: Domain Model Documentation
----
+______________________________________________________________________
+
+## id: domain-docs title: Domain Model Documentation
 
 # Domain Model
 

@@ -10,11 +10,11 @@ Every skill has YAML frontmatter (`name`, `description`, `triggers`, `reads`) an
 sections, in order:
 
 1. **Purpose** — what outcome this skill produces
-2. **Inputs** — what must exist/be known before starting (and how to get it)
-3. **Process** — numbered steps
-4. **Decision criteria** — how to choose when the process forks
-5. **Outputs** — artifacts that must exist when done
-6. **Checklist** — final verification (all boxes must pass)
+1. **Inputs** — what must exist/be known before starting (and how to get it)
+1. **Process** — numbered steps
+1. **Decision criteria** — how to choose when the process forks
+1. **Outputs** — artifacts that must exist when done
+1. **Checklist** — final verification (all boxes must pass)
 
 ## Inventory
 

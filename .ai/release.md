@@ -1,9 +1,6 @@
----
-id: release
-title: Release Policy
-authority: 4
-read_when: [release]
----
+______________________________________________________________________
+
+## id: release title: Release Policy authority: 4 read_when: [release]
 
 # Release Policy
 

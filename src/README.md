@@ -1,7 +1,6 @@
----
-id: src-layout
-title: Source Layout
----
+______________________________________________________________________
+
+## id: src-layout title: Source Layout
 
 # src/ — Source Layout
 

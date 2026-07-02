@@ -1,7 +1,6 @@
----
-id: tests-layout
-title: Test Layout
----
+______________________________________________________________________
+
+## id: tests-layout title: Test Layout
 
 # tests/ — Test Layout
 

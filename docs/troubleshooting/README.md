@@ -1,7 +1,6 @@
----
-id: troubleshooting-index
-title: Troubleshooting Guide
----
+______________________________________________________________________
+
+## id: troubleshooting-index title: Troubleshooting Guide
 
 # Troubleshooting
 

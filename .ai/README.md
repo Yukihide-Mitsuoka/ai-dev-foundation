@@ -1,9 +1,6 @@
----
-id: ai-index
-title: AI Context Map
-authority: 3
-read_when: [always]
----
+______________________________________________________________________
+
+## id: ai-index title: AI Context Map authority: 3 read_when: [always]
 
 # .ai/ — AI Context Map
 

@@ -1,9 +1,6 @@
----
-id: architecture
-title: Architecture Rules
-authority: 4
-read_when: [feature, refactor, architecture-change, review]
----
+______________________________________________________________________
+
+## id: architecture title: Architecture Rules authority: 4 read_when: [feature, refactor, architecture-change, review]
 
 # Architecture
 

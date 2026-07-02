@@ -1,9 +1,6 @@
----
-id: documentation
-title: Documentation Rules
-authority: 4
-read_when: [documentation, feature, review]
----
+______________________________________________________________________
+
+## id: documentation title: Documentation Rules authority: 4 read_when: [documentation, feature, review]
 
 # Documentation Rules
 

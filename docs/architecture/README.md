@@ -1,7 +1,6 @@
----
-id: architecture-docs
-title: Architecture Documentation
----
+______________________________________________________________________
+
+## id: architecture-docs title: Architecture Documentation
 
 # Architecture Documentation
 

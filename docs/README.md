@@ -1,6 +1,7 @@
-______________________________________________________________________
-
-## id: docs-index title: Documentation Index
+---
+id: docs-index
+title: Documentation Index
+---
 
 # docs/ — Documentation Index
 

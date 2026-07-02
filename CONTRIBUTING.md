@@ -7,9 +7,9 @@ The same rules bind both.
 
 1. Read [CLAUDE.md](CLAUDE.md) — the operating manual (vendor-neutral despite the name;
    non-Claude agents enter via [AGENTS.md](AGENTS.md)).
-1. Run `make setup`, then `pre-commit install --hook-type pre-commit --hook-type pre-push`.
-1. Pick/create a GitHub issue; claim it (assign yourself / `status:in-progress` label).
-1. Branch `<type>/<issue>-<slug>` → implement with tests → PR using the template.
+2. Run `make setup`, then `pre-commit install --hook-type pre-commit --hook-type pre-push`.
+3. Pick/create a GitHub issue; claim it (assign yourself / `status:in-progress` label).
+4. Branch `<type>/<issue>-<slug>` → implement with tests → PR using the template.
 
 ## Non-negotiables
 

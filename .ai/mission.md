@@ -1,6 +1,9 @@
-______________________________________________________________________
-
-## id: mission title: Mission authority: 4 read_when: [onboarding, planning, architecture]
+---
+id: mission
+title: Mission
+authority: 4
+read_when: [onboarding, planning, architecture]
+---
 
 # Mission
 
@@ -22,7 +25,7 @@ ______________________________________________________________________
 <!-- Measurable. AI uses these to judge whether a proposed change moves the project forward. -->
 
 1. {{CRITERION_1}}
-1. {{CRITERION_2}}
+2. {{CRITERION_2}}
 
 ## Role of AI agents in this project
 

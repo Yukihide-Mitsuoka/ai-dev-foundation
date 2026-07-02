@@ -28,18 +28,19 @@ direct, decide, and review.
 ## Using this template
 
 1. **Create the repo** from this template (GitHub → "Use this template").
-1. **Replace placeholders**: search for `{{` — mission, stack, CODEOWNERS teams, issue
+2. **Replace placeholders**: search for `{{` — mission, stack, CODEOWNERS teams, issue
    config URLs.
-1. **Wire the Makefile**: copy the closest [`profiles/`](profiles/) Makefile to the
+3. **Wire the Makefile**: copy the closest [`profiles/`](profiles/) Makefile to the
    root (or implement `setup/format/lint/test/build` yourself) — everything else
    (hooks, CI) starts working automatically.
-1. **Configure GitHub** (one-time): run `bash scripts/setup-github.sh` (requires
+4. **Configure GitHub** (one-time): run `bash scripts/setup-github.sh` (requires
    `gh auth login` with admin) — it applies branch protection, secret scanning + push
    protection, private vulnerability reporting, squash-only merges, and prints the few
    remaining manual steps (Renovate app, Discussion categories, CodeQL languages,
    optional AI-review/DAST variables).
-1. **Install local gates**: `make setup && pre-commit install --hook-type pre-commit --hook-type pre-push`.
-1. **Point your agent at it**: open the repo with Claude Code (reads `CLAUDE.md`
+5. **Install local gates**: `make setup && pre-commit install --hook-type pre-commit
+   --hook-type pre-push`.
+6. **Point your agent at it**: open the repo with Claude Code (reads `CLAUDE.md`
    automatically) or tell any other agent to read `AGENTS.md`. Assign it an issue.
 
 Full walkthrough (new machine, different account, gotchas): [docs/usage.md](docs/usage.md).

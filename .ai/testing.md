@@ -1,6 +1,9 @@
-______________________________________________________________________
-
-## id: testing title: Testing Policy authority: 4 read_when: [feature, bugfix, refactor, test, review]
+---
+id: testing
+title: Testing Policy
+authority: 4
+read_when: [feature, bugfix, refactor, test, review]
+---
 
 # Testing Policy
 
@@ -19,7 +22,6 @@ Tests mirror `src/` structure exactly so the test for any file is findable mecha
 ## TST-002: What must be tested
 
 Every PR that changes behavior MUST include (GR-021):
-
 - Happy path for each new/changed public function of a module.
 - Error paths: invalid input, dependency failure, boundary values (empty, max, zero, null).
 - For bug fixes: a regression test that **fails on the pre-fix code** (see
@@ -56,8 +58,8 @@ with weak assertions violates GR-040 in spirit.
 
 1. Run `make test-unit` before starting work to confirm a green baseline. If the
    baseline is red, report it; do not build on a broken baseline.
-1. Run affected tests after every meaningful change; run `make test` before opening a PR.
-1. Report results verbatim — full failure output, never a summary of what you expected
+2. Run affected tests after every meaningful change; run `make test` before opening a PR.
+3. Report results verbatim — full failure output, never a summary of what you expected
    (GR-042).
-1. When tests fail, fix the code, not the test — unless the test itself is proven wrong,
+4. When tests fail, fix the code, not the test — unless the test itself is proven wrong,
    which must be stated explicitly in the commit message.

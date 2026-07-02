@@ -1,6 +1,7 @@
-______________________________________________________________________
-
-## id: api-docs title: API Documentation
+---
+id: api-docs
+title: API Documentation
+---
 
 # API Documentation
 

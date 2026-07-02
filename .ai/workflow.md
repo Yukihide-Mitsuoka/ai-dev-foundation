@@ -1,6 +1,9 @@
-______________________________________________________________________
-
-## id: workflow title: Development Workflow authority: 4 read_when: [always-summary, feature, bugfix]
+---
+id: workflow
+title: Development Workflow
+authority: 4
+read_when: [always-summary, feature, bugfix]
+---
 
 # Development Workflow
 
@@ -54,7 +57,6 @@ Refs: #<issue>
 ## WF-040: Parallel-agent protocol
 
 Multiple AI agents may work simultaneously. To avoid collisions:
-
 - One branch = one agent = one task. Never commit to another agent's branch.
 - Claim work by assigning the GitHub issue / adding `status:in-progress` label.
 - Contract changes (ARC-020 "Contract" scope) are serialized: announce in the issue,
@@ -64,7 +66,6 @@ Multiple AI agents may work simultaneously. To avoid collisions:
 ## WF-090: Definition of Done
 
 A task is done only when ALL hold:
-
 - [ ] Acceptance criteria of the issue met
 - [ ] Tests added/updated and `make test` green (TST rules)
 - [ ] `make lint` and `make format` clean

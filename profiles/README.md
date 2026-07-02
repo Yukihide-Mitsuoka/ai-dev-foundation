@@ -1,6 +1,7 @@
-______________________________________________________________________
-
-## id: profiles title: Makefile Profiles — Canonical Command Contract
+---
+id: profiles
+title: Makefile Profiles — Canonical Command Contract
+---
 
 # profiles/ — Makefile Reference Implementations
 
@@ -35,19 +36,19 @@ be added freely below them.
 1. **`lint` never auto-fixes.** A lint that "helpfully" formats and exits 0 lets CI go
    green on unformatted code and hides the failure from the agent. Fixing is `format`'s
    job; `lint` fails loudly (COD-001).
-1. **No catch-all `%:` target.** A `%: @:` pattern makes every typo (`make lnit`) exit
+2. **No catch-all `%:` target.** A `%: @:` pattern makes every typo (`make lnit`) exit
    0 silently — it breaks the feedback loop agents depend on (GR-042 in spirit). Pass
    extra arguments via variables instead (`make destroy DESTROY_ARGS="--from-layer=3"`),
    never via `$(MAKECMDGOALS)`.
-1. **Destructive targets follow GR-031**: guarded by an explicit opt-in flag (config
+3. **Destructive targets follow GR-031**: guarded by an explicit opt-in flag (config
    value or variable), documented as DANGEROUS in `help`, and still require per-command
    human approval when an agent runs them.
-1. **Network access belongs in `setup`**, not in `lint`/`test` (e.g. `tflint --init`,
+4. **Network access belongs in `setup`**, not in `lint`/`test` (e.g. `tflint --init`,
    plugin downloads) — keeps the inner loop fast and offline-safe.
-1. **No next-step nudges in output.** Tool output like "✅ passed! Next: run make
+5. **No next-step nudges in output.** Tool output like "✅ passed! Next: run make
    deploy" actively steers agents toward actions the result does not justify. State
    the result; let rules decide the next step.
-1. **`help` is generated from `##` comments** so it cannot drift from reality.
+6. **`help` is generated from `##` comments** so it cannot drift from reality.
 
 ## Available profiles
 
@@ -60,7 +61,7 @@ be added freely below them.
 ## Creating a new profile
 
 1. Copy the closest existing profile directory.
-1. Reimplement the canonical targets for the stack; keep semantics per the table.
-1. Keep project-specific targets in the clearly marked "extensions" section.
-1. Verify: `make lint` on dirty code fails; `make format` fixes it; `make nonexistent`
+2. Reimplement the canonical targets for the stack; keep semantics per the table.
+3. Keep project-specific targets in the clearly marked "extensions" section.
+4. Verify: `make lint` on dirty code fails; `make format` fixes it; `make nonexistent`
    fails; `make test-unit` finishes in seconds.

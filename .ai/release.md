@@ -1,6 +1,9 @@
-______________________________________________________________________
-
-## id: release title: Release Policy authority: 4 read_when: [release]
+---
+id: release
+title: Release Policy
+authority: 4
+read_when: [release]
+---
 
 # Release Policy
 

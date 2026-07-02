@@ -1,6 +1,7 @@
-______________________________________________________________________
-
-## id: operations-docs title: Operations Documentation
+---
+id: operations-docs
+title: Operations Documentation
+---
 
 # Operations
 

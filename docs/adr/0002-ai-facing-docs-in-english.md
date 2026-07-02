@@ -18,19 +18,16 @@ demand minimal interpretation variance (mission constraint: "AI向けに最適�
 ## Options considered
 
 ### Option 1: Do nothing / Japanese only
-
 Pros: most comfortable for the human owner. Cons: higher token cost (Japanese consumes
 roughly 1.5–2× tokens for equivalent content on common tokenizers); slightly higher
 interpretation variance across models trained predominantly on English technical text;
 harder reuse if repos gain non-Japanese collaborators.
 
 ### Option 2: Bilingual (English + Japanese siblings)
-
 Pros: best of both. Cons: two sources drift apart — violates one-fact-one-place
 (DOC-001); doubles maintenance for 100+ repos.
 
 ### Option 3: English for AI-facing docs; Japanese optional for human-facing docs
-
 Pros: lowest token cost and interpretation variance where it matters; single source of
 truth; localized `README.ja.md`-style siblings remain allowed for human-facing docs.
 Cons: the human owner reviews rules in a second language.

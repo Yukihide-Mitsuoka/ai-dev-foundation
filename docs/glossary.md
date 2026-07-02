@@ -1,6 +1,8 @@
-______________________________________________________________________
-
-## id: glossary title: Glossary — Ubiquitous Language updated: 2026-07-02
+---
+id: glossary
+title: Glossary — Ubiquitous Language
+updated: 2026-07-02
+---
 
 # Glossary
 

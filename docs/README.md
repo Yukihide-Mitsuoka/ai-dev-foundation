@@ -20,7 +20,7 @@ in `.ai/`; decisions in `docs/adr/`. Writing rules: `.ai/documentation.md`.
 | [troubleshooting/](troubleshooting/) | Known failure modes → diagnosis → fix | "it's broken, what now?" |
 | [roadmap.md](roadmap.md) | Direction and planned milestones | prioritize work |
 | [glossary.md](glossary.md) | Ubiquitous language dictionary | name things correctly |
-| [usage.md](usage.md) | Using the template on a new machine/account; new-project setup | onboard a new environment |
+| [usage.md](usage.md) | Using the template on a new machine/account; new-project setup (日本語: [usage.ja.md](usage.ja.md)) | onboard a new environment |
 
 Contribution guide: [/CONTRIBUTING.md](../CONTRIBUTING.md).
 

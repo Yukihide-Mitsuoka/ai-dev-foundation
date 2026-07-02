@@ -23,6 +23,14 @@ repos:
     hooks:
       - id: gitleaks                     # GR-001..003 / SEC-002
 
+  - repo: https://github.com/hukkin/mdformat
+    rev: 1.0.0                           # pinned; Renovate/`pre-commit autoupdate` bumps it
+    hooks:
+      - id: mdformat                     # config: .mdformat.toml (frontmatter + numbered lists preserved)
+        additional_dependencies:
+          - mdformat-frontmatter         # keep YAML frontmatter (--- ... ---) intact
+          - mdformat-gfm                 # GFM tables, task lists, autolinks (repo is table-heavy)
+
   - repo: local
     hooks:
       - id: lint

@@ -4,7 +4,7 @@
 # test path filters to your layout (this one assumes the tests/ mirror of src/).
 
 .PHONY: help setup format lint test test-unit test-integration coverage build run \
-        security-scan sbom clean
+        security-scan sbom clean doctor
 
 FILE ?=
 
@@ -61,3 +61,7 @@ sbom: ## SBOM (SPDX + CycloneDX) into dist/ — REL-020
 
 clean: ## Remove build artifacts and caches (workspace only — GR-031)
 	rm -rf dist coverage .eslintcache node_modules/.cache
+
+doctor: ## Foundation self-check: metadata invariants + guard-hook tests
+	@bash scripts/template-check.sh
+	@bash .claude/hooks/tests/guard-bash.test.sh

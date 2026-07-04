@@ -30,8 +30,9 @@ echo "$command_text" | grep -Eq -- '--no-verify|--no-gpg-sign|\[skip ci\]|\[ci s
 
 # GR-031: destructive filesystem/database operations. Blocks recursive rm targeting any
 # absolute/home path (/, /etc, ~, ~/x, $HOME...), quoted or not; workspace-relative
-# (./x, bare names) is allowed.
-echo "$command_text" | grep -Eq 'rm +-[a-zA-Z]*r[a-zA-Z]* +['\''"]?(/|~|\$HOME)' \
+# (./x, bare names) is allowed. The leading [\'"]* also skips a JSON-escaped quote (\")
+# so the guard still fires on the jq-absent raw-JSON path (LOG-0006).
+echo "$command_text" | grep -Eq 'rm +-[a-zA-Z]*r[a-zA-Z]* +[\'\''"]*(/|~|\$HOME)' \
   && block "GR-031" "recursive delete of an absolute/home path — needs explicit human approval"
 echo "$command_text" | grep -Eiq 'drop +(table|database|schema)' \
   && block "GR-031" "destructive database operation — needs explicit human approval"

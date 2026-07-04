@@ -43,6 +43,27 @@ jobs:
       - run: make setup
       - run: make build
 
+  doctor:
+    # Foundation self-check: metadata invariants (YAML frontmatter intact, no collapsed
+    # frontmatter) + guard-hook block/allow tests. Catches the doc/rule regressions that
+    # the no-op template Makefile can't. Dependency-free (pure bash).
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: make doctor
+
+  link-check:
+    # Broken relative links in docs are a real defect (docs are the product here).
+    # Offline mode: verify local file links resolve; external URLs are not fetched.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check links (offline)
+        uses: lycheeverse/lychee-action@v2.8.0
+        with:
+          args: "--offline --no-progress ."
+          fail: true
+
   pr-quality:
     # PR hygiene: Conventional Commit title (WF-030) + size guard (GR-020)
     if: github.event_name == 'pull_request'

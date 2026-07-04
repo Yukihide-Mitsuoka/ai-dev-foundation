@@ -48,7 +48,9 @@ updated: 2026-07-03
 | 自動強制 | [.claude/](../.claude/) | Claude Code のフック（即時ブロック/整形） |
 | 意思決定 | [docs/adr/](adr/) | 「なぜこう作ったか」の不変記録 |
 | 用語 | [docs/glossary.md](glossary.md) | AIが使うべき統一用語 |
-| 契約 | `src/modules/*/MODULE.md` | モジュールの公開API・不変条件 |
+| ソース構造 | [src/README.md](../src/README.md), [tests/README.md](../tests/README.md) | コード配置規約・MODULE.md雛形 |
+| 方向性 | [docs/roadmap.md](roadmap.md) | 何を作る/作らないかの指針 |
+| 契約 | `src/modules/*/MODULE.md`, [profiles/README.md](../profiles/README.md) | モジュール/makeターゲットの契約 |
 | 構造化入力 | [.github/](../.github/) の Issue/PR テンプレート | AIへの指示を型化 |
 | グローバル | `~/.claude/CLAUDE.md`, `~/projects/CLAUDE.md` | 全リポ共通の好み（リポ外・Claude固有） |
 
@@ -166,7 +168,7 @@ updated: 2026-07-03
 
 ---
 
-## 6. 意思決定と用語（`docs/`）
+## 6. 意思決定・用語・方向性（docs/）
 
 ### [docs/adr/](adr/)（ADR：Architecture Decision Records）
 
@@ -182,14 +184,35 @@ updated: 2026-07-03
 - **利用しないシーン**：一般的な技術用語（ここは「このプロジェクト固有の語」）。
 - **利用例**：「Contract change」と「breaking change」の違いを glossary で確認して用語を統一。
 
+### [docs/roadmap.md](roadmap.md)（方向性）
+
+- **利用目的**：プロジェクトの進む方向とマイルストーン。AIが「その変更が方向性に沿うか」を判断する材料。
+- **利用シーン**：機能提案の妥当性判断、優先順位の把握。「Now / Next / Later / 対象外」を確認。
+- **利用しないシーン**：日々の作業キュー（それは GitHub の issue/milestone）。"Later" 項目の先回り実装（COD-051 で禁止）。
+- **利用例**：提案が roadmap の「対象外」に該当すると分かり、着手せず理由を添えて差し戻す。
+
 ---
 
-## 7. モジュール契約（`src/modules/*/MODULE.md`）
+## 7. ソース構造と契約（`src/modules/*/MODULE.md`）
 
 - **利用目的**：モジュールの公開API・所有データ・不変条件・依存を1ページで宣言（ARC-003）。
 - **利用シーン**：そのモジュールを変更する前に必ず読む。契約が変わったら同PRで更新。
 - **利用しないシーン**：他モジュールの内部実装を知りたい時（内部は非公開。公開APIのみ参照）。
 - **利用例**：[src/modules/catalog/MODULE.md](../src/modules/catalog/MODULE.md)（同梱の例）で、公開API `AddProduct.handle` と不変条件4点を把握してから改修。
+
+### [src/README.md](../src/README.md) / [tests/README.md](../tests/README.md)（配置規約）
+
+- **利用目的**：ソース/テストの配置規約と `MODULE.md` の雛形を示す構造ガイダンス（ARC-001）。
+- **利用シーン**：新モジュール作成、ファイルの置き場所を決めるとき、`MODULE.md` を新規作成するとき。
+- **利用しないシーン**：既存モジュール内の局所修正で構造が変わらないとき。
+- **利用例**：新機能の置き場所をレイアウト図で確認し、`tests/` が `src/` を鏡写しにする規約（TST-001）に従う。
+
+### [profiles/README.md](../profiles/README.md)（正準ターゲット契約）
+
+- **利用目的**：`make` 正準ターゲット（setup/format/lint/test/…/doctor）の**拘束力ある意味論**を定義。CLAUDE.md §11 が参照。
+- **利用シーン**：`make` ターゲットの挙動を確認するとき、スタック別プロファイル（Makefile）を追加/編集するとき。
+- **利用しないシーン**：特定スタックの具体コマンドそのもの（各 Makefile 実装を見る）。
+- **利用例**：`lint` は「チェック専用・自動修正しない」という契約を確認し、lint に fmt を混ぜない。
 
 ---
 
@@ -251,3 +274,22 @@ Claude Code は起動時に**親ディレクトリを遡って** `CLAUDE.md` を
 
 関連：新環境セットアップ手順は [usage.ja.md](usage.ja.md)、`.ai/` の索引は
 [.ai/README.md](../.ai/README.md)、決定の経緯は [docs/adr/](adr/) を参照。
+
+---
+
+## 12. 意図的に除外したファイルと、その理由
+
+本書は「主目的がAIの振る舞いを**指示・案内・制約**すること」を収録基準にしています。以下は基準から外れるため
+意図的に除外しました（AIが"使う/従う"対象ではあっても、指示文そのものではない）。
+
+| グループ | ファイル | 除外理由 |
+|----------|----------|----------|
+| ツール/自動化 | `Makefile`, `profiles/*/Makefile`, `.pre-commit-config.yaml`, `.github/workflows/*`, `scripts/*.sh`, `renovate.json`, `.github/dependabot.yml` | 実行インターフェースや強制機構であって挙動の"指示文"ではない（正準ターゲットの契約 = profiles/README.md は §7 に収録） |
+| 設定 | `.gitignore`, `.gitattributes`, `.editorconfig`, `.env.example`, `.mdformat.toml`, `.templatesyncignore`, `LICENSE` | 環境・整形・法務の設定 |
+| ガバナンス metadata | `.github/CODEOWNERS`, `labels.yml`, `discussion-categories.md` | レビュー経路・ラベル・カテゴリ定義。AIは使うが指示ではない |
+| 人間向け | `README.md`, `CONTRIBUTING.md`, `SECURITY.md`, `docs/usage.md`, `docs/usage.ja.md` | 人間向け。特に `README.md` はAIを「CLAUDE.mdへ」と誘導する側。AI向けセキュリティは `.ai/security.md`（§3収録）が担う |
+| 記述的ドキュメント | `docs/{architecture,domain,api,deployment,operations,runbook,troubleshooting}/README.md`, `docs/README.md` | 権威レベル5の**記述（informative）**。規範ではなく雛形。ただし各READMEの「更新トリガー」は DOC-030 経由でAIを間接的に案内する |
+| 例コード | `src/modules/catalog/**/*.py`, `tests/**/*.py` | "指示"ではなく"手本（imitateする参照, COD-050）"。契約は代表として `MODULE.md` を §7 に収録 |
+
+**線引きの原則**：規範（normative, 従うべき）は収録、記述（descriptive, 参考情報）と純粋な実行/設定は除外。
+記述的docsやツールも間接的にAIの行動に影響しますが、"指示の発生源"は `.ai/`・`.skills/`・契約ファイルに集約されています。

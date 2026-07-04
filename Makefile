@@ -6,7 +6,7 @@
 # to one file.
 
 .PHONY: setup format lint test test-unit test-integration coverage build run \
-        security-scan sbom clean help
+        security-scan sbom clean help doctor
 
 FILE ?=
 
@@ -50,3 +50,7 @@ sbom: ## Generate SBOM (SPDX + CycloneDX) into ./dist — REL-020
 
 clean: ## Remove build artifacts
 	@rm -rf dist
+
+doctor: ## Self-check the template: metadata invariants + guard-hook tests (foundation-level, stack-independent)
+	@bash scripts/template-check.sh
+	@bash .claude/hooks/tests/guard-bash.test.sh

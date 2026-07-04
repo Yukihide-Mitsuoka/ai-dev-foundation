@@ -1,3 +1,8 @@
+---
+id: skills-index
+title: Agent Skill Library
+---
+
 # .skills/ — Agent Skill Library
 
 Vendor-neutral task procedures. Each `*.skill.md` is a self-contained playbook an agent

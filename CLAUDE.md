@@ -103,7 +103,7 @@ tooling directly, so commands stay stable across stacks:
 ```
 make setup   make format   make lint   make test   make test-unit
 make test-integration   make coverage   make build   make run
-make security-scan   make sbom   make clean
+make security-scan   make sbom   make clean   make doctor
 ```
 
 The full binding target contract (semantics of each) is in

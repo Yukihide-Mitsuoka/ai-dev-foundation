@@ -30,6 +30,7 @@ be added freely below them.
 | `security-scan` | local sweep: secrets + deps/misconfig | no | agents, pre-release |
 | `sbom` | SBOM into `dist/` (SPDX + CycloneDX) | dist/ only | release, audits |
 | `clean` | remove caches/artifacts **inside the workspace only** (GR-031) | yes | humans/agents |
+| `doctor` | foundation self-check: metadata invariants + guard-hook tests (stack-independent; keep as-is) | no | CI, agents |
 
 ## Profile rules (learned from real-world Makefiles)
 

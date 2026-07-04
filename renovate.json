@@ -9,6 +9,9 @@
     "schedule:weekly"
   ],
   "labels": ["type:dependencies"],
+  "pre-commit": {
+    "enabled": true
+  },
   "packageRules": [
     {
       "description": "Group non-major updates into one weekly PR to respect GR-020 review capacity",

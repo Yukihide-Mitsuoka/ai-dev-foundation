@@ -87,12 +87,12 @@ sbom: ## SBOM (SPDX + CycloneDX) into dist/ — REL-020
 clean: ## Remove caches/artifacts inside the workspace only (GR-031)
 	find terraform -type d -name ".terraform" -exec rm -rf {} +
 	find terraform -type f -name ".terraform.lock.hcl" -exec rm -f {} +
+	find . -type d -name "__pycache__" -exec rm -rf {} +
+	rm -rf dist
 
 doctor: ## Foundation self-check: metadata invariants + guard-hook tests
 	@bash scripts/template-check.sh
 	@bash .claude/hooks/tests/guard-bash.test.sh
-	find . -type d -name "__pycache__" -exec rm -rf {} +
-	rm -rf dist
 
 # ---------------------------------------------------------------------------
 # Project extensions — GCP foundations workflow (Excel SSoT → generate → deploy)

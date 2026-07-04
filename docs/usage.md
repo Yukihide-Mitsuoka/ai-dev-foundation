@@ -57,7 +57,8 @@ username:
 ```
 *   @your-username
 ```
-Leaving team syntax on a personal repo makes CODEOWNERS silently ineffective.
+Leaving team syntax on a personal repo makes CODEOWNERS silently ineffective —
+`scripts/setup-github.sh` warns when it detects this on a personal account.
 
 ### 4. Pick a Makefile profile
 
@@ -83,6 +84,10 @@ make setup                             # installs deps + pre-commit hooks
 Open the repo with Claude Code (reads `CLAUDE.md` automatically) or tell any other agent
 to read `AGENTS.md`. Assign it an issue and go.
 
+The template ships a worked example module (`src/modules/catalog/` + `tests/modules/catalog/`)
+— imitate its shape (COD-050) or delete both when you start real code. Run `make doctor`
+anytime to self-check the template (frontmatter integrity + guard-hook tests).
+
 ---
 
 ## Scenario B — clone the foundation itself onto another machine
@@ -90,7 +95,10 @@ to read `AGENTS.md`. Assign it an issue and go.
 ```bash
 git clone https://github.com/Yukihide-Mitsuoka/ai-dev-foundation.git
 cd ai-dev-foundation
-make setup                             # deps + pre-commit hooks (per machine)
+# The bare template's root Makefile is a no-op, so `make setup` does nothing here.
+# Install the git hooks directly (needs pre-commit — see prerequisites):
+pre-commit install --hook-type pre-commit --hook-type pre-push
+make doctor                            # verify the template is intact
 ```
 That is genuinely "just clone" — but each new machine still needs the one-time
 **prerequisites** and **auth** below.
@@ -105,7 +113,7 @@ Install once on each new machine:
 |------|-----------|-------|
 | `git`, `make` | everything | — |
 | `gh` (GitHub CLI) | `scripts/setup-github.sh`, auth | `gh auth login` |
-| `pre-commit` | local commit gates | installed by `make setup` |
+| `pre-commit` | local commit gates | `make setup` (once a profile is wired) or `pre-commit install` |
 | Stack toolchain | build/test | uv (python), pnpm+node (ts), terraform (iac) — per your profile |
 | `gitleaks`, `trivy`, `syft` | local `make security-scan` / `sbom` | optional locally; **CI enforces them regardless** |
 

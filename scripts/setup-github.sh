@@ -16,10 +16,11 @@ set -euo pipefail
 DRY_RUN="${DRY_RUN:-}"
 # Status checks required to merge — must match job names in .github/workflows/ci.yml
 # and security.yml. Adjust when adding/renaming jobs.
-REQUIRED_CHECKS='["lint", "test", "build", "secret-scan"]'
+REQUIRED_CHECKS='["lint", "test", "build", "doctor", "link-check", "secret-scan"]'
 
 repo="$(gh repo view --json nameWithOwner --jq .nameWithOwner)"
-echo "==> Configuring governance for: $repo"
+owner_type="$(gh repo view --json owner --jq .owner.__typename 2>/dev/null || echo Unknown)"
+echo "==> Configuring governance for: $repo (owner type: $owner_type)"
 
 api() {
   if [ -n "$DRY_RUN" ]; then
@@ -76,6 +77,15 @@ else
   "required_conversation_resolution": true
 }
 JSON
+fi
+
+step "CODEOWNERS sanity check (personal accounts can't use @org/team syntax)"
+if [ "$owner_type" = "User" ] && [ -f .github/CODEOWNERS ] && grep -qE '@[^/[:space:]]+/[^[:space:]]+' .github/CODEOWNERS; then
+  owner_login="${repo%%/*}"
+  echo "    WARN: this is a personal (User) repo but .github/CODEOWNERS uses @org/team refs,"
+  echo "          which are silently ineffective on personal accounts. Replace them, e.g.:"
+  echo "          sed -i -E 's#@[^/[:space:]]+/[^[:space:]]+#@${owner_login}#g' .github/CODEOWNERS"
+  echo "          then commit on a branch and open a PR."
 fi
 
 echo ""

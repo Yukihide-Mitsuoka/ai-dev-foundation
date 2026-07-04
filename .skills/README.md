@@ -25,6 +25,7 @@ sections, in order:
 
 | Skill | Use when |
 |-------|----------|
+| [requirements.skill.md](requirements.skill.md) | defining what to build (requirements definition) |
 | [feature.skill.md](feature.skill.md) | implementing new functionality |
 | [bugfix.skill.md](bugfix.skill.md) | fixing incorrect behavior |
 | [refactor.skill.md](refactor.skill.md) | restructuring without behavior change |

@@ -25,6 +25,22 @@
     ]
   },
   "permissions": {
+    "$comment": "allow: pre-approve only non-mutating, read-only inspection so agents hit fewer prompts. Deliberately excludes format/build/sbom/clean/run/setup (they mutate or spend) — those still prompt. deny wins over allow.",
+    "allow": [
+      "Bash(make doctor:*)",
+      "Bash(make lint:*)",
+      "Bash(make test:*)",
+      "Bash(make test-unit:*)",
+      "Bash(make test-integration:*)",
+      "Bash(make coverage:*)",
+      "Bash(make security-scan:*)",
+      "Bash(bash scripts/template-check.sh)",
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(git show:*)",
+      "Bash(git branch:*)"
+    ],
     "deny": [
       "Read(./.env)",
       "Read(./.env.*)",

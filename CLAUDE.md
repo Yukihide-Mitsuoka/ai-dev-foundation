@@ -117,7 +117,8 @@ Implementations live in the Makefile; on a fresh template they are no-op placeho
   commands; PostToolUse runs format+lint after every file edit. Hook stderr is feedback
   to you — fix the cause, never work around the hook (GR-012).
 - **Skills**: `.skills/*.skill.md` are vendor-neutral procedures; load per the routing
-  table (§2). They may additionally be exposed as native skills under `.claude/skills/`.
+  table (§2). Each is also exposed as a native Claude Code skill under
+  `.claude/skills/<name>/SKILL.md` (thin wrapper; `.skills/` stays the source of truth).
 - **Memory**: store durable, non-derivable facts (user preferences, project decisions)
   in memory; never store secrets there (GR-001 applies).
 - **Subagents/parallelism**: follow WF-040 — one task, one branch, one agent.

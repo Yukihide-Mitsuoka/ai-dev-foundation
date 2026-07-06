@@ -174,6 +174,13 @@ updated: 2026-07-07
 - **利用しないシーン**：通常の開発中に手動で気にする必要はない。
 - **利用例**：ガードを直したら `bash .claude/hooks/tests/guard-bash.test.sh` で 30/30 を確認。
 
+### [.claude/agents/code-reviewer.md](../.claude/agents/code-reviewer.md)（レビュー特化サブエージェント）
+
+- **利用目的**：現在の差分を10観点チェックリストでレビューする読み取り専用サブエージェント。WF-090 のセルフレビューを操作可能にする。観点・手順の本体は `.ai/review-checklist.md` と `.skills/review.skill.md` が正典で、定義は薄い参照のみ。
+- **利用シーン**：PR作成前のセルフレビュー、または差分レビューを依頼するとき。
+- **利用しないシーン**：ファイルの編集（読み取り専用・編集/コミット/pushはしない）。他エージェント（サブエージェントはClaude Code固有 → 等価には `.skills/review.skill.md` を直接読む）。
+- **利用例**：`code-reviewer` サブエージェントを起動 → `git diff` で対象を特定 → Blocker>Major>Minor で `file:line`＋ルールID＋修正案を報告（PRの改変はしない）。
+
 ---
 
 ## 6. 意思決定・用語・方向性（docs/）

@@ -1,7 +1,7 @@
 ---
 id: ai-instruction-files-ja
 title: AI指示ファイル・ガイド（日本語）
-updated: 2026-07-03
+updated: 2026-07-07
 ---
 
 # AIへ指示を出すファイル群ガイド（日本語）
@@ -45,7 +45,7 @@ updated: 2026-07-03
 | ルール索引 | [.ai/README.md](../.ai/README.md) | 優先順位・タスク別ルーティング表 |
 | ルール本体 | [.ai/](../.ai/) の各 `*.md` | 分野別の正準ルール（ID付き） |
 | 手順書 | [.skills/](../.skills/) の各 `*.skill.md` | タスク別の実行プレイブック |
-| 自動強制 | [.claude/](../.claude/) | Claude Code のフック（即時ブロック/整形） |
+| 自動強制 | [.claude/](../.claude/) | Claude Code のフック（即時ブロック/整形）・権限制御・ネイティブSkill |
 | 意思決定 | [docs/adr/](adr/) | 「なぜこう作ったか」の不変記録 |
 | 用語 | [docs/glossary.md](glossary.md) | AIが使うべき統一用語 |
 | ソース構造 | [src/README.md](../src/README.md), [tests/README.md](../tests/README.md) | コード配置規約・MODULE.md雛形 |
@@ -120,6 +120,7 @@ updated: 2026-07-03
 
 | スキル | 利用目的 | 利用しないシーン | 利用例 |
 |--------|----------|------------------|--------|
+| [requirements](../.skills/requirements.skill.md) | 何を作るかを要件定義（目的優先・ゼロベース・対話で決定を詰める） | 実装作業そのもの（featureへ） | 目的を1文で固定→決定を1つずつ推奨案付きで詰める→FR/NFR採番→テンプレ記入 |
 | [feature](../.skills/feature.skill.md) | 新機能を端から端まで実装 | 既存バグの修正（bugfixへ） | issue の受入基準を Definition of Done として実装 |
 | [bugfix](../.skills/bugfix.skill.md) | 欠陥を根本原因から修正 | 新機能追加、純粋な整形 | 再現→落ちる回帰テスト→原因修正→周辺捜索 |
 | [refactor](../.skills/refactor.skill.md) | 振る舞いを変えず構造改善 | 挙動を変える変更（featureへ） | 特性テストで固定→機械的に段階リネーム/抽出 |
@@ -140,10 +141,17 @@ updated: 2026-07-03
 
 ### [.claude/settings.json](../.claude/settings.json)
 
-- **利用目的**：フックの登録。PreToolUse ガード（Bash）と PostToolUse 整形（編集後 format+lint）、`.env` 等の読取拒否。
+- **利用目的**：フックの登録（PreToolUse ガード／PostToolUse 整形）と権限制御。`permissions.deny` で `.env` 等の読取拒否、`permissions.allow` で**非変更の読取専用コマンド**（`make doctor/lint/test`・読取系 git など）を事前許可し確認プロンプトを削減。`deny` が `allow` に優先。
 - **利用シーン**：Claude Code セッション中、常時自動適用（あなたが意識する必要はない）。
 - **利用しないシーン**：他エージェント（読まれない）。挙動を変えたい時は編集するが、`.local.json` は個人用。
-- **利用例**：ファイル編集後に自動で `make format`/`make lint` が走り、失敗はエージェントへフィードバックされる。
+- **利用例**：ファイル編集後に自動で `make format`/`make lint` が走り、失敗はエージェントへフィードバックされる。`make test` は事前許可済みなので確認なしで実行、`make format`（変更を伴う）は引き続き確認される。
+
+### [.claude/skills/](../.claude/skills/)（ネイティブ Skill ラッパー）
+
+- **利用目的**：`.skills/*.skill.md` を Claude Code のネイティブ Skill として公開し、`/requirements` のように直接呼び出せるようにする薄いラッパー（`<name>/SKILL.md`）。中身は frontmatter ＋「`.skills/<name>.skill.md` を読んで従え」の1行のみで、手順の本体は `.skills/` が唯一の正。
+- **利用シーン**：Claude Code でスキルをコマンド的に起動したいとき。
+- **利用しないシーン**：他エージェント（ラッパーを無視し、ルーティング表経由で `.skills/` を直接読む）。ラッパーに手順を複製すること（正の二重化になる）。
+- **利用例**：`/requirements` で要件定義スキルを起動 → 実体の `.skills/requirements.skill.md` の手順が実行される。新スキル追加時は同PRで対応するラッパーも追加する。
 
 ### [.claude/hooks/guard-bash.sh](../.claude/hooks/guard-bash.sh)
 
@@ -289,6 +297,7 @@ Claude Code は起動時に**親ディレクトリを遡って** `CLAUDE.md` を
 | ガバナンス metadata | `.github/CODEOWNERS`, `labels.yml`, `discussion-categories.md` | レビュー経路・ラベル・カテゴリ定義。AIは使うが指示ではない |
 | 人間向け | `README.md`, `CONTRIBUTING.md`, `SECURITY.md`, `docs/usage.md`, `docs/usage.ja.md` | 人間向け。特に `README.md` はAIを「CLAUDE.mdへ」と誘導する側。AI向けセキュリティは `.ai/security.md`（§3収録）が担う |
 | 記述的ドキュメント | `docs/{architecture,domain,api,deployment,operations,runbook,troubleshooting}/README.md`, `docs/README.md` | 権威レベル5の**記述（informative）**。規範ではなく雛形。ただし各READMEの「更新トリガー」は DOC-030 経由でAIを間接的に案内する |
+| ドキュメント雛形 | `docs/templates/` | 記入用テンプレート（例：`requirements.md`）。指示文ではなく、`requirements` スキルが埋める対象。書式規約は DOC-002（§3収録）が担う |
 | 例コード | `src/modules/catalog/**/*.py`, `tests/**/*.py` | "指示"ではなく"手本（imitateする参照, COD-050）"。契約は代表として `MODULE.md` を §7 に収録 |
 
 **線引きの原則**：規範（normative, 従うべき）は収録、記述（descriptive, 参考情報）と純粋な実行/設定は除外。

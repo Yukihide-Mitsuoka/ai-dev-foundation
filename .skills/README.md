@@ -36,9 +36,14 @@ sections, in order:
 | [review.skill.md](review.skill.md) | reviewing a PR or self-reviewing |
 | [release.skill.md](release.skill.md) | preparing a release |
 
-## Claude Code native integration (optional)
+## Claude Code native integration
 
-To expose a skill natively, create `.claude/skills/<name>/SKILL.md` whose body is:
-frontmatter (`name`, `description` copied from here) + one instruction:
-"Read `.skills/<name>.skill.md` and follow it exactly." Keep `.skills/` as the single
-source of truth — never fork content into the wrapper.
+Every skill above is exposed as a native Claude Code skill under
+`.claude/skills/<name>/SKILL.md`, so it is invokable directly (e.g. `/requirements`). Each
+wrapper is only frontmatter (`name`, `description` copied from here) plus one instruction:
+"Read `.skills/<name>.skill.md` and follow it exactly." `.skills/` stays the single source
+of truth — never fork procedure content into a wrapper.
+
+When you add a new skill here, add its matching `.claude/skills/<name>/SKILL.md` wrapper in
+the same PR. Other agents (ChatGPT/Gemini/Codex) ignore the wrappers and read `.skills/`
+directly via the routing table.

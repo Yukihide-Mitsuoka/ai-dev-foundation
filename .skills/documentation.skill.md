@@ -1,7 +1,7 @@
 ---
 name: documentation
 description: Create or maintain documentation optimized for AI readers
-triggers: [write docs, update README, document API, stale docs, ADR writing help]
+triggers: [write docs, update README, document API, stale docs, ADR writing help, ドキュメント作成, ドキュメント, ドキュメント更新, README更新]
 reads: [.ai/documentation.md, docs/]
 ---
 

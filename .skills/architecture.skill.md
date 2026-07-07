@@ -1,7 +1,7 @@
 ---
 name: architecture
 description: Design or change structure, boundaries, or technology — always through an ADR
-triggers: [new module, change boundaries, replace technology, redesign, public API shape]
+triggers: [new module, change boundaries, replace technology, redesign, public API shape, 設計変更, アーキテクチャ, ADR作成, モジュール追加]
 reads: [.ai/architecture.md, .ai/decision-log.md, docs/adr/]
 ---
 

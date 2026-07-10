@@ -5,7 +5,7 @@ title: Source Layout
 
 # src/ — Source Layout
 
-Binding rules: [.ai/architecture.md](../.ai/architecture.md) (ARC-001..004). Summary:
+Binding rules: [.ai/architecture.md](../.ai/architecture.md) (ARC-001..005). Summary:
 
 ```
 src/

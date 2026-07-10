@@ -17,6 +17,7 @@ old one. One line per entry. AI agents append entries in the same PR as the chan
 
 | Date | ID | Decision | Link |
 |------|----|----------|------|
+| 2026-07-10 | LOG-0008 | Deep-module interface design adopted as ARC-005 (interface = all a caller must know; deletion test; a seam needs a current second adapter; interface is the test surface). Glossary gains a banned-synonym *Avoid* column and a Resolved-ambiguities log, enforced via COD-002. Ideas from Ousterhout / Feathers, rewritten in this repo's rule system — not copied | [.ai/architecture.md](architecture.md) |
 | 2026-07-03 | LOG-0007 | Markdown formatting MUST be frontmatter-aware: mdformat pinned via pre-commit with `mdformat-frontmatter` + `mdformat-gfm`, config in `.mdformat.toml` (`wrap=keep`, `number=true`). A naive run once collapsed all YAML frontmatter into headings — never use a formatter without these plugins | [.mdformat.toml](../.mdformat.toml) |
 | 2026-07-02 | ADR-0002 | AI-facing docs are written in English | [ADR-0002](../docs/adr/0002-ai-facing-docs-in-english.md) |
 | 2026-07-02 | ADR-0001 | Record architecture decisions as ADRs | [ADR-0001](../docs/adr/0001-record-architecture-decisions.md) |

@@ -32,6 +32,8 @@ routing table in [.ai/README.md](.ai/README.md) and load the matching skill from
 - Layout: `src/modules/<context>/{domain,application,infrastructure,interface}` +
   mandatory `MODULE.md` per module (ARC-001, ARC-003).
 - Dependencies point inward; domain imports nothing external (ARC-002).
+- Interfaces are deep: small surface, complexity hidden; a seam needs a current second
+  adapter (ARC-005).
 - Classify every change: Local / Contract / Architectural — architectural changes
   require an ADR **first** (ARC-020, GR-022).
 - Full rules: [.ai/architecture.md](.ai/architecture.md)

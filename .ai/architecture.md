@@ -60,6 +60,24 @@ when the contract changes.
 Code goes to `src/shared/` only if it is domain-free and used by 3+ modules. Duplicating
 20 lines twice is better than a wrong abstraction (see COD-020).
 
+## ARC-005: Deep modules
+
+A module's interface is everything a caller must know to use it correctly — the type
+signature plus invariants, ordering constraints, error modes, and required configuration.
+Design modules **deep** (Ousterhout): a lot of behavior behind a small interface.
+
+- When designing an interface, ask in order: fewer methods? simpler parameters? more
+  complexity hidden inside?
+- **Deletion test**: imagine deleting the module. If complexity simply vanishes, it was a
+  pass-through layer — remove it. If the complexity would reappear spread across its
+  callers, the module is earning its keep.
+- A seam (a point where an implementation can be swapped without editing call sites —
+  Feathers) is real only when something actually varies across it: one adapter is a
+  hypothetical seam, a second adapter makes it real (COD-051).
+- The interface is the test surface: tests cross the same seam callers do (TST-020).
+  Needing to reach past the interface to test a module means the module is the wrong
+  shape — fix the interface, not the test.
+
 ## ARC-010: State and configuration (Twelve-Factor)
 
 - Configuration comes from environment variables; `.env.example` lists every variable

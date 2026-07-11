@@ -20,9 +20,18 @@ block() {
 echo "$command_text" | grep -Eq 'git +push\b.*( |:)(main|master)( |"|$)' \
   && block "GR-010" "direct push to main/master — open a PR from a branch"
 
-# GR-011: force push (word-boundary safe: matches trailing -f/--force too, jq or not)
-echo "$command_text" | grep -Eq 'git +push\b.* (--force|-f)( |"|$)' \
-  && block "GR-011" "force push — use --force-with-lease on your own PR branch only, and only when needed"
+# GR-011: force push (word-boundary safe: matches trailing -f/--force too, jq or not).
+# Exception (LOG-0009): moving a floating tag (v1 -> v1.2.0) rewrites no branch history.
+# Allowed only when the command's single `git push` targets refs/tags/ refspecs
+# exclusively — the explicit form keeps a branch refspec from riding along, and the
+# single-push requirement stops a second push smuggled behind && or ;. The tag charclass
+# excludes separators so the refspec can't swallow a following command.
+if echo "$command_text" | grep -Eq 'git +push\b.* (--force|-f)( |"|$)'; then
+  tag_only='git +push +((--force|-f) +)?[A-Za-z0-9._-]+( +refs/tags/[^ "&;|]+)+( +(--force|-f))? *("|$|;|&|\|)'
+  push_count="$(echo "$command_text" | grep -oE 'git +push\b' | wc -l)"
+  echo "$command_text" | grep -Eq "$tag_only" && [ "$push_count" -eq 1 ] \
+    || block "GR-011" "force push — use --force-with-lease on your own PR branch only; a floating tag moves via 'git push --force <remote> refs/tags/<tag>' (tag refspecs only, one push per command)"
+fi
 
 # GR-012: bypassing hooks/CI
 echo "$command_text" | grep -Eq -- '--no-verify|--no-gpg-sign|\[skip ci\]|\[ci skip\]' \

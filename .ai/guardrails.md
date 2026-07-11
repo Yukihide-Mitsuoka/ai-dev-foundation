@@ -44,6 +44,10 @@ even for "trivial" fixes.
 ### GR-011: Never force-push or rewrite history on shared branches
 MUST NOT use `git push --force`, `git rebase` on pushed shared branches, or delete
 others' branches. `--force-with-lease` on your *own* PR branch is permitted.
+Moving a floating release tag (e.g. `v1` onto the latest `v1.x.y`) rewrites no branch
+history and is permitted, but only in the explicit form
+`git push --force <remote> refs/tags/<tag>` — tag refspecs only, one push per command;
+bare tag names stay blocked because they are ambiguous with branch names (LOG-0009).
 
 ### GR-012: Never bypass hooks or checks
 MUST NOT use `git commit --no-verify`, `git push --no-verify`, `[skip ci]`, or disable

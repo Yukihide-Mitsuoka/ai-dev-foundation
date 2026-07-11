@@ -47,6 +47,19 @@ expect 2 'git push --force origin feat/x'
 expect 2 'git push origin feat/x -f'
 expect 0 'git push origin feat/x'
 
+# --- GR-011 exception: floating-tag move via explicit refs/tags/ refspecs (LOG-0009).
+# Allowed only when the command's single `git push` targets tag refspecs exclusively.
+expect 0 'git push --force origin refs/tags/v1'
+expect 0 'git push -f origin refs/tags/v1'
+expect 0 'git push origin refs/tags/v1 --force'
+expect 0 'git push --force origin refs/tags/v1 refs/tags/v1.2.3'
+expect 0 'git tag -f v1 v1.2.3 && git push --force origin refs/tags/v1'
+expect 2 'git push --force origin v1'                       # bare name is ambiguous (could be a branch)
+expect 2 'git push --force origin refs/tags/v1 feat/x'      # branch refspec riding along
+expect 2 'git push --force origin main refs/tags/v1'        # GR-010 still wins
+expect 2 'git push --force origin refs/tags/v1 && git push -f origin feat/x'  # second push smuggled behind &&
+expect 2 'git push --force origin refs/tags/v1:refs/heads/main'  # src:dst refspec would force-update main
+
 # --- GR-012: bypassing hooks/CI must block ---
 expect 2 'git commit --no-verify -m x'
 expect 2 'git commit -m "x [skip ci]"'

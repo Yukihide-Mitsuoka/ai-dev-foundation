@@ -169,10 +169,10 @@ updated: 2026-07-07
 
 ### [.claude/hooks/tests/guard-bash.test.sh](../.claude/hooks/tests/guard-bash.test.sh)
 
-- **利用目的**：ガードの block/allow 30ケースを固定する回帰テスト（`make doctor` と CI が実行）。
+- **利用目的**：ガードの block/allow マトリクス全ケースを固定する回帰テスト（`make doctor` と CI が実行）。
 - **利用シーン**：ガードの正規表現を変更した時、CI/doctor で自動検証。
 - **利用しないシーン**：通常の開発中に手動で気にする必要はない。
-- **利用例**：ガードを直したら `bash .claude/hooks/tests/guard-bash.test.sh` で 30/30 を確認。
+- **利用例**：ガードを直したら `bash .claude/hooks/tests/guard-bash.test.sh` で全件パスを確認。
 
 ### [.claude/agents/code-reviewer.md](../.claude/agents/code-reviewer.md)（レビュー特化サブエージェント）
 

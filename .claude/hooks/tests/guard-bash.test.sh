@@ -58,6 +58,7 @@ expect 2 'git push --force origin v1'                       # bare name is ambig
 expect 2 'git push --force origin refs/tags/v1 feat/x'      # branch refspec riding along
 expect 2 'git push --force origin main refs/tags/v1'        # GR-010 still wins
 expect 2 'git push --force origin refs/tags/v1 && git push -f origin feat/x'  # second push smuggled behind &&
+expect 2 'git push --force origin refs/tags/v1:refs/heads/main'  # src:dst refspec would force-update main
 
 # --- GR-012: bypassing hooks/CI must block ---
 expect 2 'git commit --no-verify -m x'

@@ -30,8 +30,14 @@ Example keys in docs MUST be obviously fake (`sk-EXAMPLE-000000`).
 - **Instead**: same as GR-001.
 
 ### GR-003: Never log or echo secret values
-MUST NOT print secrets to stdout, logs, error messages, or test output.
-- **Instead**: log the variable *name* and redact the value (`API_KEY=***`).
+MUST NOT print secrets to stdout, logs, error messages, or test output. This includes
+reading a credential file to the terminal (`cat .env`, `head server.key`,
+`cat ~/.ssh/id_rsa`) or dumping the whole environment (`printenv`, bare `env`).
+- **Detection**: `.claude/settings.json` deny-list blocks the Read tool for `.env*`,
+  `*.pem/*.key/*.p12/*.pfx`, `secrets/`, `~/.ssh`, `~/.config/gcloud`, `~/.gemini`;
+  `.claude/hooks/guard-bash.sh` blocks the equivalent Bash reads and env dumps (LOG-0010).
+- **Instead**: log the variable *name* and redact the value (`API_KEY=***`); read a
+  single variable by name (`printenv PATH`) when you genuinely need one.
 
 ## Git & branches
 

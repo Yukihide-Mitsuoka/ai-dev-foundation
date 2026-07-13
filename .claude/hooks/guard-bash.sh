@@ -56,4 +56,23 @@ echo "$command_text" | grep -Eq '(curl|wget)[^|;]*\|\s*(sudo\s+|env\s+[^|;]*)?(b
 echo "$command_text" | grep -Eq 'git +(rebase|reset +--hard) +[^ ]*origin/(main|master)|git +filter-(branch|repo)' \
   && block "GR-011" "history rewrite touching shared branches — needs explicit human approval"
 
+# GR-003: reading a secret file's contents to stdout via a shell reader. The permission
+# deny-list in .claude/settings.json only covers the Read tool; this covers the common
+# Bash readers of the same secrets (`cat .env`, `grep x server.key`, `cat ~/.ssh/id_rsa`).
+# The list is broad but not exhaustive — it is one layer of defence in depth alongside
+# gitleaks and the container isolation, not a complete sandbox (LOG-0010). Safe templates
+# (.env.example/.sample/.template) are intentionally NOT matched. The `(^|[^A-Za-z])`
+# command anchor also matches the `"` that precedes the command on the jq-absent raw-JSON
+# path, so the guard fires there too (LOG-0006); a start-of-line-only anchor would silently
+# pass every command when jq is unavailable.
+echo "$command_text" | grep -Eiq '(^|[^A-Za-z])(cat|less|more|head|tail|bat|nl|tac|rev|cut|sort|xxd|od|strings|base64|grep|egrep|fgrep|awk|gawk|sed) +[^|;&]*(\.env($|[^.A-Za-z])|\.env\.(local|prod|production|dev|development|staging|test|secret|secrets)([^A-Za-z]|$)|\.pem([^A-Za-z]|$)|\.key([^A-Za-z]|$)|\.p12|\.pfx|/\.ssh/|/\.gemini/|\.config/gcloud/)' \
+  && block "GR-003" "reading a credential file to stdout — reference the variable/secret by name, never print its contents"
+
+# GR-003: dumping the whole environment (may contain injected secrets) to stdout. Only the
+# bare-dump form of printenv/env is blocked; the command-prefix form (`env FOO=1 cmd`) runs
+# a program and stays allowed, as does naming one variable (`printenv PATH`). Same
+# `(^|[^A-Za-z])` anchor as above so it also fires on the jq-absent raw-JSON path (LOG-0006).
+echo "$command_text" | grep -Eq '(^|[^A-Za-z])(printenv|env) *("|$|;|&|\|)' \
+  && block "GR-003" "dumping the environment can expose secrets — reference the specific variable name instead"
+
 exit 0

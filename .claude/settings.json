@@ -25,7 +25,7 @@
     ]
   },
   "permissions": {
-    "$comment": "allow: pre-approve only non-mutating, read-only inspection so agents hit fewer prompts. Deliberately excludes format/build/sbom/clean/run/setup (they mutate or spend) — those still prompt. deny wins over allow.",
+    "$comment": "allow: pre-approve only non-mutating, read-only inspection so agents hit fewer prompts. Deliberately excludes format/build/sbom/clean/run/setup (they mutate or spend) — those still prompt. deny wins over allow. deny covers the Read tool only; the Bash path to the same secrets (cat .env, printenv, ...) is blocked by .claude/hooks/guard-bash.sh (GR-003).",
     "allow": [
       "Bash(make doctor:*)",
       "Bash(make lint:*)",
@@ -46,7 +46,12 @@
       "Read(./.env.*)",
       "Read(**/*.pem)",
       "Read(**/*.key)",
-      "Read(**/secrets/**)"
+      "Read(**/*.p12)",
+      "Read(**/*.pfx)",
+      "Read(**/secrets/**)",
+      "Read(~/.ssh/**)",
+      "Read(~/.config/gcloud/**)",
+      "Read(~/.gemini/**)"
     ]
   }
 }

@@ -42,6 +42,8 @@ direct, decide, and review.
    --hook-type pre-push`.
 6. **Point your agent at it**: open the repo with Claude Code (reads `CLAUDE.md`
    automatically) or tell any other agent to read `AGENTS.md`. Assign it an issue.
+   Run the agent inside the [Dev Container](.devcontainer/README.md) so host credentials
+   stay out of its reach; customize `.devcontainer/devcontainer.json` for your stack.
 
 Full walkthrough (new machine, different account, gotchas): [docs/usage.md](docs/usage.md).
 

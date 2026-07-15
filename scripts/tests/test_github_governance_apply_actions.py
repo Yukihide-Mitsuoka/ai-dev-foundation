@@ -110,7 +110,12 @@ class ApplyActionPlanningTest(unittest.TestCase):
 
     def test_common_actions_are_ordered_and_describe_side_effects(self):
         current = ruleset_inventory()
-        current["repository"]["delete_branch_on_merge"] = False
+        current["repository"].update(
+            allow_merge_commit=True,
+            delete_branch_on_merge=False,
+            has_discussions=False,
+            squash_merge_commit_title="COMMIT_OR_PR_TITLE",
+        )
         current["security"] = {
             "dependabot_security_updates": "enabled",
             "private_vulnerability_reporting": "disabled",
@@ -125,7 +130,7 @@ class ApplyActionPlanningTest(unittest.TestCase):
                 "security.secret_scanning",
                 "security.vulnerability_alerts",
                 "security.private_vulnerability_reporting",
-                "repository.delete_branch_on_merge",
+                "repository.settings",
                 "security.dependabot_security_updates",
             ],
         )
@@ -136,6 +141,20 @@ class ApplyActionPlanningTest(unittest.TestCase):
         )
         self.assertEqual(result["actions"][1]["method"], "PUT")
         self.assertIsNone(result["actions"][1]["body"])
+        repository_action = result["actions"][3]
+        self.assertEqual(
+            repository_action["body"],
+            {
+                "allow_merge_commit": False,
+                "allow_rebase_merge": False,
+                "allow_squash_merge": True,
+                "delete_branch_on_merge": True,
+                "has_discussions": True,
+                "squash_merge_commit_message": "PR_BODY",
+                "squash_merge_commit_title": "PR_TITLE",
+            },
+        )
+        self.assertIn("repository.merge_strategy", repository_action["verify_controls"])
         self.assertEqual(result["actions"][4]["method"], "DELETE")
         self.assertIn(
             "dependabot_security_updates_are_disabled",
@@ -150,12 +169,28 @@ class ApplyActionPlanningTest(unittest.TestCase):
         self.assertEqual(result["status"], "compliant")
         self.assertEqual(result["actions"], [])
 
+    def test_squash_merge_is_enabled_before_linear_history_ruleset(self):
+        current = inventory()
+        current["repository"].update(
+            allow_merge_commit=True,
+            allow_squash_merge=False,
+        )
+
+        result = governance.build_apply_actions(resolved_policy(), current)
+
+        self.assertEqual(
+            [action["id"] for action in result["actions"]],
+            ["repository.settings", "branch.ruleset"],
+        )
+
     def test_unknown_or_unobserved_preflight_blocks_all_actions(self):
         unknown = ruleset_inventory()
         unknown["rulesets"][0]["has_bypass_actors"] = "unknown"
+        unknown_repository = ruleset_inventory()
+        unknown_repository["repository"].pop("has_discussions")
         unobserved = inventory()
         unobserved["observed_checks"] = ["lint"]
-        for current in (unknown, unobserved):
+        for current in (unknown, unknown_repository, unobserved):
             with self.subTest(current=current), self.assertRaises(governance.PolicyError):
                 governance.build_apply_actions(resolved_policy(), current)
 

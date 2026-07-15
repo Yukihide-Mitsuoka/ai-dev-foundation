@@ -21,6 +21,7 @@ def resolved_policy(backend="ruleset"):
             "status_checks_required": {"rule_refs": ["GR-012"]},
             "force_pushes_allowed": {"rule_refs": ["GR-011"]},
             "admin_bypass_allowed": {"rule_refs": ["GR-010", "GR-012"]},
+            "squash_merge_only": {"rule_refs": ["WF-030"]},
             "secret_scanning_enabled": {"rule_refs": ["SEC-002"]},
             "push_protection_enabled": {"rule_refs": ["SEC-002"]},
             "vulnerability_alerts_enabled": {"rule_refs": ["SEC-003"]},
@@ -34,6 +35,9 @@ def resolved_policy(backend="ruleset"):
             "required_checks": CHECKS,
             "dependency_update_provider": "renovate",
             "delete_branch_on_merge": True,
+            "discussions_enabled": True,
+            "squash_merge_commit_title": "PR_TITLE",
+            "squash_merge_commit_message": "PR_BODY",
         },
     }
 
@@ -53,7 +57,16 @@ def ruleset_inventory():
         ],
         "legacy_branch_protection": {"status": "absent"},
         "observed_checks": CHECKS,
-        "repository": {"delete_branch_on_merge": True, "full_name": "acme/demo"},
+        "repository": {
+            "allow_merge_commit": False,
+            "allow_rebase_merge": False,
+            "allow_squash_merge": True,
+            "delete_branch_on_merge": True,
+            "full_name": "acme/demo",
+            "has_discussions": True,
+            "squash_merge_commit_message": "PR_BODY",
+            "squash_merge_commit_title": "PR_TITLE",
+        },
         "rulesets": [
             {
                 "has_bypass_actors": False,
@@ -102,10 +115,12 @@ class GovernanceComparisonTest(unittest.TestCase):
         self.assertEqual(first["unmanaged"]["effective_rules"], [])
         self.assertIsNone(first["unmanaged"]["legacy_branch_protection"])
         for control_id in (
+            "repository.merge_strategy",
             "security.private_vulnerability_reporting",
             "security.vulnerability_alerts",
         ):
-            self.assertEqual(control(first, control_id)["rule_refs"], ["SEC-003"])
+            expected = ["WF-030"] if control_id == "repository.merge_strategy" else ["SEC-003"]
+            self.assertEqual(control(first, control_id)["rule_refs"], expected)
 
     def test_drift_and_unmanaged_controls_are_reported(self):
         inventory = ruleset_inventory()
@@ -141,6 +156,24 @@ class GovernanceComparisonTest(unittest.TestCase):
 
         self.assertEqual(report["status"], "drift")
         self.assertEqual(control(report, "security.vulnerability_alerts")["status"], "drift")
+
+    def test_repository_collaboration_drift_is_reported(self):
+        inventory = ruleset_inventory()
+        inventory["repository"].update(
+            allow_merge_commit=True,
+            has_discussions=False,
+            squash_merge_commit_message="BLANK",
+        )
+
+        report = governance.compare_governance(resolved_policy(), inventory)
+
+        self.assertEqual(report["status"], "drift")
+        for control_id in (
+            "repository.discussions_enabled",
+            "repository.merge_strategy",
+            "repository.squash_commit_format",
+        ):
+            self.assertEqual(control(report, control_id)["status"], "drift")
 
     def test_unobserved_required_check_is_drift(self):
         inventory = ruleset_inventory()

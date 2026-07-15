@@ -89,9 +89,10 @@ See [GitHub governance troubleshooting](troubleshooting/github-governance.md) fo
 
 Review `plan` before `apply`. Only `apply` changes settings; it requires local repository
 Administration access and an exact target confirmation, then verifies each action by
-read-back. `bash scripts/setup-github.sh` remains temporarily for legacy security and
-repository settings that policy does not own yet, such as squash-only merges and
-Discussions; review its fixed settings separately.
+read-back. Policy enforces squash-only merges and lets repository overrides choose
+Discussions and squash commit-message defaults. `bash scripts/setup-github.sh` remains
+temporarily as a fixed legacy entry point; use policy `apply` for new repositories while
+its compatibility wrapper is prepared.
 
 ### 6. Install local gates and point your agent at it
 

@@ -9,7 +9,7 @@ SPEC = importlib.util.spec_from_file_location("github_governance", MODULE_PATH)
 governance = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(governance)
 
-KNOWN_RULES = {"GR-010", "GR-011", "GR-012", "SEC-002", "SEC-003"}
+KNOWN_RULES = {"GR-010", "GR-011", "GR-012", "SEC-002", "SEC-003", "WF-030"}
 
 
 def foundation_policy():
@@ -21,6 +21,7 @@ def foundation_policy():
             "status_checks_required": {"value": True, "rule_refs": ["GR-012"]},
             "force_pushes_allowed": {"value": False, "rule_refs": ["GR-011"]},
             "admin_bypass_allowed": {"value": False, "rule_refs": ["GR-010", "GR-012"]},
+            "squash_merge_only": {"value": True, "rule_refs": ["WF-030"]},
             "secret_scanning_enabled": {"value": True, "rule_refs": ["SEC-002"]},
             "push_protection_enabled": {"value": True, "rule_refs": ["SEC-002"]},
             "vulnerability_alerts_enabled": {"value": True, "rule_refs": ["SEC-003"]},
@@ -37,6 +38,9 @@ def foundation_policy():
             "required_checks": ["lint", "test"],
             "dependency_update_provider": "renovate",
             "delete_branch_on_merge": False,
+            "discussions_enabled": True,
+            "squash_merge_commit_title": "PR_TITLE",
+            "squash_merge_commit_message": "PR_BODY",
         },
     }
 
@@ -62,12 +66,17 @@ class GovernancePolicyTest(unittest.TestCase):
                     "require_last_push_approval": True,
                     "required_checks": ["doctor", "secret-scan"],
                     "dependency_update_provider": "dependabot",
+                    "discussions_enabled": False,
+                    "squash_merge_commit_title": "COMMIT_OR_PR_TITLE",
+                    "squash_merge_commit_message": "COMMIT_MESSAGES",
                 },
             }
         )
 
         self.assertEqual(result["settings"]["required_approvals"], 1)
         self.assertEqual(result["settings"]["required_checks"], ["doctor", "secret-scan"])
+        self.assertFalse(result["settings"]["discussions_enabled"])
+        self.assertEqual(result["settings"]["squash_merge_commit_title"], "COMMIT_OR_PR_TITLE")
         self.assertTrue(result["minimums"]["pull_request_required"]["value"])
 
     def test_unknown_fields_and_minimum_overrides_are_rejected(self):
@@ -90,6 +99,11 @@ class GovernancePolicyTest(unittest.TestCase):
             {"required_checks": ["lint\ntest"]},
             {"required_checks": ["lint", ["test"]]},
             {"dependency_update_provider": ["renovate", "dependabot"]},
+            {"discussions_enabled": "yes"},
+            {"squash_merge_commit_title": "ISSUE_TITLE"},
+            {"squash_merge_commit_message": "FULL_DIFF"},
+            {"squash_merge_commit_title": ["PR_TITLE"]},
+            {"squash_merge_commit_message": {"format": "PR_BODY"}},
             {"required_approvals": 0, "require_last_push_approval": True},
         )
         for overrides in invalid_overrides:

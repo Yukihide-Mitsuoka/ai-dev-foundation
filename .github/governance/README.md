@@ -18,7 +18,9 @@ rule ID.
 
 Repository overrides may set `target_branch`, `enforcement_backend`, approval count,
 last-push approval, required check names, one dependency-update provider, and merged
-branch deletion. Unknown fields and attempts to override foundation minimums fail.
+branch deletion. They may also select Discussions availability and the default squash
+commit title/message formats. Squash-only merge availability is an immutable WF-030
+foundation minimum. Unknown fields and attempts to override foundation minimums fail.
 
 ## Validate, plan, audit, and apply
 
@@ -51,9 +53,9 @@ its administrator credential in Actions.
 | `audit` | All controls compliant | Drift or unknown state | Policy, input, or GitHub read failure |
 | `apply` | All owned controls verified compliant | — | Policy, confirmation, write, read-back, verification, or replanning failure |
 
-`scripts/setup-github.sh` remains temporarily for legacy settings not represented in
-policy, including squash-only merges and Discussions. Vulnerability alerts and private
-vulnerability reporting are now foundation minimums derived from SEC-003.
+`scripts/setup-github.sh` remains temporarily as the fixed legacy entry point while its
+policy-driven compatibility wrapper is prepared. Its API-managed settings are now
+represented by policy; use `plan` and `apply` for new repositories.
 
 ## Apply action planning boundary
 
@@ -79,6 +81,10 @@ may be updated only with the generated branch condition and supported rule types
 planner preserves stricter stale-review, code-owner, merge-method, and check-integration
 constraints. Extra rules, active reviewer restrictions, unknown parameters, or missing
 detail block the update.
+
+Repository merge methods, squash commit defaults, Discussions, and merged-branch
+deletion share one PATCH action so one read-back verifies the repository settings
+together. Squash-only is fixed by WF-030; the other values remain downstream-overridable.
 
 ## GitHub discovery boundary
 

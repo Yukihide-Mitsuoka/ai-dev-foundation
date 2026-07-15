@@ -17,6 +17,7 @@ old one. One line per entry. AI agents append entries in the same PR as the chan
 
 | Date | ID | Decision | Link |
 |------|----|----------|------|
+| 2026-07-16 | LOG-0016 | The internal governance execution boundary requires an exact target echo, executes one owned-field action at a time through local `gh`, verifies and replans from fresh state, and stops with redacted partial evidence rather than retrying or automatically weakening protections | [.github/governance/README.md](../.github/governance/README.md) |
 | 2026-07-16 | LOG-0015 | Existing managed ruleset updates preserve supported stricter review, merge-method, and check-integration constraints; unknown or additional constraints fail closed instead of being overwritten | [.github/governance/README.md](../.github/governance/README.md) |
 | 2026-07-16 | LOG-0014 | GitHub governance apply planning may create only the stable repository ruleset; it refuses existing-ruleset updates until stricter fields can be preserved, and uses documented API-only defaults for new rulesets | [.github/governance/README.md](../.github/governance/README.md) |
 | 2026-07-15 | LOG-0013 | GitHub governance comparison identifies the managed ruleset as `ai-dev-foundation: branch-governance` and distinguishes compliant, drift, and permission-limited unknown state without treating unmanaged rules as owned | [.github/governance/README.md](../.github/governance/README.md) |

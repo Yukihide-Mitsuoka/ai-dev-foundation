@@ -62,11 +62,73 @@ class GovernanceCliTest(unittest.TestCase):
         self.assertIn("governance policy error: read failed", stderr.getvalue())
 
     def test_online_commands_require_explicit_repository(self):
-        for command in ("plan", "audit"):
+        for command in ("plan", "audit", "apply"):
             with self.subTest(command=command), contextlib.redirect_stderr(io.StringIO()):
                 with self.assertRaises(SystemExit) as raised:
                     governance.main([command, "--root", str(ROOT)])
                 self.assertEqual(raised.exception.code, 2)
+
+    def test_apply_requires_exact_confirmation_before_discovery(self):
+        for confirmation in (None, "acme/other"):
+            arguments = ["apply", "--root", str(ROOT), "--repo", "acme/demo"]
+            if confirmation:
+                arguments.extend(("--confirm-repo", confirmation))
+            stderr = io.StringIO()
+            with (
+                self.subTest(confirmation=confirmation),
+                mock.patch.object(governance, "discover_github") as discover,
+                contextlib.redirect_stderr(stderr),
+                self.assertRaises(SystemExit) as raised,
+            ):
+                governance.main(arguments)
+            self.assertEqual(raised.exception.code, 2)
+            self.assertIn("--confirm-repo must exactly match --repo", stderr.getvalue())
+            discover.assert_not_called()
+
+    def test_apply_emits_success_or_partial_failure_evidence(self):
+        cases = (
+            ({"repository": "acme/demo", "status": "compliant"}, 0, None),
+            (
+                {"failed_action": "branch.ruleset", "status": "failed"},
+                2,
+                "verification failed",
+            ),
+        )
+        for evidence, expected_exit, error in cases:
+            stdout = io.StringIO()
+            stderr = io.StringIO()
+            effect = governance.ApplyFailure(error, evidence) if error else evidence
+            with (
+                self.subTest(error=error),
+                mock.patch.object(
+                    governance, "discover_github", return_value={"inventory": True}
+                ),
+                mock.patch.object(
+                    governance,
+                    "execute_apply",
+                    side_effect=effect if error else None,
+                    return_value=None if error else effect,
+                ) as execute,
+                contextlib.redirect_stdout(stdout),
+                contextlib.redirect_stderr(stderr),
+            ):
+                exit_code = governance.main(
+                    [
+                        "apply",
+                        "--root",
+                        str(ROOT),
+                        "--repo",
+                        "acme/demo",
+                        "--confirm-repo",
+                        "acme/demo",
+                    ]
+                )
+
+            self.assertEqual(exit_code, expected_exit)
+            self.assertEqual(json.loads(stdout.getvalue()), evidence)
+            execute.assert_called_once_with(mock.ANY, {"inventory": True}, "acme/demo")
+            if error:
+                self.assertIn("governance apply error: verification failed", stderr.getvalue())
 
     def test_validate_remains_offline(self):
         stdout = io.StringIO()

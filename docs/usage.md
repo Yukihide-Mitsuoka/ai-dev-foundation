@@ -74,6 +74,8 @@ See [profiles/README.md](../profiles/README.md) for the canonical target contrac
 python3 scripts/github_governance.py validate --root .
 python3 scripts/github_governance.py plan --root . --repo OWNER/REPOSITORY
 python3 scripts/github_governance.py audit --root . --repo OWNER/REPOSITORY
+python3 scripts/github_governance.py apply --root . --repo OWNER/REPOSITORY \
+  --confirm-repo OWNER/REPOSITORY
 ```
 
 `validate` is offline. `plan` and `audit` use authenticated, GET-only `gh api` calls and
@@ -85,10 +87,10 @@ unknown state. Both return 2 for policy, input, or GitHub read failures.
 See [GitHub governance troubleshooting](troubleshooting/github-governance.md) for an
 `audit` exit 1 diagnosis.
 
-No command above changes settings. Policy-driven `apply` is not implemented yet.
-`bash scripts/setup-github.sh` remains a temporary compatibility apply path, does not
-read the policies, and applies fixed settings. Review the **Gotchas** below before using
-it on a solo repository.
+Review `plan` before `apply`. Only `apply` changes settings; it requires local repository
+Administration access and an exact target confirmation, then verifies each action by
+read-back. `bash scripts/setup-github.sh` remains temporarily for legacy security and
+repository settings that policy does not own yet; review its fixed settings separately.
 
 ### 6. Install local gates and point your agent at it
 
@@ -126,7 +128,7 @@ Install once on each new machine:
 | Tool | Needed for | Notes |
 |------|-----------|-------|
 | `git`, `make` | everything | — |
-| `gh` (GitHub CLI) | Governance `plan`/`audit`, legacy setup, auth | `gh auth login` |
+| `gh` (GitHub CLI) | Governance `plan`/`audit`/`apply`, legacy setup, auth | `gh auth login` |
 | `pre-commit` | local commit gates | `make setup` (once a profile is wired) or `pre-commit install` |
 | Stack toolchain | build/test | uv (python), pnpm+node (ts), terraform (iac) — per your profile |
 | `gitleaks`, `trivy`, `syft` | local `make security-scan` / `sbom` | optional locally; **CI enforces them regardless** |
@@ -148,20 +150,18 @@ gh auth refresh -h github.com -s workflow
 This is a **per-account / per-machine** setting — expect to do it once on each new setup.
 
 ### Solo developer + branch protection = you can't merge your own PRs
-`scripts/setup-github.sh` enables "require 1 approving review" **and** enforces it for
-admins (GR-010..012). On a repo with no second reviewer, you cannot approve your own PR,
-so nothing merges. Choose one:
+Set `required_approvals` in `.github/governance/repository.json` to match the repository.
+Requiring one approval on a repo with no second reviewer prevents self-merge. Choose one:
 
 - **Recommended (keeps the guardrail):** add a second collaborator/reviewer, or enable
   the AI reviewer ([ai-review.yml](../.github/workflows/ai-review.yml)) — note an AI
   review comment does not count as a GitHub *approval*, so for true self-merge you still
   need option below.
-- **Solo pragmatic:** relax to zero required reviews while keeping PR + status checks:
-  ```bash
-  gh api -X PATCH repos/<owner>/<repo>/branches/main/protection/required_pull_request_reviews \
-    -F required_approving_review_count=0
-  ```
+- **Solo pragmatic:** set `"required_approvals": 0` in repository policy.
   You still branch + PR + green CI (GR-010, GR-021); you just merge it yourself.
+
+The legacy `scripts/setup-github.sh` still hard-codes one approval. Solo repositories
+should use policy `apply`, not the legacy setup path.
 
 ### Line endings
 `.gitattributes` enforces LF repo-wide, so shell hooks and Makefiles stay valid on

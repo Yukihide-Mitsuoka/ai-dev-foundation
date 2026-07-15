@@ -22,7 +22,7 @@ direct, decide, and review.
 | Decisions | [`docs/adr/`](docs/adr/) | ADRs + decision log |
 | Knowledge | [`docs/`](docs/) | Architecture, domain, API, deployment, operations, runbook, troubleshooting, roadmap, glossary |
 | GitHub scaffolding | [`.github/`](.github/) | Issue forms, PR template, CODEOWNERS, labels-as-code, Dependabot; plus `renovate.json` |
-| GitHub governance | [`.github/governance/`](.github/governance/) + [`scripts/github_governance.py`](scripts/github_governance.py) | Layered policy with GET-only `plan`/`audit`; the legacy bootstrap remains the temporary apply path |
+| GitHub governance | [`.github/governance/`](.github/governance/) + [`scripts/github_governance.py`](scripts/github_governance.py) | Layered policy with `plan`/`audit` and explicitly confirmed administrator `apply` |
 | Update distribution | [`template-sync.yml`](.github/workflows/template-sync.yml) + [`.templatesyncignore`](.templatesyncignore) | Foundation updates reach downstream repos as PRs |
 
 ## Using this template
@@ -35,9 +35,10 @@ direct, decide, and review.
    (hooks, CI) starts working automatically.
 4. **Inspect GitHub governance**: run `python3 scripts/github_governance.py plan --root .
    --repo OWNER/REPOSITORY` after `gh auth login`. It reports policy drift without
-   changing settings. Use `audit` for a CI-suitable nonzero drift result. Policy-driven
-   `apply` is not implemented yet; [`scripts/setup-github.sh`](scripts/setup-github.sh)
-   remains the temporary fixed-settings apply path.
+   changing settings. Use `audit` for a CI-suitable nonzero drift result. After reviewing
+   the plan, run `apply` with an exact `--confirm-repo OWNER/REPOSITORY`. The existing
+   [`scripts/setup-github.sh`](scripts/setup-github.sh) remains temporarily for legacy
+   settings not represented in policy yet.
 5. **Install local gates**: `make setup && pre-commit install --hook-type pre-commit
    --hook-type pre-push`.
 6. **Point your agent at it**: open the repo with Claude Code (reads `CLAUDE.md`

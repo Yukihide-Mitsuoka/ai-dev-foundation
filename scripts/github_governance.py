@@ -65,6 +65,14 @@ class PolicyError(ValueError):
     """Raised when policy cannot safely be resolved."""
 
 
+class ApplyFailure(PolicyError):
+    """Raised with redacted evidence after an apply action fails."""
+
+    def __init__(self, message, evidence):
+        super().__init__(message)
+        self.evidence = copy.deepcopy(evidence)
+
+
 def _object(value, fields, label, *, partial=False):
     if type(value) is not dict:
         raise PolicyError(f"{label} must be an object")
@@ -1045,6 +1053,150 @@ def build_apply_actions(policy, inventory):
         "status": "ready" if actions else "compliant",
         "target_branch": settings["target_branch"],
     }
+
+
+def _gh_write_action(action, runner):
+    command = [
+        "gh",
+        "api",
+        "--method",
+        action["method"],
+        "-H",
+        "Accept: application/vnd.github+json",
+        "-H",
+        f"X-GitHub-Api-Version: {API_VERSION}",
+        action["endpoint"],
+    ]
+    arguments = {
+        "capture_output": True,
+        "text": True,
+        "timeout": 30,
+        "check": False,
+    }
+    if action["body"] is not None:
+        command.extend(("--input", "-"))
+        arguments["input"] = json.dumps(action["body"], separators=(",", ":"), sort_keys=True)
+    try:
+        result = runner(command, **arguments)
+    except (OSError, subprocess.SubprocessError) as error:
+        raise PolicyError(f"GitHub write could not run for action {action['id']}") from error
+    if result.returncode != 0:
+        raise PolicyError(
+            f"GitHub write failed for action {action['id']}; verify gh authentication "
+            "and repository administration access"
+        )
+
+
+def _raise_apply_failure(evidence, action_id, phase, message):
+    evidence.update(
+        {
+            "error": message,
+            "failed_action": action_id,
+            "failure_phase": phase,
+            "status": "failed",
+        }
+    )
+    raise ApplyFailure(message, evidence)
+
+
+def _verify_action(action, report):
+    controls = {control["id"]: control for control in report["controls"]}
+    return all(
+        controls.get(control_id, {}).get("status") == "compliant"
+        for control_id in action["verify_controls"]
+    )
+
+
+def execute_apply(policy, inventory, confirmed_repository, runner=None, discoverer=None):
+    """Apply one planned action at a time and verify each action by read-back."""
+    plan = build_apply_actions(policy, inventory)
+    if confirmed_repository != plan["repository"]:
+        raise PolicyError("apply repository confirmation must exactly match the planned target")
+    runner = runner or subprocess.run
+    discoverer = discoverer or discover_github
+    before = compare_governance(policy, inventory)
+    evidence = {
+        "after": before,
+        "attempted_actions": [],
+        "before": before,
+        "repository": plan["repository"],
+        "schema_version": SCHEMA_VERSION,
+        "status": "compliant" if not plan["actions"] else "applying",
+        "target_branch": plan["target_branch"],
+        "verified_actions": [],
+    }
+    while plan["actions"]:
+        action = plan["actions"][0]
+        if action["id"] in evidence["attempted_actions"]:
+            _raise_apply_failure(
+                evidence,
+                action["id"],
+                "replanning",
+                f"action {action['id']} still requires change after verification",
+            )
+        evidence["attempted_actions"].append(action["id"])
+        try:
+            _gh_write_action(action, runner)
+        except PolicyError as error:
+            _raise_apply_failure(evidence, action["id"], "write", str(error))
+        try:
+            updated = discoverer(
+                plan["repository"],
+                plan["target_branch"],
+                runner=runner,
+            )
+        except PolicyError:
+            _raise_apply_failure(
+                evidence,
+                action["id"],
+                "read_back",
+                f"GitHub read-back failed after action {action['id']}",
+            )
+        try:
+            evidence["after"] = compare_governance(policy, updated)
+        except PolicyError:
+            _raise_apply_failure(
+                evidence,
+                action["id"],
+                "verification",
+                f"GitHub read-back could not be compared after action {action['id']}",
+            )
+        if not _verify_action(action, evidence["after"]):
+            _raise_apply_failure(
+                evidence,
+                action["id"],
+                "verification",
+                f"action {action['id']} did not reach compliant state",
+            )
+        evidence["verified_actions"].append(action["id"])
+        try:
+            plan = build_apply_actions(policy, updated)
+        except PolicyError:
+            _raise_apply_failure(
+                evidence,
+                action["id"],
+                "replanning",
+                f"remaining actions could not be replanned after action {action['id']}",
+            )
+        if (
+            plan["repository"] != evidence["repository"]
+            or plan["target_branch"] != evidence["target_branch"]
+        ):
+            _raise_apply_failure(
+                evidence,
+                action["id"],
+                "replanning",
+                "apply target changed during read-back",
+            )
+    if evidence["after"]["status"] != "compliant":
+        _raise_apply_failure(
+            evidence,
+            "final_audit",
+            "verification",
+            "apply completed its actions but the final audit is not compliant",
+        )
+    evidence["status"] = "compliant"
+    return evidence
 
 
 def _reject_duplicate_keys(pairs):

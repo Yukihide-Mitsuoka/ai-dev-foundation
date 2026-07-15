@@ -41,16 +41,21 @@ GitHub setting change.
 | `validate` | Policy valid | — | Invalid policy or input |
 | `plan` | Comparison completed, including drift or unknown state | — | Policy, input, or GitHub read failure |
 | `audit` | All controls compliant | Drift or unknown state | Policy, input, or GitHub read failure |
-
 The legacy `scripts/setup-github.sh` does not read these policies. It remains a temporary
 compatibility apply path with fixed settings until the reconciler gains `apply`.
 
 ## Apply action planning boundary
 
 The internal pure-data planner converts a complete comparison into ordered GitHub REST
-requests but does not execute them; there is no public `apply` command. It may create
-only `ai-dev-foundation: branch-governance` as a repository ruleset. Organization and
-unrelated rules remain unmanaged, even when they have the same name.
+requests but the public CLI does not execute them yet. The internal execution boundary
+requires exact target confirmation, sends one action, reads it back, verifies it, and
+replans from fresh state before selecting the next action. A repeated action or any
+write, read-back, verification, or replanning failure stops with redacted partial
+evidence; it never retries or weakens protection through automatic rollback.
+
+The planner may create only `ai-dev-foundation: branch-governance` as a repository
+ruleset. Organization and unrelated rules remain unmanaged, even when they have the same
+name.
 
 For API fields absent from policy schema version 1, new rulesets require up-to-date
 checks and resolved review threads, but do not dismiss stale approvals or require code
@@ -62,8 +67,7 @@ inactive repository rulesets to prevent duplicate creation. Existing managed rul
 may be updated only with the generated branch condition and supported rule types. The
 planner preserves stricter stale-review, code-owner, merge-method, and check-integration
 constraints. Extra rules, active reviewer restrictions, unknown parameters, or missing
-detail block the update. A later slice adds target confirmation, execution,
-stop-on-failure, and read-back verification.
+detail block the update.
 
 ## GitHub discovery boundary
 
@@ -78,4 +82,4 @@ Administrator-only fields that the current token cannot read are reported as `un
 mandatory repository, branch, or effective-rules reads fail closed. The module compares
 this inventory with resolved policy as deterministic `compliant`, `drift`, or `unknown`
 controls and reports unmanaged effective rules without changing them. Public `apply`
-remains a later slice; no write behavior exists in this reconciler.
+remains a later slice.

@@ -58,7 +58,8 @@ username:
 *   @your-username
 ```
 Leaving team syntax on a personal repo makes CODEOWNERS silently ineffective —
-`scripts/setup-github.sh` warns when it detects this on a personal account.
+fix this file before applying governance because account-type inference is outside the
+compatibility wrapper.
 
 ### 4. Pick a Makefile profile
 
@@ -76,6 +77,10 @@ python3 scripts/github_governance.py plan --root . --repo OWNER/REPOSITORY
 python3 scripts/github_governance.py audit --root . --repo OWNER/REPOSITORY
 python3 scripts/github_governance.py apply --root . --repo OWNER/REPOSITORY \
   --confirm-repo OWNER/REPOSITORY
+
+# Compatibility entry point for the same plan/apply paths:
+DRY_RUN=1 bash scripts/setup-github.sh OWNER/REPOSITORY
+bash scripts/setup-github.sh OWNER/REPOSITORY --confirm-repo OWNER/REPOSITORY
 ```
 
 `validate` is offline. `plan` and `audit` use authenticated, GET-only `gh api` calls and
@@ -90,9 +95,13 @@ See [GitHub governance troubleshooting](troubleshooting/github-governance.md) fo
 Review `plan` before `apply`. Only `apply` changes settings; it requires local repository
 Administration access and an exact target confirmation, then verifies each action by
 read-back. Policy enforces squash-only merges and lets repository overrides choose
-Discussions and squash commit-message defaults. `bash scripts/setup-github.sh` remains
-temporarily as a fixed legacy entry point; use policy `apply` for new repositories while
-its compatibility wrapper is prepared.
+Discussions and squash commit-message defaults. The setup compatibility wrapper makes no
+direct `gh` call: `DRY_RUN` maps to `plan`, while normal execution requires the exact
+target twice and maps to `apply`. Its exit code is the reconciler exit code.
+
+Migration from the fixed script: the no-argument form is removed, and the wrapper no
+longer prints CODEOWNERS or other manual onboarding reminders. Pass the target explicitly
+as shown above and use this guide as the onboarding checklist.
 
 ### 6. Install local gates and point your agent at it
 
@@ -130,7 +139,7 @@ Install once on each new machine:
 | Tool | Needed for | Notes |
 |------|-----------|-------|
 | `git`, `make` | everything | — |
-| `gh` (GitHub CLI) | Governance `plan`/`audit`/`apply`, legacy setup, auth | `gh auth login` |
+| `gh` (GitHub CLI) | Governance `plan`/`audit`/`apply`, compatibility setup, auth | `gh auth login` |
 | `pre-commit` | local commit gates | `make setup` (once a profile is wired) or `pre-commit install` |
 | Stack toolchain | build/test | uv (python), pnpm+node (ts), terraform (iac) — per your profile |
 | `gitleaks`, `trivy`, `syft` | local `make security-scan` / `sbom` | optional locally; **CI enforces them regardless** |
@@ -162,8 +171,8 @@ Requiring one approval on a repo with no second reviewer prevents self-merge. Ch
 - **Solo pragmatic:** set `"required_approvals": 0` in repository policy.
   You still branch + PR + green CI (GR-010, GR-021); you just merge it yourself.
 
-The legacy `scripts/setup-github.sh` still hard-codes one approval. Solo repositories
-should use policy `apply`, not the legacy setup path.
+`scripts/setup-github.sh` delegates to the same repository policy, so the configured
+approval count applies equally through the direct CLI and compatibility entry point.
 
 ### Line endings
 `.gitattributes` enforces LF repo-wide, so shell hooks and Makefiles stay valid on

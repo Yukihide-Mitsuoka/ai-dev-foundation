@@ -37,8 +37,8 @@ direct, decide, and review.
    --repo OWNER/REPOSITORY` after `gh auth login`. It reports policy drift without
    changing settings. Use `audit` for a CI-suitable nonzero drift result. After reviewing
    the plan, run `apply` with an exact `--confirm-repo OWNER/REPOSITORY`. The existing
-   [`scripts/setup-github.sh`](scripts/setup-github.sh) remains temporarily as the legacy
-   entry point while its policy-driven compatibility wrapper is prepared.
+   [`scripts/setup-github.sh`](scripts/setup-github.sh) is a compatibility wrapper for
+   the same policy-driven `plan` and explicitly confirmed `apply` paths.
 5. **Install local gates**: `make setup && pre-commit install --hook-type pre-commit
    --hook-type pre-push`.
 6. **Point your agent at it**: open the repo with Claude Code (reads `CLAUDE.md`

@@ -50,6 +50,7 @@ def ruleset_inventory():
             {**rule_base, "type": "non_fast_forward", "parameters": {}},
         ],
         "legacy_branch_protection": {"status": "absent"},
+        "observed_checks": CHECKS,
         "repository": {"delete_branch_on_merge": True, "full_name": "acme/demo"},
         "rulesets": [{"has_bypass_actors": False, "id": 7, "name": "ai-dev-foundation: branch-governance"}],
         "security": {"dependabot_security_updates": "disabled", "push_protection": "enabled", "secret_scanning": "enabled"},
@@ -109,6 +110,16 @@ class GovernanceComparisonTest(unittest.TestCase):
 
         self.assertEqual(report["status"], "unknown")
         self.assertEqual(control(report, "branch.admin_bypass_allowed")["status"], "unknown")
+
+    def test_unobserved_required_check_is_drift(self):
+        inventory = ruleset_inventory()
+        inventory["observed_checks"] = CHECKS[:-1]
+
+        report = governance.compare_governance(resolved_policy(), inventory)
+
+        observed = control(report, "branch.required_status_checks_observed")
+        self.assertEqual(observed["status"], "drift")
+        self.assertEqual(observed["current"], CHECKS[:-1])
 
     def test_legacy_backend_can_be_compliant(self):
         report = governance.compare_governance(resolved_policy("legacy_branch_protection"), legacy_inventory())

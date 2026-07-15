@@ -9,6 +9,8 @@ SPEC = importlib.util.spec_from_file_location("github_governance_discovery", MOD
 governance = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(governance)
 
+SHA = "a" * 40
+
 
 class Completed:
     def __init__(self, returncode=0, payload=None):
@@ -38,6 +40,21 @@ def repository_payload(security=True):
     return payload
 
 
+def branch_payload(protected):
+    return {"commit": {"sha": SHA}, "name": "main", "protected": protected}
+
+
+def observed_check_responses():
+    return {
+        f"repos/acme/demo/commits/{SHA}/check-runs?per_page=100": Completed(
+            payload=[{"check_runs": [{"name": "test"}, {"name": "lint"}]}]
+        ),
+        f"repos/acme/demo/commits/{SHA}/statuses?per_page=100": Completed(
+            payload=[[{"context": "deploy"}]]
+        ),
+    }
+
+
 class GitHubDiscoveryTest(unittest.TestCase):
     def test_discovery_is_get_only_and_redacts_bypass_actor_details(self):
         rules = [
@@ -51,8 +68,9 @@ class GitHubDiscoveryTest(unittest.TestCase):
         ]
         runner = FakeRunner(
             {
+                **observed_check_responses(),
                 "repos/acme/demo": Completed(payload=repository_payload()),
-                "repos/acme/demo/branches/main": Completed(payload={"name": "main", "protected": True}),
+                "repos/acme/demo/branches/main": Completed(payload=branch_payload(True)),
                 "repos/acme/demo/rules/branches/main?per_page=100": Completed(payload=[rules]),
                 "repos/acme/demo/rulesets/7": Completed(
                     payload={"id": 7, "name": "main governance", "bypass_actors": [{"actor_id": 123}]}
@@ -75,6 +93,7 @@ class GitHubDiscoveryTest(unittest.TestCase):
 
         self.assertEqual(result["rulesets"][0]["has_bypass_actors"], True)
         self.assertEqual(result["legacy_branch_protection"]["status"], "configured")
+        self.assertEqual(result["observed_checks"], ["deploy", "lint", "test"])
         self.assertNotIn("123", json.dumps(result))
         for command, kwargs in runner.calls:
             self.assertEqual(command[command.index("--method") + 1], "GET")
@@ -93,8 +112,9 @@ class GitHubDiscoveryTest(unittest.TestCase):
         ]
         runner = FakeRunner(
             {
+                **observed_check_responses(),
                 "repos/acme/demo": Completed(payload=repository_payload(security=False)),
-                "repos/acme/demo/branches/main": Completed(payload={"name": "main", "protected": True}),
+                "repos/acme/demo/branches/main": Completed(payload=branch_payload(True)),
                 "repos/acme/demo/rules/branches/main?per_page=100": Completed(payload=[rules]),
             }
         )
@@ -109,8 +129,9 @@ class GitHubDiscoveryTest(unittest.TestCase):
     def test_unprotected_branch_skips_legacy_admin_endpoint(self):
         runner = FakeRunner(
             {
+                **observed_check_responses(),
                 "repos/acme/demo": Completed(payload=repository_payload()),
-                "repos/acme/demo/branches/main": Completed(payload={"name": "main", "protected": False}),
+                "repos/acme/demo/branches/main": Completed(payload=branch_payload(False)),
                 "repos/acme/demo/rules/branches/main?per_page=100": Completed(payload=[[]]),
             }
         )
@@ -123,6 +144,35 @@ class GitHubDiscoveryTest(unittest.TestCase):
 
     def test_required_read_failure_stops_closed(self):
         runner = FakeRunner({"repos/acme/demo": Completed(returncode=1)})
+
+        with self.assertRaises(governance.PolicyError):
+            governance.discover_github("acme/demo", "main", runner=runner)
+
+    def test_invalid_check_run_page_stops_closed(self):
+        runner = FakeRunner(
+            {
+                "repos/acme/demo": Completed(payload=repository_payload()),
+                "repos/acme/demo/branches/main": Completed(payload=branch_payload(False)),
+                "repos/acme/demo/rules/branches/main?per_page=100": Completed(payload=[[]]),
+                f"repos/acme/demo/commits/{SHA}/check-runs?per_page=100": Completed(
+                    payload=[[{"name": "lint"}]]
+                ),
+            }
+        )
+
+        with self.assertRaises(governance.PolicyError):
+            governance.discover_github("acme/demo", "main", runner=runner)
+
+    def test_invalid_branch_commit_sha_stops_closed(self):
+        runner = FakeRunner(
+            {
+                "repos/acme/demo": Completed(payload=repository_payload()),
+                "repos/acme/demo/branches/main": Completed(
+                    payload={"commit": {"sha": "../main"}, "name": "main", "protected": False}
+                ),
+                "repos/acme/demo/rules/branches/main?per_page=100": Completed(payload=[[]]),
+            }
+        )
 
         with self.assertRaises(governance.PolicyError):
             governance.discover_github("acme/demo", "main", runner=runner)

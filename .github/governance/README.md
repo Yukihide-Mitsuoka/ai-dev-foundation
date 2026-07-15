@@ -20,18 +20,30 @@ Repository overrides may set `target_branch`, `enforcement_backend`, approval co
 last-push approval, required check names, one dependency-update provider, and merged
 branch deletion. Unknown fields and attempts to override foundation minimums fail.
 
-## Validate and resolve
+## Validate, plan, and audit
 
 Python 3 is required; no third-party package is used.
 
 ```bash
 python3 scripts/github_governance.py validate --root .
+python3 scripts/github_governance.py plan --root . --repo OWNER/REPOSITORY
+python3 scripts/github_governance.py audit --root . --repo OWNER/REPOSITORY
 ```
 
-The command validates both layers, verifies that every `rule_refs` ID exists, and prints
-the resolved policy as stable JSON. It performs no authentication, network request, or
-GitHub setting change. The legacy `scripts/setup-github.sh` does not read these files and
-remains the apply entry point until later slices add `plan`, `audit`, and `apply`.
+`validate` resolves both layers without authentication or network access. `plan` and
+`audit` require authenticated `gh` read access and print the same stable, redacted JSON
+comparison. They also verify that every required check name is observed on the target
+branch head; unrelated observed checks do not create drift. All three commands make no
+GitHub setting change.
+
+| Command | Exit 0 | Exit 1 | Exit 2 |
+|---------|--------|--------|--------|
+| `validate` | Policy valid | — | Invalid policy or input |
+| `plan` | Comparison completed, including drift or unknown state | — | Policy, input, or GitHub read failure |
+| `audit` | All controls compliant | Drift or unknown state | Policy, input, or GitHub read failure |
+
+The legacy `scripts/setup-github.sh` does not read these policies. It remains a temporary
+compatibility apply path with fixed settings until the reconciler gains `apply`.
 
 ## GitHub discovery boundary
 
@@ -39,10 +51,11 @@ The Python module now has an internal, GET-only discovery boundary for repositor
 branch, effective-rules, ruleset, legacy-protection, and security state. It pins GitHub
 REST API version `2026-03-10`, validates repository and branch targets before invoking
 `gh api`, uses a 30-second timeout, and retains only fields needed for governance.
-Ruleset bypass identities are reduced to a boolean and never retained.
+Ruleset bypass identities are reduced to a boolean and never retained. Check runs and
+commit statuses are reduced to names before comparison.
 
 Administrator-only fields that the current token cannot read are reported as `unknown`;
 mandatory repository, branch, or effective-rules reads fail closed. The module compares
 this inventory with resolved policy as deterministic `compliant`, `drift`, or `unknown`
-controls and reports unmanaged effective rules without changing them. Public `plan` and
-`audit` CLI commands remain a later slice; no write behavior exists in this slice.
+controls and reports unmanaged effective rules without changing them. Public `apply`
+remains a later slice; no write behavior exists in this reconciler.

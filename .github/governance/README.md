@@ -32,3 +32,16 @@ The command validates both layers, verifies that every `rule_refs` ID exists, an
 the resolved policy as stable JSON. It performs no authentication, network request, or
 GitHub setting change. The legacy `scripts/setup-github.sh` does not read these files and
 remains the apply entry point until later slices add `plan`, `audit`, and `apply`.
+
+## GitHub discovery boundary
+
+The Python module now has an internal, GET-only discovery boundary for repository,
+branch, effective-rules, ruleset, legacy-protection, and security state. It pins GitHub
+REST API version `2026-03-10`, validates repository and branch targets before invoking
+`gh api`, uses a 30-second timeout, and retains only fields needed for governance.
+Ruleset bypass identities are reduced to a boolean and never retained.
+
+Administrator-only fields that the current token cannot read are reported as `unknown`;
+mandatory repository, branch, or effective-rules reads fail closed. Discovery is not a
+public CLI command yet. The next slice will normalize this inventory against the resolved
+policy for deterministic `plan` and `audit` output; no write behavior exists in this slice.

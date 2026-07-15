@@ -74,6 +74,8 @@ cp profiles/python-uv/Makefile ./Makefile      # または typescript-node / ter
 python3 scripts/github_governance.py validate --root .
 python3 scripts/github_governance.py plan --root . --repo OWNER/REPOSITORY
 python3 scripts/github_governance.py audit --root . --repo OWNER/REPOSITORY
+python3 scripts/github_governance.py apply --root . --repo OWNER/REPOSITORY \
+  --confirm-repo OWNER/REPOSITORY
 ```
 
 `validate` はオフラインで動作します。`plan` と `audit` は認証済みのGET-only
@@ -85,9 +87,10 @@ python3 scripts/github_governance.py audit --root . --repo OWNER/REPOSITORY
 `audit`が1で終了した場合の対処は
 [GitHubガバナンスのトラブルシューティング](troubleshooting/github-governance.md)を参照してください。
 
-上記コマンドは設定を変更しません。policy駆動の`apply`は未実装です。
-`bash scripts/setup-github.sh`は一時的な互換apply経路として残っていますが、policyを
-読まず固定設定を適用します。ソロリポジトリで使う前に下の**落とし穴**を確認してください。
+`apply`の前に`plan`を確認してください。設定を変更するのは`apply`だけで、ローカルの
+Administration権限と対象名の完全一致確認が必要です。各操作は再読込で検証されます。
+`bash scripts/setup-github.sh`は、policyがまだ所有しないセキュリティ・リポジトリ設定のため
+一時的に残します。固定設定の内容を別途確認してください。
 
 ### 6. ローカルゲート導入 → エージェントに向ける
 
@@ -125,7 +128,7 @@ make doctor                            # テンプレートが壊れていない
 | ツール | 用途 | 備考 |
 |--------|------|------|
 | `git`, `make` | 全般 | — |
-| `gh`（GitHub CLI）| ガバナンス`plan`/`audit`・旧setup・認証 | `gh auth login` |
+| `gh`（GitHub CLI）| ガバナンス`plan`/`audit`/`apply`・旧setup・認証 | `gh auth login` |
 | `pre-commit` | ローカルコミットゲート | `make setup`（プロファイル導入後）または `pre-commit install` |
 | スタックのツールチェーン | build/test | uv(python) / pnpm+node(ts) / terraform(iac) |
 | `gitleaks`, `trivy`, `syft` | ローカルの `make security-scan` / `sbom` | ローカルは任意。**CIは常時強制** |
@@ -147,18 +150,17 @@ gh auth refresh -h github.com -s workflow
 これは**アカウント／マシンごと**の設定です。新環境ごとに一度実施する想定でいてください。
 
 ### ソロ開発 × ブランチ保護 ＝ 自分のPRをマージできない
-`scripts/setup-github.sh` は「レビュー1件必須」を有効化し、admin にも強制します（GR-010〜012）。
-第二のレビュアーがいないと自分のPRを承認できず、何もマージできません。どちらか選択:
+`.github/governance/repository.json`の`required_approvals`をリポジトリ体制に合わせます。
+第二のレビュアーなしで1件必須にすると自己マージできません。どちらか選択:
 
 - **推奨（ガードレール維持）:** 共同開発者/レビュアーを1人追加、または AI レビュアー
   （[ai-review.yml](../.github/workflows/ai-review.yml)）を有効化。ただしAIのレビューコメントは
   GitHub上の *approval* にはならないため、真の自己マージには下の方法が必要。
-- **ソロ実用:** PR＋ステータスチェックは維持したままレビュー必須数を0に:
-  ```bash
-  gh api -X PATCH repos/<owner>/<repo>/branches/main/protection/required_pull_request_reviews \
-    -F required_approving_review_count=0
-  ```
+- **ソロ実用:** repository policyで`"required_approvals": 0`に設定。
   これでも「ブランチ＋PR＋CI緑」（GR-010, GR-021）は保たれ、マージだけ自分で行えます。
+
+旧`scripts/setup-github.sh`はレビュー1件を固定します。ソロリポジトリでは旧setupではなく
+policyの`apply`を使用してください。
 
 ### 改行コード
 `.gitattributes` がリポジトリ全体を LF 強制するので、Windows チェックアウトでもシェルフックと

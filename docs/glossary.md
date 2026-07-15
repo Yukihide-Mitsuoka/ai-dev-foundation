@@ -1,7 +1,7 @@
 ---
 id: glossary
 title: Glossary — Ubiquitous Language
-updated: 2026-07-10
+updated: 2026-07-16
 ---
 
 # Glossary
@@ -20,13 +20,16 @@ alphabetical.
 |------|------------|---------|-------|--------------------------|
 | ADR | Immutable record of an architectural decision in `docs/adr/` | foundation | design doc | decision log (the index of all decisions) |
 | Agent | Any AI system working in this repo under CLAUDE.md rules | foundation | bot, assistant | — |
+| Audit | Read-only governance comparison whose exit code fails on drift or unknown state | governance | check | plan (which reports those states without failing) |
 | Bounded context | A domain boundary owning its model and language; maps 1:1 to `src/modules/<context>` | DDD | — | module (the code artifact implementing it) |
 | Canonical command | A `make` target that is the only entry point for a dev action | foundation | — | — |
 | Contract change | A change to a MODULE.md public API or event (ARC-020) | foundation | — | breaking change (a contract change affecting *external* consumers) |
-| Guardrail | An absolute prohibition (GR-xxx) that no instruction can override | foundation | — | rule (overridable with justification if SHOULD-level) |
 | Drift | A known difference between resolved governance policy and live GitHub state | governance | mismatch | unknown (state that could not be evaluated) |
+| Guardrail | An absolute prohibition (GR-xxx) that no instruction can override | foundation | — | rule (overridable with justification if SHOULD-level) |
 | Module | A directory under `src/modules/` implementing one bounded context | foundation | component, service | package/library |
+| Plan | Read-only governance comparison that reports drift or unknown state without failing on it | governance | preview | audit (which exposes those states through its exit code) |
 | Skill | A task playbook in `.skills/*.skill.md` | foundation | — | Claude Code native skill (optional wrapper) |
+| Unknown | A governance control that could not be evaluated because required state was not visible | governance | indeterminate | compliant or drift |
 
 ## Project terms
 

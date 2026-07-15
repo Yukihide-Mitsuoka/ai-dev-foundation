@@ -22,7 +22,7 @@ direct, decide, and review.
 | Decisions | [`docs/adr/`](docs/adr/) | ADRs + decision log |
 | Knowledge | [`docs/`](docs/) | Architecture, domain, API, deployment, operations, runbook, troubleshooting, roadmap, glossary |
 | GitHub scaffolding | [`.github/`](.github/) | Issue forms, PR template, CODEOWNERS, labels-as-code, Dependabot; plus `renovate.json` |
-| Governance bootstrap | [`scripts/setup-github.sh`](scripts/setup-github.sh) | One command applies branch protection, secret scanning, merge policy via `gh` |
+| GitHub governance | [`.github/governance/`](.github/governance/) + [`scripts/github_governance.py`](scripts/github_governance.py) | Layered policy with GET-only `plan`/`audit`; the legacy bootstrap remains the temporary apply path |
 | Update distribution | [`template-sync.yml`](.github/workflows/template-sync.yml) + [`.templatesyncignore`](.templatesyncignore) | Foundation updates reach downstream repos as PRs |
 
 ## Using this template
@@ -33,11 +33,11 @@ direct, decide, and review.
 3. **Wire the Makefile**: copy the closest [`profiles/`](profiles/) Makefile to the
    root (or implement `setup/format/lint/test/build` yourself) — everything else
    (hooks, CI) starts working automatically.
-4. **Configure GitHub** (one-time): run `bash scripts/setup-github.sh` (requires
-   `gh auth login` with admin) — it applies branch protection, secret scanning + push
-   protection, private vulnerability reporting, squash-only merges, and prints the few
-   remaining manual steps (Renovate app, Discussion categories, CodeQL languages,
-   optional AI-review/DAST variables).
+4. **Inspect GitHub governance**: run `python3 scripts/github_governance.py plan --root .
+   --repo OWNER/REPOSITORY` after `gh auth login`. It reports policy drift without
+   changing settings. Use `audit` for a CI-suitable nonzero drift result. Policy-driven
+   `apply` is not implemented yet; [`scripts/setup-github.sh`](scripts/setup-github.sh)
+   remains the temporary fixed-settings apply path.
 5. **Install local gates**: `make setup && pre-commit install --hook-type pre-commit
    --hook-type pre-push`.
 6. **Point your agent at it**: open the repo with Claude Code (reads `CLAUDE.md`

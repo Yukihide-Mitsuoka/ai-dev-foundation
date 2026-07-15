@@ -1,7 +1,7 @@
 ---
 id: usage
 title: Usage — New Machine, New Account, New Project
-updated: 2026-07-02
+updated: 2026-07-16
 ---
 
 # Usage
@@ -68,13 +68,27 @@ cp profiles/python-uv/Makefile ./Makefile      # or typescript-node / terraform-
 ```
 See [profiles/README.md](../profiles/README.md) for the canonical target contract.
 
-### 5. Configure GitHub governance
+### 5. Inspect GitHub governance
 
 ```bash
-bash scripts/setup-github.sh          # branch protection, secret scanning, merge policy
+python3 scripts/github_governance.py validate --root .
+python3 scripts/github_governance.py plan --root . --repo OWNER/REPOSITORY
+python3 scripts/github_governance.py audit --root . --repo OWNER/REPOSITORY
 ```
-Then the manual items it prints (Renovate app, Discussion categories, CodeQL languages).
-See the **Gotchas** below before enabling required reviews on a solo repo.
+
+`validate` is offline. `plan` and `audit` use authenticated, GET-only `gh api` calls and
+print the same redacted JSON comparison. The comparison flags a required check name that
+is not observed on the target branch head and ignores unrelated observed checks. `plan`
+returns 0 after a completed comparison; `audit` returns 1 for drift or permission-limited
+unknown state. Both return 2 for policy, input, or GitHub read failures.
+
+See [GitHub governance troubleshooting](troubleshooting/github-governance.md) for an
+`audit` exit 1 diagnosis.
+
+No command above changes settings. Policy-driven `apply` is not implemented yet.
+`bash scripts/setup-github.sh` remains a temporary compatibility apply path, does not
+read the policies, and applies fixed settings. Review the **Gotchas** below before using
+it on a solo repository.
 
 ### 6. Install local gates and point your agent at it
 
@@ -112,7 +126,7 @@ Install once on each new machine:
 | Tool | Needed for | Notes |
 |------|-----------|-------|
 | `git`, `make` | everything | — |
-| `gh` (GitHub CLI) | `scripts/setup-github.sh`, auth | `gh auth login` |
+| `gh` (GitHub CLI) | Governance `plan`/`audit`, legacy setup, auth | `gh auth login` |
 | `pre-commit` | local commit gates | `make setup` (once a profile is wired) or `pre-commit install` |
 | Stack toolchain | build/test | uv (python), pnpm+node (ts), terraform (iac) — per your profile |
 | `gitleaks`, `trivy`, `syft` | local `make security-scan` / `sbom` | optional locally; **CI enforces them regardless** |

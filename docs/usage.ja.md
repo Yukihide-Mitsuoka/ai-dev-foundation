@@ -1,7 +1,7 @@
 ---
 id: usage-ja
 title: 使い方（日本語）— 新しいPC / 別アカウント / 新規プロジェクト
-updated: 2026-07-03
+updated: 2026-07-16
 ---
 
 # 使い方（日本語セットアップ手順書）
@@ -68,13 +68,26 @@ cp profiles/python-uv/Makefile ./Makefile      # または typescript-node / ter
 ```
 正準ターゲット契約は [profiles/README.md](../profiles/README.md) を参照。
 
-### 5. GitHub ガバナンスを設定
+### 5. GitHub ガバナンスを点検
 
 ```bash
-bash scripts/setup-github.sh          # ブランチ保護・secret scanning・マージ方針
+python3 scripts/github_governance.py validate --root .
+python3 scripts/github_governance.py plan --root . --repo OWNER/REPOSITORY
+python3 scripts/github_governance.py audit --root . --repo OWNER/REPOSITORY
 ```
-その後、出力される手動項目（Renovate app、Discussion カテゴリ、CodeQL言語）を実施。
-**ソロ開発の場合は下の「落とし穴」を読んでから**レビュー必須を有効にしてください。
+
+`validate` はオフラインで動作します。`plan` と `audit` は認証済みのGET-only
+`gh api` を使用し、同じ秘匿化済みJSON比較を出力します。対象branch先端で必要check名が
+観測されない場合はdriftとし、無関係なcheckはdriftにしません。`plan` は比較完了時に0、
+`audit` はdriftまたは権限不足によるunknown時に1、policy・入力・GitHub読み取りの失敗時には
+どちらも2を返します。
+
+`audit`が1で終了した場合の対処は
+[GitHubガバナンスのトラブルシューティング](troubleshooting/github-governance.md)を参照してください。
+
+上記コマンドは設定を変更しません。policy駆動の`apply`は未実装です。
+`bash scripts/setup-github.sh`は一時的な互換apply経路として残っていますが、policyを
+読まず固定設定を適用します。ソロリポジトリで使う前に下の**落とし穴**を確認してください。
 
 ### 6. ローカルゲート導入 → エージェントに向ける
 
@@ -112,7 +125,7 @@ make doctor                            # テンプレートが壊れていない
 | ツール | 用途 | 備考 |
 |--------|------|------|
 | `git`, `make` | 全般 | — |
-| `gh`（GitHub CLI）| `scripts/setup-github.sh`・認証 | `gh auth login` |
+| `gh`（GitHub CLI）| ガバナンス`plan`/`audit`・旧setup・認証 | `gh auth login` |
 | `pre-commit` | ローカルコミットゲート | `make setup`（プロファイル導入後）または `pre-commit install` |
 | スタックのツールチェーン | build/test | uv(python) / pnpm+node(ts) / terraform(iac) |
 | `gitleaks`, `trivy`, `syft` | ローカルの `make security-scan` / `sbom` | ローカルは任意。**CIは常時強制** |

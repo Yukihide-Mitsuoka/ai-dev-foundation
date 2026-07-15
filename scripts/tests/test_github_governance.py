@@ -9,7 +9,7 @@ SPEC = importlib.util.spec_from_file_location("github_governance", MODULE_PATH)
 governance = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(governance)
 
-KNOWN_RULES = {"GR-010", "GR-011", "GR-012", "SEC-002"}
+KNOWN_RULES = {"GR-010", "GR-011", "GR-012", "SEC-002", "SEC-003"}
 
 
 def foundation_policy():
@@ -23,6 +23,11 @@ def foundation_policy():
             "admin_bypass_allowed": {"value": False, "rule_refs": ["GR-010", "GR-012"]},
             "secret_scanning_enabled": {"value": True, "rule_refs": ["SEC-002"]},
             "push_protection_enabled": {"value": True, "rule_refs": ["SEC-002"]},
+            "vulnerability_alerts_enabled": {"value": True, "rule_refs": ["SEC-003"]},
+            "private_vulnerability_reporting_enabled": {
+                "value": True,
+                "rule_refs": ["SEC-003"],
+            },
         },
         "defaults": {
             "target_branch": "main",

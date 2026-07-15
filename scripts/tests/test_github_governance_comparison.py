@@ -52,7 +52,15 @@ def ruleset_inventory():
         "legacy_branch_protection": {"status": "absent"},
         "observed_checks": CHECKS,
         "repository": {"delete_branch_on_merge": True, "full_name": "acme/demo"},
-        "rulesets": [{"has_bypass_actors": False, "id": 7, "name": "ai-dev-foundation: branch-governance"}],
+        "rulesets": [
+            {
+                "has_bypass_actors": False,
+                "id": 7,
+                "name": "ai-dev-foundation: branch-governance",
+                "source": "acme/demo",
+                "source_type": "Repository",
+            }
+        ],
         "security": {"dependabot_security_updates": "disabled", "push_protection": "enabled", "secret_scanning": "enabled"},
     }
 

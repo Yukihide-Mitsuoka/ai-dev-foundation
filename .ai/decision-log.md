@@ -17,6 +17,7 @@ old one. One line per entry. AI agents append entries in the same PR as the chan
 
 | Date | ID | Decision | Link |
 |------|----|----------|------|
+| 2026-07-16 | LOG-0014 | GitHub governance apply planning may create only the stable repository ruleset; it refuses existing-ruleset updates until stricter fields can be preserved, and uses documented API-only defaults for new rulesets | [.github/governance/README.md](../.github/governance/README.md) |
 | 2026-07-15 | LOG-0013 | GitHub governance comparison identifies the managed ruleset as `ai-dev-foundation: branch-governance` and distinguishes compliant, drift, and permission-limited unknown state without treating unmanaged rules as owned | [.github/governance/README.md](../.github/governance/README.md) |
 | 2026-07-15 | ADR-0003 (accepted) | Repository owner approved the layered GitHub governance policy and deterministic reconciler architecture in PR #19 | [ADR-0003](../docs/adr/0003-reconcile-github-governance-from-inherited-policy.md) |
 | 2026-07-15 | ADR-0003 (proposed) | Replace the one-time GitHub governance bootstrap with a layered, rule-ID-mapped policy and deterministic plan/audit/apply reconciler; keep administrator apply credentials local, preserve downstream overrides, and reject any weakening of foundation MUST controls | [ADR-0003](../docs/adr/0003-reconcile-github-governance-from-inherited-policy.md) |

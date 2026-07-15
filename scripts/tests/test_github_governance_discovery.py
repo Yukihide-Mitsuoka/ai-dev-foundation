@@ -46,6 +46,9 @@ def branch_payload(protected):
 
 def observed_check_responses():
     return {
+        "repos/acme/demo/rulesets?includes_parents=false&per_page=100": Completed(
+            payload=[[]]
+        ),
         f"repos/acme/demo/commits/{SHA}/check-runs?per_page=100": Completed(
             payload=[{"check_runs": [{"name": "test"}, {"name": "lint"}]}]
         ),
@@ -72,6 +75,18 @@ class GitHubDiscoveryTest(unittest.TestCase):
                 "repos/acme/demo": Completed(payload=repository_payload()),
                 "repos/acme/demo/branches/main": Completed(payload=branch_payload(True)),
                 "repos/acme/demo/rules/branches/main?per_page=100": Completed(payload=[rules]),
+                "repos/acme/demo/rulesets?includes_parents=false&per_page=100": Completed(
+                    payload=[
+                        [
+                            {
+                                "id": 8,
+                                "name": "inactive governance",
+                                "source": "acme/demo",
+                                "source_type": "Repository",
+                            }
+                        ]
+                    ]
+                ),
                 "repos/acme/demo/rulesets/7": Completed(
                     payload={"id": 7, "name": "main governance", "bypass_actors": [{"actor_id": 123}]}
                 ),
@@ -92,9 +107,11 @@ class GitHubDiscoveryTest(unittest.TestCase):
         result = governance.discover_github("acme/demo", "main", runner=runner)
 
         self.assertEqual(result["rulesets"][0]["has_bypass_actors"], True)
+        self.assertEqual(result["rulesets"][1]["name"], "inactive governance")
         self.assertEqual(result["legacy_branch_protection"]["status"], "configured")
         self.assertEqual(result["observed_checks"], ["deploy", "lint", "test"])
         self.assertNotIn("123", json.dumps(result))
+        self.assertNotIn("repos/acme/demo/rulesets/8", [call[0][-1] for call in runner.calls])
         for command, kwargs in runner.calls:
             self.assertEqual(command[command.index("--method") + 1], "GET")
             self.assertIn("X-GitHub-Api-Version: 2026-03-10", command)

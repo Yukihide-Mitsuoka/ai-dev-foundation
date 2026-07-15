@@ -45,10 +45,27 @@ GitHub setting change.
 The legacy `scripts/setup-github.sh` does not read these policies. It remains a temporary
 compatibility apply path with fixed settings until the reconciler gains `apply`.
 
+## Apply action planning boundary
+
+The internal pure-data planner converts a complete comparison into ordered GitHub REST
+requests but does not execute them; there is no public `apply` command. It may create
+only `ai-dev-foundation: branch-governance` as a repository ruleset. Organization and
+unrelated rules remain unmanaged, even when they have the same name.
+
+For API fields absent from policy schema version 1, new rulesets require up-to-date
+checks and resolved review threads, but do not dismiss stale approvals or require code
+owners. Changing these defaults requires a reviewed schema migration.
+
+Each action records controls, side effects, method, endpoint, and body. Planning fails
+closed on unknown state, unobserved checks, or unsafe backend updates. Discovery lists
+inactive repository rulesets to prevent duplicate creation. Existing managed ruleset
+updates remain rejected until stricter fields can be preserved. A later slice adds safe
+updates, target confirmation, execution, stop-on-failure, and read-back verification.
+
 ## GitHub discovery boundary
 
 The Python module now has an internal, GET-only discovery boundary for repository,
-branch, effective-rules, ruleset, legacy-protection, and security state. It pins GitHub
+branch, effective-rules, all repository rulesets, legacy-protection, and security. It pins GitHub
 REST API version `2026-03-10`, validates repository and branch targets before invoking
 `gh api`, uses a 30-second timeout, and retains only fields needed for governance.
 Ruleset bypass identities are reduced to a boolean and never retained. Check runs and

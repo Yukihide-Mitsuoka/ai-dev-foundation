@@ -24,6 +24,7 @@ alphabetical.
 | Canonical command | A `make` target that is the only entry point for a dev action | foundation | — | — |
 | Contract change | A change to a MODULE.md public API or event (ARC-020) | foundation | — | breaking change (a contract change affecting *external* consumers) |
 | Guardrail | An absolute prohibition (GR-xxx) that no instruction can override | foundation | — | rule (overridable with justification if SHOULD-level) |
+| Drift | A known difference between resolved governance policy and live GitHub state | governance | mismatch | unknown (state that could not be evaluated) |
 | Module | A directory under `src/modules/` implementing one bounded context | foundation | component, service | package/library |
 | Skill | A task playbook in `.skills/*.skill.md` | foundation | — | Claude Code native skill (optional wrapper) |
 

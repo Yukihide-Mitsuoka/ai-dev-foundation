@@ -42,6 +42,7 @@ REST API version `2026-03-10`, validates repository and branch targets before in
 Ruleset bypass identities are reduced to a boolean and never retained.
 
 Administrator-only fields that the current token cannot read are reported as `unknown`;
-mandatory repository, branch, or effective-rules reads fail closed. Discovery is not a
-public CLI command yet. The next slice will normalize this inventory against the resolved
-policy for deterministic `plan` and `audit` output; no write behavior exists in this slice.
+mandatory repository, branch, or effective-rules reads fail closed. The module compares
+this inventory with resolved policy as deterministic `compliant`, `drift`, or `unknown`
+controls and reports unmanaged effective rules without changing them. Public `plan` and
+`audit` CLI commands remain a later slice; no write behavior exists in this slice.

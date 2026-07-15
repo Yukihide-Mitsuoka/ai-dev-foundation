@@ -58,9 +58,12 @@ owners. Changing these defaults requires a reviewed schema migration.
 
 Each action records controls, side effects, method, endpoint, and body. Planning fails
 closed on unknown state, unobserved checks, or unsafe backend updates. Discovery lists
-inactive repository rulesets to prevent duplicate creation. Existing managed ruleset
-updates remain rejected until stricter fields can be preserved. A later slice adds safe
-updates, target confirmation, execution, stop-on-failure, and read-back verification.
+inactive repository rulesets to prevent duplicate creation. Existing managed rulesets
+may be updated only with the generated branch condition and supported rule types. The
+planner preserves stricter stale-review, code-owner, merge-method, and check-integration
+constraints. Extra rules, active reviewer restrictions, unknown parameters, or missing
+detail block the update. A later slice adds target confirmation, execution,
+stop-on-failure, and read-back verification.
 
 ## GitHub discovery boundary
 

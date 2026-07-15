@@ -88,7 +88,38 @@ class GitHubDiscoveryTest(unittest.TestCase):
                     ]
                 ),
                 "repos/acme/demo/rulesets/7": Completed(
-                    payload={"id": 7, "name": "main governance", "bypass_actors": [{"actor_id": 123}]}
+                    payload={
+                        "bypass_actors": [{"actor_id": 123}],
+                        "conditions": {
+                            "ref_name": {"exclude": [], "include": ["refs/heads/main"]}
+                        },
+                        "id": 7,
+                        "name": governance.MANAGED_RULESET_NAME,
+                        "rules": [
+                            {
+                                "parameters": {
+                                    "allowed_merge_methods": ["squash"],
+                                    "dismiss_stale_reviews_on_push": True,
+                                    "require_code_owner_review": True,
+                                    "require_last_push_approval": False,
+                                    "required_approving_review_count": 0,
+                                    "required_review_thread_resolution": True,
+                                },
+                                "type": "pull_request",
+                            },
+                            {
+                                "parameters": {
+                                    "required_status_checks": [
+                                        {"context": "lint", "integration_id": 42}
+                                    ],
+                                    "strict_required_status_checks_policy": True,
+                                },
+                                "type": "required_status_checks",
+                            },
+                            {"type": "non_fast_forward"},
+                        ],
+                        "target": "branch",
+                    }
                 ),
                 "repos/acme/demo/branches/main/protection": Completed(
                     payload={
@@ -107,6 +138,17 @@ class GitHubDiscoveryTest(unittest.TestCase):
         result = governance.discover_github("acme/demo", "main", runner=runner)
 
         self.assertEqual(result["rulesets"][0]["has_bypass_actors"], True)
+        self.assertTrue(
+            result["rulesets"][0]["update_state"]["pull_request"][
+                "dismiss_stale_reviews_on_push"
+            ]
+        )
+        self.assertEqual(
+            result["rulesets"][0]["update_state"]["required_status_checks"][0][
+                "integration_id"
+            ],
+            42,
+        )
         self.assertEqual(result["rulesets"][1]["name"], "inactive governance")
         self.assertEqual(result["legacy_branch_protection"]["status"], "configured")
         self.assertEqual(result["observed_checks"], ["deploy", "lint", "test"])

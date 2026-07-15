@@ -43,6 +43,22 @@ BRANCH_CONTROL_IDS = {
     "force": "branch.force_pushes_allowed",
     "pull": "branch.pull_request",
 }
+MANAGED_RULE_TYPES = {"non_fast_forward", "pull_request", "required_status_checks"}
+PULL_PARAMETER_FIELDS = {
+    "allowed_merge_methods",
+    "dismiss_stale_reviews_on_push",
+    "dismissal_restriction",
+    "require_code_owner_review",
+    "require_last_push_approval",
+    "required_approving_review_count",
+    "required_review_thread_resolution",
+    "required_reviewers",
+}
+STATUS_PARAMETER_FIELDS = {
+    "do_not_enforce_on_create",
+    "required_status_checks",
+    "strict_required_status_checks_policy",
+}
 
 
 class PolicyError(ValueError):
@@ -277,6 +293,134 @@ def _safe_rule_parameters(rule):
     return {}
 
 
+def _update_conditions(detail, unsupported):
+    conditions = detail.get("conditions")
+    ref_name = conditions.get("ref_name") if type(conditions) is dict else None
+    if (
+        type(conditions) is not dict
+        or set(conditions) != {"ref_name"}
+        or type(ref_name) is not dict
+        or set(ref_name) != {"exclude", "include"}
+    ):
+        unsupported.append("invalid_conditions")
+        return UNKNOWN
+    include = ref_name["include"]
+    exclude = ref_name["exclude"]
+    if type(include) is not list or type(exclude) is not list or any(
+        type(item) is not str for item in include + exclude
+    ):
+        unsupported.append("invalid_conditions")
+        return UNKNOWN
+    return {"exclude": sorted(set(exclude)), "include": sorted(set(include))}
+
+
+def _pull_update_state(parameters, unsupported):
+    if type(parameters) is not dict:
+        unsupported.append("invalid_pull_request_parameters")
+        return UNKNOWN
+    if set(parameters) - PULL_PARAMETER_FIELDS:
+        unsupported.append("unsupported_pull_request_parameters")
+    restriction = parameters.get("dismissal_restriction")
+    if restriction not in (None, {}) and not (
+        type(restriction) is dict
+        and set(restriction) <= {"allowed_actors", "enabled"}
+        and restriction.get("enabled") is False
+        and restriction.get("allowed_actors") in (None, [])
+    ):
+        unsupported.append("review_dismissal_restriction")
+    if parameters.get("required_reviewers") not in (None, []):
+        unsupported.append("required_reviewers")
+    methods = parameters.get("allowed_merge_methods")
+    if methods is not None and (
+        type(methods) is not list
+        or not methods
+        or any(type(method) is not str or method not in {"merge", "rebase", "squash"} for method in methods)
+        or len(methods) != len(set(methods))
+    ):
+        unsupported.append("invalid_allowed_merge_methods")
+        methods = UNKNOWN
+    return {
+        "allowed_merge_methods": sorted(methods) if type(methods) is list else methods,
+        "dismiss_stale_reviews_on_push": _known(
+            parameters.get("dismiss_stale_reviews_on_push"), bool
+        ),
+        "require_code_owner_review": _known(
+            parameters.get("require_code_owner_review"), bool
+        ),
+        "required_review_thread_resolution": _known(
+            parameters.get("required_review_thread_resolution"), bool
+        ),
+    }
+
+
+def _checks_update_state(parameters, unsupported):
+    if type(parameters) is not dict:
+        unsupported.append("invalid_status_check_parameters")
+        return UNKNOWN
+    if set(parameters) - STATUS_PARAMETER_FIELDS:
+        unsupported.append("unsupported_status_check_parameters")
+    checks = parameters.get("required_status_checks")
+    if type(checks) is not list:
+        unsupported.append("invalid_required_status_checks")
+        return UNKNOWN
+    normalized = []
+    contexts = set()
+    for check in checks:
+        context = check.get("context") if type(check) is dict else None
+        integration_id = check.get("integration_id") if type(check) is dict else None
+        if (
+            type(check) is not dict
+            or set(check) - {"context", "integration_id"}
+            or type(context) is not str
+            or not context
+            or context in contexts
+            or (integration_id is not None and (type(integration_id) is not int or integration_id <= 0))
+        ):
+            unsupported.append("invalid_required_status_checks")
+            return UNKNOWN
+        contexts.add(context)
+        normalized.append({"context": context, "integration_id": integration_id})
+    return sorted(normalized, key=lambda check: check["context"])
+
+
+def _managed_update_state(detail):
+    unsupported = []
+    state = {
+        "conditions": _update_conditions(detail, unsupported),
+        "pull_request": None,
+        "required_status_checks": None,
+        "rule_types": [],
+        "unsupported": unsupported,
+    }
+    if detail.get("target") != "branch":
+        unsupported.append("unsupported_target")
+    rules = detail.get("rules")
+    if type(rules) is not list:
+        unsupported.append("invalid_rules")
+        return state
+    seen = set()
+    for rule in rules:
+        rule_type = rule.get("type") if type(rule) is dict else None
+        if type(rule_type) is not str or rule_type not in MANAGED_RULE_TYPES:
+            unsupported.append("unsupported_rule")
+            continue
+        if rule_type in seen:
+            unsupported.append("duplicate_rule")
+            continue
+        seen.add(rule_type)
+        if rule_type == "pull_request":
+            state["pull_request"] = _pull_update_state(rule.get("parameters"), unsupported)
+        elif rule_type == "required_status_checks":
+            state["required_status_checks"] = _checks_update_state(
+                rule.get("parameters"), unsupported
+            )
+        elif rule.get("parameters") not in (None, {}):
+            unsupported.append("unsupported_non_fast_forward_parameters")
+    state["rule_types"] = sorted(seen)
+    state["unsupported"] = sorted(set(unsupported))
+    return state
+
+
 def _normalize_rules(rules):
     normalized = []
     for rule in rules:
@@ -339,15 +483,17 @@ def _discover_rulesets(repository, rules, runner):
         if detail is not None and type(detail) is not dict:
             raise PolicyError(f"GitHub ruleset {ruleset_id} response must be an object")
         actors = detail.get("bypass_actors") if detail else None
-        inventory.append(
-            {
-                "has_bypass_actors": bool(actors) if type(actors) is list else UNKNOWN,
-                "id": ruleset_id,
-                "name": _known(detail.get("name"), str) if detail else references[reference],
-                "source": source,
-                "source_type": source_type,
-            }
-        )
+        resolved_name = _known(detail.get("name"), str) if detail else references[reference]
+        item = {
+            "has_bypass_actors": bool(actors) if type(actors) is list else UNKNOWN,
+            "id": ruleset_id,
+            "name": resolved_name,
+            "source": source,
+            "source_type": source_type,
+        }
+        if detail and source_type == "Repository" and resolved_name == MANAGED_RULESET_NAME:
+            item["update_state"] = _managed_update_state(detail)
+        inventory.append(item)
     return inventory
 
 
@@ -654,8 +800,29 @@ def _apply_action(action_id, method, endpoint, body, verify_controls, side_effec
     }
 
 
-def _ruleset_payload(settings):
-    checks = [{"context": check} for check in sorted(settings["required_checks"])]
+def _ruleset_payload(settings, update_state=None):
+    integration_ids = {
+        check["context"]: check["integration_id"]
+        for check in (update_state or {}).get("required_status_checks") or []
+    }
+    checks = []
+    for context in sorted(settings["required_checks"]):
+        check = {"context": context}
+        if integration_ids.get(context) is not None:
+            check["integration_id"] = integration_ids[context]
+        checks.append(check)
+    current_pull = (update_state or {}).get("pull_request") or {}
+    pull_parameters = {
+        "dismiss_stale_reviews_on_push": current_pull.get(
+            "dismiss_stale_reviews_on_push", False
+        ),
+        "require_code_owner_review": current_pull.get("require_code_owner_review", False),
+        "require_last_push_approval": settings["require_last_push_approval"],
+        "required_approving_review_count": settings["required_approvals"],
+        "required_review_thread_resolution": True,
+    }
+    if current_pull.get("allowed_merge_methods") is not None:
+        pull_parameters["allowed_merge_methods"] = current_pull["allowed_merge_methods"]
     return {
         "bypass_actors": [],
         "conditions": {
@@ -668,13 +835,7 @@ def _ruleset_payload(settings):
         "name": MANAGED_RULESET_NAME,
         "rules": [
             {
-                "parameters": {
-                    "dismiss_stale_reviews_on_push": False,
-                    "require_code_owner_review": False,
-                    "require_last_push_approval": settings["require_last_push_approval"],
-                    "required_approving_review_count": settings["required_approvals"],
-                    "required_review_thread_resolution": True,
-                },
+                "parameters": pull_parameters,
                 "type": "pull_request",
             },
             {
@@ -690,12 +851,91 @@ def _ruleset_payload(settings):
     }
 
 
-def _ruleset_apply_action(settings, repository):
+def _validate_update_state(managed, settings):
+    if type(managed.get("id")) is not int or managed["id"] <= 0:
+        raise PolicyError("managed repository ruleset has an invalid ID")
+    state = managed.get("update_state")
+    if type(state) is not dict:
+        raise PolicyError("managed repository ruleset detail is unavailable for safe update")
+    _object(
+        state,
+        {"conditions", "pull_request", "required_status_checks", "rule_types", "unsupported"},
+        "managed ruleset update state",
+    )
+    expected = {"exclude": [], "include": [f"refs/heads/{settings['target_branch']}"]}
+    if state["conditions"] != expected or state["unsupported"] != []:
+        raise PolicyError("managed repository ruleset contains unpreservable constraints")
+    rule_types = state["rule_types"]
+    if (
+        type(rule_types) is not list
+        or any(type(rule_type) is not str or rule_type not in MANAGED_RULE_TYPES for rule_type in rule_types)
+        or len(rule_types) != len(set(rule_types))
+    ):
+        raise PolicyError("managed repository ruleset has an invalid rule inventory")
+    pull = state["pull_request"]
+    if pull is not None:
+        _object(
+            pull,
+            {
+                "allowed_merge_methods",
+                "dismiss_stale_reviews_on_push",
+                "require_code_owner_review",
+                "required_review_thread_resolution",
+            },
+            "managed ruleset pull request state",
+        )
+        if any(
+            type(pull[field]) is not bool
+            for field in (
+                "dismiss_stale_reviews_on_push",
+                "require_code_owner_review",
+                "required_review_thread_resolution",
+            )
+        ):
+            raise PolicyError("managed repository ruleset review state is incomplete")
+        methods = pull["allowed_merge_methods"]
+        if methods is not None and (
+            type(methods) is not list
+            or not methods
+            or any(type(method) is not str or method not in {"merge", "rebase", "squash"} for method in methods)
+            or len(methods) != len(set(methods))
+        ):
+            raise PolicyError("managed repository ruleset merge methods are invalid")
+    checks = state["required_status_checks"]
+    if ("pull_request" in rule_types) != (pull is not None) or (
+        "required_status_checks" in rule_types
+    ) != (checks is not None):
+        raise PolicyError("managed repository ruleset state does not match its rule inventory")
+    if checks is not None and (
+        type(checks) is not list
+        or any(
+            type(check) is not dict
+            or set(check) != {"context", "integration_id"}
+            or type(check["context"]) is not str
+            or not check["context"]
+            or (
+                check["integration_id"] is not None
+                and (type(check["integration_id"]) is not int or check["integration_id"] <= 0)
+            )
+            for check in checks
+        )
+        or len(checks) != len({check["context"] for check in checks})
+    ):
+        raise PolicyError("managed repository ruleset status checks are invalid")
+    return state
+
+
+def _ruleset_apply_action(settings, repository, managed=None):
+    update_state = _validate_update_state(managed, settings) if managed else None
+    method = "PUT" if managed else "POST"
+    endpoint = f"repos/{repository}/rulesets"
+    if managed:
+        endpoint = f"{endpoint}/{managed['id']}"
     return _apply_action(
         "branch.ruleset",
-        "POST",
-        f"repos/{repository}/rulesets",
-        _ruleset_payload(settings),
+        method,
+        endpoint,
+        _ruleset_payload(settings, update_state),
         BRANCH_CONTROL_IDS.values(),
         ["target_branch_merge_requirements_change_immediately"],
     )
@@ -789,9 +1029,8 @@ def build_apply_actions(policy, inventory):
     if branch_drift:
         if settings["enforcement_backend"] != "ruleset":
             raise PolicyError("legacy branch protection apply actions are not implemented")
-        if _managed_repository_ruleset(inventory):
-            raise PolicyError("updating an existing managed ruleset is not implemented safely")
-        actions.append(_ruleset_apply_action(settings, repository))
+        managed = _managed_repository_ruleset(inventory)
+        actions.append(_ruleset_apply_action(settings, repository, managed))
     for action in (
         _repository_apply_action(controls, settings, repository),
         _dependabot_apply_action(controls, settings, repository),

@@ -17,6 +17,7 @@ old one. One line per entry. AI agents append entries in the same PR as the chan
 
 | Date | ID | Decision | Link |
 |------|----|----------|------|
+| 2026-07-15 | ADR-0003 (accepted) | Repository owner approved the layered GitHub governance policy and deterministic reconciler architecture in PR #19 | [ADR-0003](../docs/adr/0003-reconcile-github-governance-from-inherited-policy.md) |
 | 2026-07-15 | ADR-0003 (proposed) | Replace the one-time GitHub governance bootstrap with a layered, rule-ID-mapped policy and deterministic plan/audit/apply reconciler; keep administrator apply credentials local, preserve downstream overrides, and reject any weakening of foundation MUST controls | [ADR-0003](../docs/adr/0003-reconcile-github-governance-from-inherited-policy.md) |
 | 2026-07-13 | LOG-0012 | Ship a stack-agnostic Dev Container so agents run in a container, not on the host, keeping host credentials (`~/.ssh`, cloud configs) unreachable. `Co-Authored-By` AI trailers made a per-repo decision (WF-021): included by default here, disabled via a `commit-msg` hook on engagements where disclosure conflicts with the contract | [.devcontainer/README.md](../.devcontainer/README.md) |
 | 2026-07-13 | LOG-0011 | Read-tool deny-list extended to `*.p12`/`*.pfx`, `~/.ssh`, `~/.config/gcloud`, `~/.gemini` to match the org Claude usage guide | [.claude/settings.json](../.claude/settings.json) |

@@ -305,16 +305,37 @@ def _ruleset_endpoint(source_type, source, ruleset_id):
     return None
 
 
-def _discover_rulesets(rules, runner):
+def _discover_rulesets(repository, rules, runner):
     references = {
-        (rule["source_type"], rule["source"], rule["ruleset_id"])
+        (rule["source_type"], rule["source"], rule["ruleset_id"]): UNKNOWN
         for rule in rules
         if type(rule["ruleset_id"]) is int
     }
+    summaries = _gh_get_json(
+        f"repos/{repository}/rulesets?includes_parents=false&per_page=100",
+        runner,
+        paginate=True,
+    )
+    for summary in summaries:
+        if (
+            type(summary) is not dict
+            or type(summary.get("id")) is not int
+            or type(summary.get("source")) is not str
+            or summary.get("source_type") != "Repository"
+        ):
+            raise PolicyError("GitHub repository rulesets response contains an invalid ruleset")
+        reference = (summary["source_type"], summary["source"], summary["id"])
+        references[reference] = _known(summary.get("name"), str)
     inventory = []
-    for source_type, source, ruleset_id in sorted(references, key=lambda item: str(item)):
+    for reference in sorted(references, key=lambda item: str(item)):
+        source_type, source, ruleset_id = reference
         endpoint = _ruleset_endpoint(source_type, source, ruleset_id)
-        detail = _gh_get_json(endpoint, runner, optional=True) if endpoint else None
+        name = references[reference]
+        detail = (
+            _gh_get_json(endpoint, runner, optional=True)
+            if endpoint and name in {UNKNOWN, MANAGED_RULESET_NAME}
+            else None
+        )
         if detail is not None and type(detail) is not dict:
             raise PolicyError(f"GitHub ruleset {ruleset_id} response must be an object")
         actors = detail.get("bypass_actors") if detail else None
@@ -322,7 +343,7 @@ def _discover_rulesets(rules, runner):
             {
                 "has_bypass_actors": bool(actors) if type(actors) is list else UNKNOWN,
                 "id": ruleset_id,
-                "name": _known(detail.get("name"), str) if detail else UNKNOWN,
+                "name": _known(detail.get("name"), str) if detail else references[reference],
                 "source": source,
                 "source_type": source_type,
             }
@@ -416,7 +437,7 @@ def discover_github(repository, branch, runner=None):
             "delete_branch_on_merge": _known(repository_data.get("delete_branch_on_merge"), bool),
             "full_name": repository,
         },
-        "rulesets": _discover_rulesets(rules, runner),
+        "rulesets": _discover_rulesets(repository, rules, runner),
         "security": _security_inventory(repository_data),
     }
 
@@ -466,19 +487,32 @@ def _branch_desired(policy):
     }
 
 
+def _managed_repository_ruleset(inventory):
+    repository = inventory["repository"].get("full_name")
+    matches = [
+        ruleset
+        for ruleset in inventory["rulesets"]
+        if ruleset["name"] == MANAGED_RULESET_NAME
+        and ruleset.get("source_type") == "Repository"
+        and type(ruleset.get("source")) is str
+        and type(repository) is str
+        and ruleset["source"].casefold() == repository.casefold()
+    ]
+    if len(matches) > 1:
+        raise PolicyError(f"multiple repository rulesets use managed name {MANAGED_RULESET_NAME}")
+    return matches[0] if matches else None
+
+
 def _ruleset_branch_controls(policy, inventory):
     desired = _branch_desired(policy)
-    matches = [ruleset for ruleset in inventory["rulesets"] if ruleset["name"] == MANAGED_RULESET_NAME]
-    if len(matches) > 1:
-        raise PolicyError(f"multiple active rulesets use managed name {MANAGED_RULESET_NAME}")
+    managed = _managed_repository_ruleset(inventory)
     uncertain = any(ruleset["name"] == UNKNOWN for ruleset in inventory["rulesets"])
     uncertain = uncertain or any(rule["ruleset_id"] == UNKNOWN for rule in inventory["effective_rules"])
-    if not matches:
+    if not managed:
         current = UNKNOWN if uncertain else None
         values = {name: current for name in desired}
         managed_id = None
     else:
-        managed = matches[0]
         managed_id = managed["id"]
         rules = [rule for rule in inventory["effective_rules"] if rule["ruleset_id"] == managed_id]
         pull = _single_rule(rules, "pull_request")
@@ -606,6 +640,171 @@ def compare_governance(policy, inventory):
             ),
             "legacy_branch_protection": unmanaged_legacy,
         },
+    }
+
+
+def _apply_action(action_id, method, endpoint, body, verify_controls, side_effects):
+    return {
+        "body": body,
+        "endpoint": endpoint,
+        "id": action_id,
+        "method": method,
+        "side_effects": sorted(side_effects),
+        "verify_controls": sorted(verify_controls),
+    }
+
+
+def _ruleset_payload(settings):
+    checks = [{"context": check} for check in sorted(settings["required_checks"])]
+    return {
+        "bypass_actors": [],
+        "conditions": {
+            "ref_name": {
+                "exclude": [],
+                "include": [f"refs/heads/{settings['target_branch']}"],
+            }
+        },
+        "enforcement": "active",
+        "name": MANAGED_RULESET_NAME,
+        "rules": [
+            {
+                "parameters": {
+                    "dismiss_stale_reviews_on_push": False,
+                    "require_code_owner_review": False,
+                    "require_last_push_approval": settings["require_last_push_approval"],
+                    "required_approving_review_count": settings["required_approvals"],
+                    "required_review_thread_resolution": True,
+                },
+                "type": "pull_request",
+            },
+            {
+                "parameters": {
+                    "required_status_checks": checks,
+                    "strict_required_status_checks_policy": True,
+                },
+                "type": "required_status_checks",
+            },
+            {"type": "non_fast_forward"},
+        ],
+        "target": "branch",
+    }
+
+
+def _ruleset_apply_action(settings, repository):
+    return _apply_action(
+        "branch.ruleset",
+        "POST",
+        f"repos/{repository}/rulesets",
+        _ruleset_payload(settings),
+        BRANCH_CONTROL_IDS.values(),
+        ["target_branch_merge_requirements_change_immediately"],
+    )
+
+
+def _security_apply_action(controls, repository):
+    fields = {}
+    side_effects = []
+    verify = []
+    if controls["security.secret_scanning"]["status"] == "drift":
+        fields["secret_scanning"] = {"status": "enabled"}
+        side_effects.append("secret_scanning_alerts_may_be_created")
+        verify.append("security.secret_scanning")
+    if controls["security.push_protection"]["status"] == "drift":
+        fields["secret_scanning_push_protection"] = {"status": "enabled"}
+        side_effects.append("pushes_containing_detected_secrets_are_rejected")
+        verify.append("security.push_protection")
+    if not fields:
+        return None
+    return _apply_action(
+        "security.secret_scanning",
+        "PATCH",
+        f"repos/{repository}",
+        {"security_and_analysis": fields},
+        verify,
+        side_effects,
+    )
+
+
+def _repository_apply_action(controls, settings, repository):
+    control_id = "repository.delete_branch_on_merge"
+    if controls[control_id]["status"] != "drift":
+        return None
+    side_effects = (
+        ["future_merged_head_branches_are_deleted"]
+        if settings["delete_branch_on_merge"]
+        else []
+    )
+    return _apply_action(
+        control_id,
+        "PATCH",
+        f"repos/{repository}",
+        {"delete_branch_on_merge": settings["delete_branch_on_merge"]},
+        [control_id],
+        side_effects,
+    )
+
+
+def _dependabot_apply_action(controls, settings, repository):
+    control_id = "security.dependabot_security_updates"
+    if controls[control_id]["status"] != "drift":
+        return None
+    enabled = settings["dependency_update_provider"] == "dependabot"
+    side_effect = (
+        "dependabot_security_pull_requests_may_be_created"
+        if enabled
+        else "dependabot_security_updates_are_disabled"
+    )
+    return _apply_action(
+        control_id,
+        "PUT" if enabled else "DELETE",
+        f"repos/{repository}/automated-security-fixes",
+        None,
+        [control_id],
+        [side_effect],
+    )
+
+
+def build_apply_actions(policy, inventory):
+    """Build deterministic GitHub write requests without executing them."""
+    report = compare_governance(policy, inventory)
+    repository = report["repository"]
+    if type(repository) is not str or not REPOSITORY_TARGET.fullmatch(repository):
+        raise PolicyError("GitHub inventory repository is not a safe write target")
+    controls = {control["id"]: control for control in report["controls"]}
+    if report["status"] == UNKNOWN:
+        raise PolicyError("apply requires a complete governance audit without unknown controls")
+    observed = controls["branch.required_status_checks_observed"]
+    if observed["status"] != "compliant":
+        raise PolicyError("apply requires every desired status check on the target branch head")
+
+    settings = policy["settings"]
+    actions = []
+    security_action = _security_apply_action(controls, repository)
+    if security_action:
+        actions.append(security_action)
+    branch_drift = any(
+        controls[control_id]["status"] == "drift"
+        for control_id in BRANCH_CONTROL_IDS.values()
+    )
+    if branch_drift:
+        if settings["enforcement_backend"] != "ruleset":
+            raise PolicyError("legacy branch protection apply actions are not implemented")
+        if _managed_repository_ruleset(inventory):
+            raise PolicyError("updating an existing managed ruleset is not implemented safely")
+        actions.append(_ruleset_apply_action(settings, repository))
+    for action in (
+        _repository_apply_action(controls, settings, repository),
+        _dependabot_apply_action(controls, settings, repository),
+    ):
+        if action:
+            actions.append(action)
+    return {
+        "actions": actions,
+        "before_status": report["status"],
+        "repository": repository,
+        "schema_version": SCHEMA_VERSION,
+        "status": "ready" if actions else "compliant",
+        "target_branch": settings["target_branch"],
     }
 
 

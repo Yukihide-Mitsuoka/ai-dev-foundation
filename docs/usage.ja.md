@@ -89,8 +89,9 @@ python3 scripts/github_governance.py apply --root . --repo OWNER/REPOSITORY \
 
 `apply`の前に`plan`を確認してください。設定を変更するのは`apply`だけで、ローカルの
 Administration権限と対象名の完全一致確認が必要です。各操作は再読込で検証されます。
-`bash scripts/setup-github.sh`は、squash-only mergeやDiscussionsなどpolicyがまだ所有しない
-旧リポジトリ設定のため一時的に残します。固定設定の内容を別途確認してください。
+policyはsquash-only mergeを必須化し、Discussionsとsquash commit messageの既定値は
+repository overrideで選択できます。`bash scripts/setup-github.sh`は互換ラッパーの準備中だけ
+固定の旧入口として残します。新規リポジトリではpolicyの`apply`を使用してください。
 
 ### 6. ローカルゲート導入 → エージェントに向ける
 

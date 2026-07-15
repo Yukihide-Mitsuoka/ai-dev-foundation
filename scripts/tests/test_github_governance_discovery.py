@@ -31,7 +31,17 @@ class FakeRunner:
 
 
 def repository_payload(security=True, admin=True):
-    payload = {"full_name": "acme/demo", "default_branch": "main", "delete_branch_on_merge": True}
+    payload = {
+        "allow_merge_commit": False,
+        "allow_rebase_merge": False,
+        "allow_squash_merge": True,
+        "default_branch": "main",
+        "delete_branch_on_merge": True,
+        "full_name": "acme/demo",
+        "has_discussions": True,
+        "squash_merge_commit_message": "PR_BODY",
+        "squash_merge_commit_title": "PR_TITLE",
+    }
     if admin is not None:
         payload["permissions"] = {"admin": admin}
     if security:
@@ -163,6 +173,20 @@ class GitHubDiscoveryTest(unittest.TestCase):
         self.assertEqual(result["observed_checks"], ["deploy", "lint", "test"])
         self.assertEqual(result["security"]["private_vulnerability_reporting"], "enabled")
         self.assertEqual(result["security"]["vulnerability_alerts"], "enabled")
+        self.assertEqual(
+            result["repository"],
+            {
+                "allow_merge_commit": False,
+                "allow_rebase_merge": False,
+                "allow_squash_merge": True,
+                "default_branch": "main",
+                "delete_branch_on_merge": True,
+                "full_name": "acme/demo",
+                "has_discussions": True,
+                "squash_merge_commit_message": "PR_BODY",
+                "squash_merge_commit_title": "PR_TITLE",
+            },
+        )
         self.assertNotIn("123", json.dumps(result))
         self.assertNotIn("repos/acme/demo/rulesets/8", [call[0][-1] for call in runner.calls])
         for command, kwargs in runner.calls:

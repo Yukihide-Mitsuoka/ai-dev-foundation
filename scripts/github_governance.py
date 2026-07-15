@@ -21,6 +21,7 @@ MINIMUM_CONTRACT = {
     "status_checks_required": (True, {"GR-012"}),
     "force_pushes_allowed": (False, {"GR-011"}),
     "admin_bypass_allowed": (False, {"GR-010", "GR-012"}),
+    "squash_merge_only": (True, {"WF-030"}),
     "secret_scanning_enabled": (True, {"SEC-002"}),
     "push_protection_enabled": (True, {"SEC-002"}),
     "vulnerability_alerts_enabled": (True, {"SEC-003"}),
@@ -34,9 +35,12 @@ SETTING_FIELDS = {
     "required_checks",
     "dependency_update_provider",
     "delete_branch_on_merge",
+    "discussions_enabled",
+    "squash_merge_commit_title",
+    "squash_merge_commit_message",
 }
-RULE_ID = re.compile(r"^(?:GR|SEC)-\d{3}$")
-RULE_HEADING = re.compile(r"^### ((?:GR|SEC)-\d{3}):", re.MULTILINE)
+RULE_ID = re.compile(r"^(?:GR|SEC|WF)-\d{3}$")
+RULE_HEADING = re.compile(r"^#{2,3} ((?:GR|SEC|WF)-\d{3}):", re.MULTILINE)
 REPOSITORY_TARGET = re.compile(r"^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$")
 BRANCH_CONTROL_IDS = {
     "admin": "branch.admin_bypass_allowed",
@@ -133,7 +137,11 @@ def _validate_settings(settings, label):
     approvals = settings["required_approvals"]
     if type(approvals) is not int or not 0 <= approvals <= 6:
         raise PolicyError(f"{label}.required_approvals must be an integer from 0 to 6")
-    for field in ("require_last_push_approval", "delete_branch_on_merge"):
+    for field in (
+        "require_last_push_approval",
+        "delete_branch_on_merge",
+        "discussions_enabled",
+    ):
         if type(settings[field]) is not bool:
             raise PolicyError(f"{label}.{field} must be a boolean")
     if approvals == 0 and settings["require_last_push_approval"]:
@@ -153,6 +161,19 @@ def _validate_settings(settings, label):
     provider = settings["dependency_update_provider"]
     if type(provider) is not str or provider not in {"renovate", "dependabot"}:
         raise PolicyError(f"{label}.dependency_update_provider must select exactly one provider")
+    squash_title = settings["squash_merge_commit_title"]
+    if type(squash_title) is not str or squash_title not in {
+        "PR_TITLE",
+        "COMMIT_OR_PR_TITLE",
+    }:
+        raise PolicyError(f"{label}.squash_merge_commit_title is unsupported")
+    squash_message = settings["squash_merge_commit_message"]
+    if type(squash_message) is not str or squash_message not in {
+        "PR_BODY",
+        "COMMIT_MESSAGES",
+        "BLANK",
+    }:
+        raise PolicyError(f"{label}.squash_merge_commit_message is unsupported")
 
 
 def resolve_policy(foundation, repository, known_rule_ids):
@@ -656,9 +677,19 @@ def discover_github(repository, branch, runner=None):
         "legacy_branch_protection": _legacy_inventory(protected, protection),
         "observed_checks": _observed_checks(repository, branch_data, runner),
         "repository": {
+            "allow_merge_commit": _known(repository_data.get("allow_merge_commit"), bool),
+            "allow_rebase_merge": _known(repository_data.get("allow_rebase_merge"), bool),
+            "allow_squash_merge": _known(repository_data.get("allow_squash_merge"), bool),
             "default_branch": _known(repository_data.get("default_branch"), str),
             "delete_branch_on_merge": _known(repository_data.get("delete_branch_on_merge"), bool),
             "full_name": repository,
+            "has_discussions": _known(repository_data.get("has_discussions"), bool),
+            "squash_merge_commit_message": _known(
+                repository_data.get("squash_merge_commit_message"), str
+            ),
+            "squash_merge_commit_title": _known(
+                repository_data.get("squash_merge_commit_title"), str
+            ),
         },
         "rulesets": _discover_rulesets(repository, rules, runner),
         "security": security,
@@ -814,6 +845,7 @@ def compare_governance(policy, inventory):
     ):
         raise PolicyError("GitHub inventory observed_checks must be a list of names")
     required_checks = sorted(settings["required_checks"])
+    repository = inventory["repository"]
     controls.extend(
         [
             _control(
@@ -823,9 +855,39 @@ def compare_governance(policy, inventory):
                 minimums["status_checks_required"]["rule_refs"],
             ),
             _control(
+                "repository.merge_strategy",
+                {
+                    "allow_merge_commit": repository.get("allow_merge_commit", UNKNOWN),
+                    "allow_rebase_merge": repository.get("allow_rebase_merge", UNKNOWN),
+                    "allow_squash_merge": repository.get("allow_squash_merge", UNKNOWN),
+                },
+                {
+                    "allow_merge_commit": False,
+                    "allow_rebase_merge": False,
+                    "allow_squash_merge": True,
+                },
+                minimums["squash_merge_only"]["rule_refs"],
+            ),
+            _control(
                 "repository.delete_branch_on_merge",
-                inventory["repository"].get("delete_branch_on_merge", UNKNOWN),
+                repository.get("delete_branch_on_merge", UNKNOWN),
                 settings["delete_branch_on_merge"],
+            ),
+            _control(
+                "repository.discussions_enabled",
+                repository.get("has_discussions", UNKNOWN),
+                settings["discussions_enabled"],
+            ),
+            _control(
+                "repository.squash_commit_format",
+                {
+                    "message": repository.get("squash_merge_commit_message", UNKNOWN),
+                    "title": repository.get("squash_merge_commit_title", UNKNOWN),
+                },
+                {
+                    "message": settings["squash_merge_commit_message"],
+                    "title": settings["squash_merge_commit_title"],
+                },
             ),
             _control(
                 "security.dependabot_security_updates",
@@ -1055,20 +1117,41 @@ def _security_apply_action(controls, repository):
 
 
 def _repository_apply_action(controls, settings, repository):
-    control_id = "repository.delete_branch_on_merge"
-    if controls[control_id]["status"] != "drift":
+    fields = {}
+    side_effects = []
+    verify = []
+    if controls["repository.merge_strategy"]["status"] == "drift":
+        fields.update(
+            allow_merge_commit=False,
+            allow_rebase_merge=False,
+            allow_squash_merge=True,
+        )
+        side_effects.append("available_pull_request_merge_methods_change_immediately")
+        verify.append("repository.merge_strategy")
+    if controls["repository.squash_commit_format"]["status"] == "drift":
+        fields.update(
+            squash_merge_commit_message=settings["squash_merge_commit_message"],
+            squash_merge_commit_title=settings["squash_merge_commit_title"],
+        )
+        side_effects.append("future_squash_commit_defaults_change")
+        verify.append("repository.squash_commit_format")
+    if controls["repository.discussions_enabled"]["status"] == "drift":
+        fields["has_discussions"] = settings["discussions_enabled"]
+        side_effects.append("repository_discussions_availability_changes")
+        verify.append("repository.discussions_enabled")
+    if controls["repository.delete_branch_on_merge"]["status"] == "drift":
+        fields["delete_branch_on_merge"] = settings["delete_branch_on_merge"]
+        if settings["delete_branch_on_merge"]:
+            side_effects.append("future_merged_head_branches_are_deleted")
+        verify.append("repository.delete_branch_on_merge")
+    if not fields:
         return None
-    side_effects = (
-        ["future_merged_head_branches_are_deleted"]
-        if settings["delete_branch_on_merge"]
-        else []
-    )
     return _apply_action(
-        control_id,
+        "repository.settings",
         "PATCH",
         f"repos/{repository}",
-        {"delete_branch_on_merge": settings["delete_branch_on_merge"]},
-        [control_id],
+        fields,
+        verify,
         side_effects,
     )
 
@@ -1145,6 +1228,9 @@ def build_apply_actions(policy, inventory):
     ):
         if action:
             actions.append(action)
+    repository_action = _repository_apply_action(controls, settings, repository)
+    if repository_action:
+        actions.append(repository_action)
     branch_drift = any(
         controls[control_id]["status"] == "drift"
         for control_id in BRANCH_CONTROL_IDS.values()
@@ -1154,12 +1240,9 @@ def build_apply_actions(policy, inventory):
             raise PolicyError("legacy branch protection apply actions are not implemented")
         managed = _managed_repository_ruleset(inventory)
         actions.append(_ruleset_apply_action(settings, repository, managed))
-    for action in (
-        _repository_apply_action(controls, settings, repository),
-        _dependabot_apply_action(controls, settings, repository),
-    ):
-        if action:
-            actions.append(action)
+    dependabot_action = _dependabot_apply_action(controls, settings, repository)
+    if dependabot_action:
+        actions.append(dependabot_action)
     return {
         "actions": actions,
         "before_status": report["status"],

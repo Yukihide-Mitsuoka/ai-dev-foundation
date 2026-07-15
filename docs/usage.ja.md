@@ -58,7 +58,7 @@ grep -rn "{{" . --exclude-dir=.git
 *   @your-username
 ```
 個人リポジトリにチーム記法を残すと、CODEOWNERS が**黙って無効化**されます
-（`scripts/setup-github.sh` は個人アカウントでこの記法を検出すると警告します）。
+この判定は互換ラッパーの対象外なので、ガバナンス適用前に修正してください。
 
 ### 4. Makefile プロファイルを選ぶ
 
@@ -76,6 +76,10 @@ python3 scripts/github_governance.py plan --root . --repo OWNER/REPOSITORY
 python3 scripts/github_governance.py audit --root . --repo OWNER/REPOSITORY
 python3 scripts/github_governance.py apply --root . --repo OWNER/REPOSITORY \
   --confirm-repo OWNER/REPOSITORY
+
+# 同じplan/apply経路を使う互換入口:
+DRY_RUN=1 bash scripts/setup-github.sh OWNER/REPOSITORY
+bash scripts/setup-github.sh OWNER/REPOSITORY --confirm-repo OWNER/REPOSITORY
 ```
 
 `validate` はオフラインで動作します。`plan` と `audit` は認証済みのGET-only
@@ -90,8 +94,12 @@ python3 scripts/github_governance.py apply --root . --repo OWNER/REPOSITORY \
 `apply`の前に`plan`を確認してください。設定を変更するのは`apply`だけで、ローカルの
 Administration権限と対象名の完全一致確認が必要です。各操作は再読込で検証されます。
 policyはsquash-only mergeを必須化し、Discussionsとsquash commit messageの既定値は
-repository overrideで選択できます。`bash scripts/setup-github.sh`は互換ラッパーの準備中だけ
-固定の旧入口として残します。新規リポジトリではpolicyの`apply`を使用してください。
+repository overrideで選択できます。setup互換ラッパーは`gh`を直接呼びません。`DRY_RUN`は
+`plan`、通常実行は完全一致する対象名を2回要求して`apply`へ委譲し、終了コードも引き継ぎます。
+
+固定スクリプトからの移行では、引数なし形式は廃止され、CODEOWNERSなどの手動設定案内も
+ラッパーからは出力されません。上記のとおり対象を明示し、このガイドをチェックリストとして
+使用してください。
 
 ### 6. ローカルゲート導入 → エージェントに向ける
 
@@ -129,7 +137,7 @@ make doctor                            # テンプレートが壊れていない
 | ツール | 用途 | 備考 |
 |--------|------|------|
 | `git`, `make` | 全般 | — |
-| `gh`（GitHub CLI）| ガバナンス`plan`/`audit`/`apply`・旧setup・認証 | `gh auth login` |
+| `gh`（GitHub CLI）| ガバナンス`plan`/`audit`/`apply`・互換setup・認証 | `gh auth login` |
 | `pre-commit` | ローカルコミットゲート | `make setup`（プロファイル導入後）または `pre-commit install` |
 | スタックのツールチェーン | build/test | uv(python) / pnpm+node(ts) / terraform(iac) |
 | `gitleaks`, `trivy`, `syft` | ローカルの `make security-scan` / `sbom` | ローカルは任意。**CIは常時強制** |
@@ -160,8 +168,8 @@ gh auth refresh -h github.com -s workflow
 - **ソロ実用:** repository policyで`"required_approvals": 0`に設定。
   これでも「ブランチ＋PR＋CI緑」（GR-010, GR-021）は保たれ、マージだけ自分で行えます。
 
-旧`scripts/setup-github.sh`はレビュー1件を固定します。ソロリポジトリでは旧setupではなく
-policyの`apply`を使用してください。
+`scripts/setup-github.sh`も同じrepository policyへ委譲するため、直接CLIと互換入口のどちらでも
+設定したapproval件数が適用されます。
 
 ### 改行コード
 `.gitattributes` がリポジトリ全体を LF 強制するので、Windows チェックアウトでもシェルフックと

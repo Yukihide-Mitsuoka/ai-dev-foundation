@@ -53,9 +53,12 @@ its administrator credential in Actions.
 | `audit` | All controls compliant | Drift or unknown state | Policy, input, or GitHub read failure |
 | `apply` | All owned controls verified compliant | — | Policy, confirmation, write, read-back, verification, or replanning failure |
 
-`scripts/setup-github.sh` remains temporarily as the fixed legacy entry point while its
-policy-driven compatibility wrapper is prepared. Its API-managed settings are now
-represented by policy; use `plan` and `apply` for new repositories.
+`scripts/setup-github.sh` is a thin compatibility wrapper. A non-empty `DRY_RUN` delegates
+to read-only `plan`; normal execution requires the repository twice in the form
+`OWNER/REPOSITORY --confirm-repo OWNER/REPOSITORY` before delegating to `apply`. It makes
+no direct `gh` call, owns no fixed settings, and preserves the reconciler exit code.
+The former no-argument apply and inline onboarding reminders are intentionally removed;
+callers must migrate to the explicit target form and use `docs/usage.md` for onboarding.
 
 ## Apply action planning boundary
 

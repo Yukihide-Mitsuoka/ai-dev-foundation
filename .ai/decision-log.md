@@ -17,6 +17,7 @@ old one. One line per entry. AI agents append entries in the same PR as the chan
 
 | Date | ID | Decision | Link |
 |------|----|----------|------|
+| 2026-07-16 | ADR-0004 (accepted) | Repository owner approved the hardened direct-parent, manifest-owned, local-first inheritance architecture and solo-friendly governance defaults in PR #33 | [ADR-0004](../docs/adr/0004-harden-multi-level-template-inheritance.md) |
 | 2026-07-16 | ADR-0004 (proposed) | Keep direct-parent template topology but replace denylist-only scheduled writes with manifest-owned, local-first inheritance; add inheritable template policy profiles, monotonic required checks, and solo-friendly defaults | [ADR-0004](../docs/adr/0004-harden-multi-level-template-inheritance.md) |
 | 2026-07-16 | LOG-0018 | Superseding the fixed behavior in LOG-0003 and completing LOG-0017's migration condition, `scripts/setup-github.sh` is now a no-policy compatibility wrapper: dry-run delegates to `plan`, apply repeats and exactly matches the repository target before any GitHub read, and all exit codes and failures come from the reconciler | [.github/governance/README.md](../.github/governance/README.md) |
 | 2026-07-16 | LOG-0017 | Public governance apply requires exact target confirmation before reads; the fixed setup path remains until vulnerability alerts and private vulnerability reporting have policy-owned adapters, preventing a security downgrade during migration | [.github/governance/README.md](../.github/governance/README.md) |

@@ -22,6 +22,18 @@ branch deletion. They may also select Discussions availability and the default s
 commit title/message formats. Squash-only merge availability is an immutable WF-030
 foundation minimum. Unknown fields and attempts to override foundation minimums fail.
 
+## Solo-friendly foundation defaults
+
+The foundation starts from the ADR-0004 solo-maintainer profile: zero required
+approvals, no last-push approval, automatic deletion of merged branches, Discussions
+disabled, squash-only merge, no administrator bypass, and Renovate as the selected
+dependency updater. A repository policy may opt into team-oriented operational values
+such as approvals or Discussions, but it cannot weaken a foundation minimum.
+
+Existing repository overrides that repeat a foundation default remain valid. This lets
+repositories adopt the new foundation file without first coordinating a local-policy
+cleanup; redundant overrides can be removed later through normal reviewed PRs.
+
 ## Validate, plan, audit, and apply
 
 Python 3 is required; no third-party package is used.

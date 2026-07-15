@@ -1,10 +1,12 @@
 import copy
 import importlib.util
+import json
 import unittest
 from pathlib import Path
 
 
 MODULE_PATH = Path(__file__).parents[1] / "github_governance.py"
+REPOSITORY_ROOT = MODULE_PATH.parents[1]
 SPEC = importlib.util.spec_from_file_location("github_governance", MODULE_PATH)
 governance = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(governance)
@@ -37,8 +39,8 @@ def foundation_policy():
             "require_last_push_approval": False,
             "required_checks": ["lint", "test"],
             "dependency_update_provider": "renovate",
-            "delete_branch_on_merge": False,
-            "discussions_enabled": True,
+            "delete_branch_on_merge": True,
+            "discussions_enabled": False,
             "squash_merge_commit_title": "PR_TITLE",
             "squash_merge_commit_message": "PR_BODY",
         },
@@ -57,6 +59,21 @@ class GovernancePolicyTest(unittest.TestCase):
         with self.assertRaises(governance.PolicyError):
             self.resolve(foundation, repository)
 
+    def test_foundation_file_uses_solo_friendly_defaults(self):
+        policy = json.loads(
+            (REPOSITORY_ROOT / ".github/governance/foundation.json").read_text()
+        )
+        defaults = policy["defaults"]
+        minimums = policy["minimums"]
+
+        self.assertEqual(defaults["required_approvals"], 0)
+        self.assertFalse(defaults["require_last_push_approval"])
+        self.assertTrue(defaults["delete_branch_on_merge"])
+        self.assertFalse(defaults["discussions_enabled"])
+        self.assertEqual(defaults["dependency_update_provider"], "renovate")
+        self.assertTrue(minimums["squash_merge_only"]["value"])
+        self.assertFalse(minimums["admin_bypass_allowed"]["value"])
+
     def test_repository_overrides_only_operational_defaults(self):
         result = self.resolve(
             repository={
@@ -66,7 +83,7 @@ class GovernancePolicyTest(unittest.TestCase):
                     "require_last_push_approval": True,
                     "required_checks": ["doctor", "secret-scan"],
                     "dependency_update_provider": "dependabot",
-                    "discussions_enabled": False,
+                    "discussions_enabled": True,
                     "squash_merge_commit_title": "COMMIT_OR_PR_TITLE",
                     "squash_merge_commit_message": "COMMIT_MESSAGES",
                 },
@@ -75,7 +92,7 @@ class GovernancePolicyTest(unittest.TestCase):
 
         self.assertEqual(result["settings"]["required_approvals"], 1)
         self.assertEqual(result["settings"]["required_checks"], ["doctor", "secret-scan"])
-        self.assertFalse(result["settings"]["discussions_enabled"])
+        self.assertTrue(result["settings"]["discussions_enabled"])
         self.assertEqual(result["settings"]["squash_merge_commit_title"], "COMMIT_OR_PR_TITLE")
         self.assertTrue(result["minimums"]["pull_request_required"]["value"])
 

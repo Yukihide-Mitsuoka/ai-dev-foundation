@@ -22,6 +22,24 @@ def inventory():
     return result
 
 
+def managed_update_state():
+    return {
+        "conditions": {"exclude": [], "include": ["refs/heads/main"]},
+        "pull_request": {
+            "allowed_merge_methods": ["squash"],
+            "dismiss_stale_reviews_on_push": True,
+            "require_code_owner_review": True,
+            "required_review_thread_resolution": True,
+        },
+        "required_status_checks": [
+            {"context": "lint", "integration_id": 42},
+            {"context": "test", "integration_id": None},
+        ],
+        "rule_types": ["non_fast_forward", "pull_request", "required_status_checks"],
+        "unsupported": [],
+    }
+
+
 class ApplyActionPlanningTest(unittest.TestCase):
     def test_missing_ruleset_creates_owned_ruleset_action(self):
         result = governance.build_apply_actions(resolved_policy(), inventory())
@@ -53,6 +71,42 @@ class ApplyActionPlanningTest(unittest.TestCase):
         current["effective_rules"] = []
         with self.assertRaises(governance.PolicyError):
             governance.build_apply_actions(resolved_policy(), current)
+
+    def test_existing_ruleset_update_preserves_supported_stricter_fields(self):
+        current = ruleset_inventory()
+        current["effective_rules"] = []
+        current["rulesets"][0]["update_state"] = managed_update_state()
+        result = governance.build_apply_actions(resolved_policy(), current)
+        action = result["actions"][0]
+        self.assertEqual(action["method"], "PUT")
+        self.assertEqual(action["endpoint"], f"repos/{REPOSITORY}/rulesets/7")
+        pull = action["body"]["rules"][0]["parameters"]
+        self.assertTrue(pull["dismiss_stale_reviews_on_push"])
+        self.assertTrue(pull["require_code_owner_review"])
+        self.assertEqual(pull["allowed_merge_methods"], ["squash"])
+        checks = action["body"]["rules"][1]["parameters"]["required_status_checks"]
+        by_context = {check["context"]: check for check in checks}
+        self.assertEqual(by_context["lint"]["integration_id"], 42)
+        self.assertNotIn("integration_id", by_context["test"])
+
+    def test_existing_ruleset_update_rejects_unpreservable_state(self):
+        for mutation in ("unsupported", "conditions", "unknown", "methods", "types"):
+            current = ruleset_inventory()
+            current["effective_rules"] = []
+            state = managed_update_state()
+            if mutation == "unsupported":
+                state["unsupported"] = ["unsupported_rule"]
+            elif mutation == "conditions":
+                state["conditions"]["include"].append("refs/heads/release")
+            elif mutation == "unknown":
+                state["pull_request"]["require_code_owner_review"] = "unknown"
+            elif mutation == "methods":
+                state["pull_request"]["allowed_merge_methods"] = [[]]
+            else:
+                state["rule_types"] = [[]]
+            current["rulesets"][0]["update_state"] = state
+            with self.subTest(mutation=mutation), self.assertRaises(governance.PolicyError):
+                governance.build_apply_actions(resolved_policy(), current)
 
     def test_common_actions_are_ordered_and_describe_side_effects(self):
         current = ruleset_inventory()

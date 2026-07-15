@@ -13,8 +13,9 @@ SHA = "a" * 40
 
 
 class Completed:
-    def __init__(self, returncode=0, payload=None):
-        self.returncode, self.stdout = returncode, json.dumps(payload) if payload is not None else ""
+    def __init__(self, returncode=0, payload=None, stdout=None):
+        self.returncode = returncode
+        self.stdout = stdout if stdout is not None else json.dumps(payload) if payload is not None else ""
         self.stderr = "redacted API failure"
 
 
@@ -29,8 +30,10 @@ class FakeRunner:
         return self.responses.get(endpoint, Completed(returncode=1))
 
 
-def repository_payload(security=True):
+def repository_payload(security=True, admin=True):
     payload = {"full_name": "acme/demo", "default_branch": "main", "delete_branch_on_merge": True}
+    if admin is not None:
+        payload["permissions"] = {"admin": admin}
     if security:
         payload["security_and_analysis"] = {
             "secret_scanning": {"status": "enabled"},
@@ -46,6 +49,12 @@ def branch_payload(protected):
 
 def observed_check_responses():
     return {
+        "repos/acme/demo/private-vulnerability-reporting": Completed(
+            payload={"enabled": True}
+        ),
+        "repos/acme/demo/vulnerability-alerts": Completed(
+            stdout="HTTP/2.0 204 No Content\r\n\r\n"
+        ),
         "repos/acme/demo/rulesets?includes_parents=false&per_page=100": Completed(
             payload=[[]]
         ),
@@ -152,6 +161,8 @@ class GitHubDiscoveryTest(unittest.TestCase):
         self.assertEqual(result["rulesets"][1]["name"], "inactive governance")
         self.assertEqual(result["legacy_branch_protection"]["status"], "configured")
         self.assertEqual(result["observed_checks"], ["deploy", "lint", "test"])
+        self.assertEqual(result["security"]["private_vulnerability_reporting"], "enabled")
+        self.assertEqual(result["security"]["vulnerability_alerts"], "enabled")
         self.assertNotIn("123", json.dumps(result))
         self.assertNotIn("repos/acme/demo/rulesets/8", [call[0][-1] for call in runner.calls])
         for command, kwargs in runner.calls:
@@ -172,7 +183,14 @@ class GitHubDiscoveryTest(unittest.TestCase):
         runner = FakeRunner(
             {
                 **observed_check_responses(),
-                "repos/acme/demo": Completed(payload=repository_payload(security=False)),
+                "repos/acme/demo": Completed(
+                    payload=repository_payload(security=False, admin=None)
+                ),
+                "repos/acme/demo/private-vulnerability-reporting": Completed(returncode=1),
+                "repos/acme/demo/vulnerability-alerts": Completed(
+                    returncode=1,
+                    stdout="HTTP/2.0 404 Not Found\r\n\r\n",
+                ),
                 "repos/acme/demo/branches/main": Completed(payload=branch_payload(True)),
                 "repos/acme/demo/rules/branches/main?per_page=100": Completed(payload=[rules]),
             }
@@ -181,6 +199,8 @@ class GitHubDiscoveryTest(unittest.TestCase):
         result = governance.discover_github("acme/demo", "main", runner=runner)
 
         self.assertEqual(result["security"]["secret_scanning"], "unknown")
+        self.assertEqual(result["security"]["private_vulnerability_reporting"], "unknown")
+        self.assertEqual(result["security"]["vulnerability_alerts"], "unknown")
         self.assertEqual(result["rulesets"][0]["has_bypass_actors"], "unknown")
         self.assertEqual(result["legacy_branch_protection"]["status"], "unknown")
         self.assertEqual(result["effective_rules"][0]["source"], "unknown")
@@ -200,6 +220,28 @@ class GitHubDiscoveryTest(unittest.TestCase):
         self.assertEqual(result["legacy_branch_protection"]["status"], "absent")
         endpoints = [command[-1] for command, _ in runner.calls]
         self.assertNotIn("repos/acme/demo/branches/main/protection", endpoints)
+
+    def test_admin_visible_disabled_security_controls_are_not_unknown(self):
+        runner = FakeRunner(
+            {
+                **observed_check_responses(),
+                "repos/acme/demo": Completed(payload=repository_payload()),
+                "repos/acme/demo/branches/main": Completed(payload=branch_payload(False)),
+                "repos/acme/demo/rules/branches/main?per_page=100": Completed(payload=[[]]),
+                "repos/acme/demo/private-vulnerability-reporting": Completed(
+                    payload={"enabled": False}
+                ),
+                "repos/acme/demo/vulnerability-alerts": Completed(
+                    returncode=1,
+                    stdout="HTTP/2.0 404 Not Found\r\n\r\n",
+                ),
+            }
+        )
+
+        result = governance.discover_github("acme/demo", "main", runner=runner)
+
+        self.assertEqual(result["security"]["private_vulnerability_reporting"], "disabled")
+        self.assertEqual(result["security"]["vulnerability_alerts"], "disabled")
 
     def test_required_read_failure_stops_closed(self):
         runner = FakeRunner({"repos/acme/demo": Completed(returncode=1)})

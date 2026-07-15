@@ -52,8 +52,8 @@ its administrator credential in Actions.
 | `apply` | All owned controls verified compliant | — | Policy, confirmation, write, read-back, verification, or replanning failure |
 
 `scripts/setup-github.sh` remains temporarily for legacy settings not represented in
-policy, including vulnerability alerts and private vulnerability reporting. Do not
-remove it until those security controls have policy-owned adapters (GR-030).
+policy, including squash-only merges and Discussions. Vulnerability alerts and private
+vulnerability reporting are now foundation minimums derived from SEC-003.
 
 ## Apply action planning boundary
 
@@ -93,3 +93,8 @@ Administrator-only fields that the current token cannot read are reported as `un
 mandatory repository, branch, or effective-rules reads fail closed. The module compares
 this inventory with resolved policy as deterministic `compliant`, `drift`, or `unknown`
 controls and reports unmanaged effective rules without changing them.
+
+Private vulnerability reporting status needs Metadata read; enabling it needs
+Administration write. Vulnerability-alert status needs Administration read. A 404 is
+treated as disabled only when the repository response confirms admin access; otherwise
+it is `unknown`. Apply only enables these foundation minimums and never disables them.

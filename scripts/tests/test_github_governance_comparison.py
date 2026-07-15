@@ -23,6 +23,8 @@ def resolved_policy(backend="ruleset"):
             "admin_bypass_allowed": {"rule_refs": ["GR-010", "GR-012"]},
             "secret_scanning_enabled": {"rule_refs": ["SEC-002"]},
             "push_protection_enabled": {"rule_refs": ["SEC-002"]},
+            "vulnerability_alerts_enabled": {"rule_refs": ["SEC-003"]},
+            "private_vulnerability_reporting_enabled": {"rule_refs": ["SEC-003"]},
         },
         "settings": {
             "target_branch": "main",
@@ -61,7 +63,13 @@ def ruleset_inventory():
                 "source_type": "Repository",
             }
         ],
-        "security": {"dependabot_security_updates": "disabled", "push_protection": "enabled", "secret_scanning": "enabled"},
+        "security": {
+            "dependabot_security_updates": "disabled",
+            "private_vulnerability_reporting": "enabled",
+            "push_protection": "enabled",
+            "secret_scanning": "enabled",
+            "vulnerability_alerts": "enabled",
+        },
     }
 
 
@@ -93,6 +101,11 @@ class GovernanceComparisonTest(unittest.TestCase):
         self.assertEqual([item["id"] for item in first["controls"]], sorted(item["id"] for item in first["controls"]))
         self.assertEqual(first["unmanaged"]["effective_rules"], [])
         self.assertIsNone(first["unmanaged"]["legacy_branch_protection"])
+        for control_id in (
+            "security.private_vulnerability_reporting",
+            "security.vulnerability_alerts",
+        ):
+            self.assertEqual(control(first, control_id)["rule_refs"], ["SEC-003"])
 
     def test_drift_and_unmanaged_controls_are_reported(self):
         inventory = ruleset_inventory()
@@ -118,6 +131,16 @@ class GovernanceComparisonTest(unittest.TestCase):
 
         self.assertEqual(report["status"], "unknown")
         self.assertEqual(control(report, "branch.admin_bypass_allowed")["status"], "unknown")
+
+    def test_disabled_vulnerability_intake_controls_are_drift(self):
+        inventory = ruleset_inventory()
+        inventory["security"]["private_vulnerability_reporting"] = "disabled"
+        inventory["security"]["vulnerability_alerts"] = "disabled"
+
+        report = governance.compare_governance(resolved_policy(), inventory)
+
+        self.assertEqual(report["status"], "drift")
+        self.assertEqual(control(report, "security.vulnerability_alerts")["status"], "drift")
 
     def test_unobserved_required_check_is_drift(self):
         inventory = ruleset_inventory()

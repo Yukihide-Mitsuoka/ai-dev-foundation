@@ -113,14 +113,18 @@ class ApplyActionPlanningTest(unittest.TestCase):
         current["repository"]["delete_branch_on_merge"] = False
         current["security"] = {
             "dependabot_security_updates": "enabled",
+            "private_vulnerability_reporting": "disabled",
             "push_protection": "disabled",
             "secret_scanning": "disabled",
+            "vulnerability_alerts": "disabled",
         }
         result = governance.build_apply_actions(resolved_policy(), current)
         self.assertEqual(
             [action["id"] for action in result["actions"]],
             [
                 "security.secret_scanning",
+                "security.vulnerability_alerts",
+                "security.private_vulnerability_reporting",
                 "repository.delete_branch_on_merge",
                 "security.dependabot_security_updates",
             ],
@@ -130,10 +134,12 @@ class ApplyActionPlanningTest(unittest.TestCase):
             "pushes_containing_detected_secrets_are_rejected",
             result["actions"][0]["side_effects"],
         )
-        self.assertEqual(result["actions"][2]["method"], "DELETE")
+        self.assertEqual(result["actions"][1]["method"], "PUT")
+        self.assertIsNone(result["actions"][1]["body"])
+        self.assertEqual(result["actions"][4]["method"], "DELETE")
         self.assertIn(
             "dependabot_security_updates_are_disabled",
-            result["actions"][2]["side_effects"],
+            result["actions"][4]["side_effects"],
         )
 
     def test_compliant_inventory_has_no_actions(self):

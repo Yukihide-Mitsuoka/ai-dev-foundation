@@ -2,7 +2,7 @@
 
 | Field | Value |
 |-------|-------|
-| Status | proposed |
+| Status | accepted |
 | Date | 2026-07-15 |
 | Deciders | repository owner |
 | Author | Codex (AI agent) |

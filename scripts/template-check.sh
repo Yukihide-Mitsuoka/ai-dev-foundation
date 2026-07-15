@@ -8,6 +8,7 @@
 #      (`---` ... `---`) — the metadata the routing/authority system depends on.
 #   2. No file carries the "collapsed frontmatter" signature a non-frontmatter-aware
 #      formatter produces (guards against the LOG-0007 regression recurring).
+#   3. GitHub governance inheritance rejects invalid or weakening policy.
 
 set -u
 cd "$(dirname "$0")/.." || exit 9
@@ -33,6 +34,10 @@ done < <(find .ai .skills -type f -name '*.md' 2>/dev/null | sort)
 if grep -rlnE '^## (id|name): .+ (title|description): ' .ai .skills docs CLAUDE.md AGENTS.md 2>/dev/null; then
   err "^ file(s) above contain collapsed YAML frontmatter — run mdformat with mdformat-frontmatter (see LOG-0007)"
 fi
+
+# 3. Foundation-level governance policy contract tests (ADR-0003).
+python3 -m unittest discover -s scripts/tests -p 'test_*.py' || err "GitHub governance policy tests failed"
+python3 scripts/github_governance.py validate --root . >/dev/null || err "GitHub governance policy is invalid"
 
 if [ "$errors" -eq 0 ]; then
   echo "doctor: OK — template invariants hold"

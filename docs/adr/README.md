@@ -24,6 +24,6 @@ architectural change (definition: ARC-020 "Architectural" scope). Process:
 |---|-------|--------|------|
 | [0001](0001-record-architecture-decisions.md) | Record architecture decisions | accepted | 2026-07-02 |
 | [0002](0002-ai-facing-docs-in-english.md) | AI-facing docs are written in English | accepted | 2026-07-02 |
-| [0003](0003-reconcile-github-governance-from-inherited-policy.md) | Reconcile GitHub governance from inherited policy | proposed | 2026-07-15 |
+| [0003](0003-reconcile-github-governance-from-inherited-policy.md) | Reconcile GitHub governance from inherited policy | accepted | 2026-07-15 |
 
 <!-- Append new ADRs to this table (newest last). -->

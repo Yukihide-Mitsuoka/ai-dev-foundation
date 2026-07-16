@@ -18,9 +18,8 @@ not observed on the target branch head is also drift.
 **Fix:**
 
 1. Read the JSON `controls` entries whose `status` is not `compliant`.
-2. For `drift`, review the desired policy and current GitHub state. Policy-driven
-   `apply` is not implemented yet; do not use the legacy bootstrap unless its fixed
-   settings are acceptable.
+2. For `drift`, review the desired policy and current GitHub state. Use the documented
+   exact-confirmation `apply` flow only after the change is approved.
 3. For `unknown`, rerun locally with `gh` authentication that can read repository
    administration settings.
 4. For `branch.required_status_checks_observed`, verify the named workflow runs on the

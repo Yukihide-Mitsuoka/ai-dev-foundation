@@ -6,7 +6,7 @@ title: Template Inheritance Contract
 # Template Inheritance Contract
 
 This directory defines the child-owned, direct-parent contract from [ADR-0004](../../docs/adr/0004-harden-multi-level-template-inheritance.md).
-Validation is offline and read-only; history planning and materialization are follow-ups.
+Validation and local history planning are read-only; materialization remains a follow-up.
 
 ## Schema version 1
 
@@ -41,3 +41,29 @@ python3 scripts/template_inheritance.py validate --root .
 
 Exit `0` prints deterministic JSON; exit `2` reports invalid input on stderr. The command
 performs no network request, file write, deletion, Git operation, or GitHub API call.
+
+## Plan the next parent commit
+
+```bash
+python3 scripts/template_inheritance.py plan --root . --parent-root ../parent-template
+```
+
+`--parent-root` must be the top level of a local Git worktree whose credential-free
+GitHub `origin` matches the manifest. The local `origin/<branch>` ref must already be
+available. Plan never fetches, checks out, writes, deletes, or calls GitHub.
+
+Plan verifies that the lock is on that ref's first-parent history and selects only the
+commit immediately after it. The report classifies that commit's paths:
+
+| Field | Meaning |
+|-------|---------|
+| `add` | Inherited parent file is absent in the child |
+| `modify` | Inherited content or executable mode differs |
+| `candidate_delete` | Parent removed an inherited file; no deletion is performed |
+| `already_current` | Child already matches the candidate state |
+| `protected` | Child-owned path is reported and skipped |
+| `unowned` | Path is outside both ownership lists and is skipped |
+
+Exit `0` prints the deterministic plan, including candidate and branch-head commits.
+Exit `2` reports invalid metadata, parent identity/history, Git state, or child path.
+See [template inheritance troubleshooting](../../docs/troubleshooting/template-inheritance.md).

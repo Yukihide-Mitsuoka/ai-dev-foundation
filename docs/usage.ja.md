@@ -82,7 +82,10 @@ DRY_RUN=1 bash scripts/setup-github.sh OWNER/REPOSITORY
 bash scripts/setup-github.sh OWNER/REPOSITORY --confirm-repo OWNER/REPOSITORY
 ```
 
-`validate` はオフラインで動作します。`plan` と `audit` は認証済みのGET-only
+`validate` はオフラインで動作し、foundation、`.github/governance/profiles/`内の単一
+profile chain、repository policyを自動的に解決します。required checksは単調合成され、
+profileとrepository policyはcheckを追加できますがfoundation checkを削除できません。
+`plan` と `audit` は認証済みのGET-only
 `gh api` を使用し、同じ秘匿化済みJSON比較を出力します。対象branch先端で必要check名が
 観測されない場合はdriftとし、無関係なcheckはdriftにしません。`plan` は比較完了時に0、
 `audit` はdriftまたは権限不足によるunknown時に1、policy・入力・GitHub読み取りの失敗時には

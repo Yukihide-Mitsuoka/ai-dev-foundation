@@ -1,6 +1,7 @@
 import copy
 import importlib.util
 import json
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -47,12 +48,22 @@ def foundation_policy():
     }
 
 
+def profile(profile_id, parent, checks):
+    return {
+        "schema_version": 1,
+        "id": profile_id,
+        "parent": parent,
+        "required_checks": checks,
+    }
+
+
 class GovernancePolicyTest(unittest.TestCase):
-    def resolve(self, foundation=None, repository=None):
+    def resolve(self, foundation=None, repository=None, profiles=None):
         return governance.resolve_policy(
             foundation or foundation_policy(),
             repository or {"schema_version": 1, "overrides": {}},
             KNOWN_RULES,
+            [] if profiles is None else profiles,
         )
 
     def assert_policy_error(self, foundation=None, repository=None):
@@ -74,7 +85,7 @@ class GovernancePolicyTest(unittest.TestCase):
         self.assertTrue(minimums["squash_merge_only"]["value"])
         self.assertFalse(minimums["admin_bypass_allowed"]["value"])
 
-    def test_repository_overrides_only_operational_defaults(self):
+    def test_repository_customizes_defaults_and_adds_required_checks(self):
         result = self.resolve(
             repository={
                 "schema_version": 1,
@@ -91,10 +102,71 @@ class GovernancePolicyTest(unittest.TestCase):
         )
 
         self.assertEqual(result["settings"]["required_approvals"], 1)
-        self.assertEqual(result["settings"]["required_checks"], ["doctor", "secret-scan"])
+        self.assertEqual(
+            result["settings"]["required_checks"],
+            ["lint", "test", "doctor", "secret-scan"],
+        )
         self.assertTrue(result["settings"]["discussions_enabled"])
         self.assertEqual(result["settings"]["squash_merge_commit_title"], "COMMIT_OR_PR_TITLE")
         self.assertTrue(result["minimums"]["pull_request_required"]["value"])
+
+    def test_profiles_form_parent_chain_and_required_checks_are_monotonic(self):
+        result = self.resolve(
+            repository={
+                "schema_version": 1,
+                "overrides": {"required_checks": ["test", "mart-inspection"]},
+            },
+            profiles=[
+                profile("secure-data", "terraform-gcp", ["data-contract"]),
+                profile("terraform-gcp", "ai-dev-foundation", ["lint", "iac-scan"]),
+            ],
+        )
+
+        self.assertEqual(
+            [item["id"] for item in result["profiles"]],
+            ["terraform-gcp", "secure-data"],
+        )
+        self.assertEqual(
+            result["settings"]["required_checks"],
+            ["lint", "test", "iac-scan", "data-contract", "mart-inspection"],
+        )
+
+    def test_invalid_profile_graphs_fail_closed(self):
+        invalid_graphs = (
+            [profile("terraform", "ai-dev-foundation", ["scan"])] * 2,
+            [
+                profile("terraform", "ai-dev-foundation", ["scan"]),
+                profile("nextjs", "ai-dev-foundation", ["web-test"]),
+            ],
+            [profile("orphan", "missing", ["scan"])],
+            [profile("first", "second", ["scan"]), profile("second", "first", ["test"])],
+            [profile("Invalid", "ai-dev-foundation", ["scan"])],
+            [profile("terraform", "ai-dev-foundation", ["scan", "scan"])],
+        )
+        for profiles in invalid_graphs:
+            with self.subTest(profiles=profiles), self.assertRaises(governance.PolicyError):
+                self.resolve(profiles=profiles)
+
+    def test_profile_directory_loads_regular_json_and_rejects_symlinks(self):
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            directory = root / ".github/governance/profiles"
+            directory.mkdir(parents=True)
+            safe = profile("terraform", "ai-dev-foundation", ["scan"])
+            (directory / "safe.json").write_text(json.dumps(safe))
+            self.assertEqual(governance._load_profiles(root), [safe])
+            outside = root / "outside.json"
+            outside.write_text(json.dumps(profile("outside", "ai-dev-foundation", ["scan"])))
+            (directory / "unsafe.json").symlink_to(outside)
+
+            with self.assertRaises(governance.PolicyError):
+                governance._load_profiles(root)
+
+            linked_root = root / "linked-root"
+            linked_root.mkdir()
+            (linked_root / ".github").symlink_to(root / ".github", target_is_directory=True)
+            with self.assertRaises(governance.PolicyError):
+                governance._load_profiles(linked_root)
 
     def test_unknown_fields_and_minimum_overrides_are_rejected(self):
         for repository in (

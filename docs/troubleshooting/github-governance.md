@@ -5,8 +5,8 @@ title: GitHub Governance Troubleshooting
 
 # GitHub Governance Troubleshooting
 
-This guide resolves read-only governance audit failures. It does not authorize or
-perform GitHub setting changes.
+This guide resolves governance validation and read-only audit failures. It does not
+authorize or perform GitHub setting changes.
 
 ## `audit` exits with status 1
 
@@ -28,3 +28,47 @@ not observed on the target branch head is also drift.
 **Prevention:** Run `plan` after changing policy or required workflow names.
 
 **Refs:** #18, ADR-0003
+
+## `governance policy error: profiles must form one parent chain rooted at ai-dev-foundation`
+
+**Affects:** all `scripts/github_governance.py` commands
+
+**Cause:** Profiles are branched, cyclic, orphaned, or do not connect to the foundation
+root through their explicit `parent` fields. Duplicate IDs produce their own explicit
+error before chain validation.
+
+**Fix:** Keep only the profiles for this repository's direct-parent lineage. Set the
+first profile parent to `ai-dev-foundation` and each later parent to the preceding
+profile ID; file names do not set the order.
+
+**Prevention:** Run offline `validate` in the profile-owning template before inheritance.
+
+**Refs:** #32, ADR-0004
+
+## `governance policy error: profile directory must not use symlinks`
+
+**Affects:** all `scripts/github_governance.py` commands
+
+**Cause:** The profile directory or one of its parent components inside the repository
+is a symlink.
+
+**Fix:** Replace linked path components with reviewed regular directories inside the
+repository.
+
+**Prevention:** Keep the governance directory entirely repository-owned.
+
+**Refs:** #32, ADR-0004, SEC-010
+
+## `governance policy error: profile must be a regular file without symlinks`
+
+**Affects:** all `scripts/github_governance.py` commands
+
+**Cause:** A discovered `.github/governance/profiles/*.json` entry is a symlink or is not
+a regular file.
+
+**Fix:** Replace it with a reviewed regular JSON file inside the profile directory.
+
+**Prevention:** Inherit committed profile files; do not link policy from outside the
+repository.
+
+**Refs:** #32, ADR-0004, SEC-010

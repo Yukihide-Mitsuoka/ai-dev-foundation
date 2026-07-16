@@ -5,22 +5,49 @@ title: GitHub Governance Policy
 
 # GitHub Governance Policy
 
-These JSON files are the deterministic enforcement projection defined by ADR-0003.
+These JSON files are the deterministic enforcement projection defined by ADR-0003 and
+extended for direct-parent template families by ADR-0004.
 Normative requirements remain in `.ai/`; every foundation minimum references its source
 rule ID.
 
 ## Ownership
 
-| File | Owner | Template Sync |
-|------|-------|---------------|
-| `foundation.json` | ai-dev-foundation | Updated from the foundation |
-| `repository.json` | Downstream repository | Never overwritten |
+| File | Owner | Inheritance |
+|------|-------|-------------|
+| `foundation.json` | ai-dev-foundation | Inherited globally |
+| `profiles/*.json` | Declaring template family | Inherited through each direct child |
+| `repository.json` | Downstream repository | Protected; never overwritten |
 
 Repository overrides may set `target_branch`, `enforcement_backend`, approval count,
-last-push approval, required check names, one dependency-update provider, and merged
-branch deletion. They may also select Discussions availability and the default squash
+last-push approval, one dependency-update provider, and merged-branch deletion. They may
+also add required check names and select Discussions availability and the default squash
 commit title/message formats. Squash-only merge availability is an immutable WF-030
 foundation minimum. Unknown fields and attempts to override foundation minimums fail.
+
+## Template profile chain
+
+An optional profile adds template-family checks without copying the child-owned
+`repository.json`:
+
+```json
+{
+  "schema_version": 1,
+  "id": "terraform-gcp",
+  "parent": "ai-dev-foundation",
+  "required_checks": ["iac-scan"]
+}
+```
+
+The resolver discovers up to 32 regular, non-symlink JSON files in
+`.github/governance/profiles/`. Profile IDs and explicit parent IDs must form one chain
+rooted at `ai-dev-foundation`; file names and discovery order do not define precedence.
+Each additional family profile names the preceding profile as its parent.
+
+Required checks merge in foundation → profile chain → repository order. A name repeated
+across layers is retained once at its first position, preserving existing repository
+policies that repeat foundation checks. Duplicates inside one layer remain invalid. No
+profile or repository layer can remove a foundation check. Add a profile check only after
+its uniquely named workflow result runs on every pull request.
 
 ## Solo-friendly foundation defaults
 
@@ -46,11 +73,11 @@ python3 scripts/github_governance.py apply --root . --repo OWNER/REPOSITORY \
   --confirm-repo OWNER/REPOSITORY
 ```
 
-`validate` resolves both layers without authentication or network access. `plan` and
-`audit` require authenticated `gh` read access and print the same stable, redacted JSON
-comparison. They also verify that every required check name is observed on the target
-branch head; unrelated observed checks do not create drift. These three commands make no
-GitHub setting change.
+`validate` resolves all configured layers without authentication or network access.
+`plan` and `audit` require authenticated `gh` read access and print the same stable,
+redacted JSON comparison. They also verify that every required check name is observed on
+the target branch head; unrelated observed checks do not create drift. These three
+commands make no GitHub setting change.
 
 `apply` requires the exact target to be repeated before any GitHub read. It uses local
 `gh` authentication with repository Administration write access, applies one owned-field

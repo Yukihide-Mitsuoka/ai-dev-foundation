@@ -130,16 +130,26 @@ class GovernanceCliTest(unittest.TestCase):
             if error:
                 self.assertIn("governance apply error: verification failed", stderr.getvalue())
 
-    def test_validate_remains_offline(self):
+    def test_validate_remains_offline_and_loads_profiles(self):
+        profile = {
+            "schema_version": 1,
+            "id": "terraform-gcp",
+            "parent": "ai-dev-foundation",
+            "required_checks": ["iac-scan"],
+        }
         stdout = io.StringIO()
         with (
             mock.patch.object(governance, "discover_github") as discover,
+            mock.patch.object(governance, "_load_profiles", return_value=[profile]) as load,
             contextlib.redirect_stdout(stdout),
         ):
             exit_code = governance.main(["validate", "--root", str(ROOT)])
 
         self.assertEqual(exit_code, 0)
-        self.assertEqual(json.loads(stdout.getvalue())["managed_by"], "ai-dev-foundation")
+        report = json.loads(stdout.getvalue())
+        self.assertEqual(report["profiles"], [profile])
+        self.assertIn("iac-scan", report["settings"]["required_checks"])
+        load.assert_called_once_with(ROOT)
         discover.assert_not_called()
 
 

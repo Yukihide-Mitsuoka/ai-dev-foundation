@@ -30,4 +30,4 @@ procedure.
 - Deployment secrets follow [`.ai/guardrails.md`](../../../.ai/guardrails.md)
   (GR-001/003).
 - Record smoke verification and rollback procedures under `docs/deployment/` and
-  [docs/runbook/](../../runbook/).
+  `docs/runbook/`.

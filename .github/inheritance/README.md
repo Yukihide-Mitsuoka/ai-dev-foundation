@@ -66,4 +66,4 @@ commit immediately after it. The report classifies that commit's paths:
 
 Exit `0` prints the deterministic plan, including candidate and branch-head commits.
 Exit `2` reports invalid metadata, parent identity/history, Git state, or child path.
-See [template inheritance troubleshooting](../../docs/troubleshooting/template-inheritance.md).
+See [template inheritance troubleshooting](../../docs/foundation/troubleshooting/template-inheritance.md).

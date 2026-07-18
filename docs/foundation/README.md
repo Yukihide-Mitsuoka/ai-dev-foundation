@@ -18,8 +18,9 @@ their rules.
 | Path | Purpose |
 |------|---------|
 | [requirements.md](requirements.md) | Choose the project-owned requirements location and naming |
-| [guides/](guides/) | Define project documentation structure and update triggers without occupying project-owned paths |
+| [guides/](guides/) | Define project documentation structure, onboarding, and update triggers without occupying project-owned paths |
 | [templates/](templates/) | Copyable skeletons for project-owned documents |
+| [troubleshooting/](troubleshooting/) | Diagnose reusable foundation tooling without occupying project-owned troubleshooting paths |
 
 ## Template Sync ownership
 

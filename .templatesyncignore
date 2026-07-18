@@ -14,7 +14,8 @@ Makefile
 .github/governance/repository.json
 .templatesyncignore
 
-# Foundation-owned documentation is the only synchronized docs namespace. Keep these
-# exceptions last so broad filename rules such as README.md do not re-exclude its files.
-!docs/foundation/
-!docs/foundation/**
+# Foundation-owned documentation is the only synchronized docs namespace. This Action
+# passes entries to `git reset --`, so exclusions use Git pathspec `:!` syntax rather
+# than `.gitignore` negation. Keep them last so broad rules do not re-exclude the files.
+:!docs/foundation/
+:!docs/foundation/**

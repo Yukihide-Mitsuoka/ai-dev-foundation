@@ -17,6 +17,7 @@ old one. One line per entry. AI agents append entries in the same PR as the chan
 
 | Date | ID | Decision | Link |
 |------|----|----------|------|
+| 2026-07-18 | LOG-0020 | Upgrade every `actions/checkout` workflow use from v4 to v6 to adopt its Node.js 24 runtime and separate credential storage while preserving existing triggers, permissions, and inputs | [actions/checkout](https://github.com/actions/checkout) |
 | 2026-07-18 | ADR-0006 (accepted) | Repository owner approved `docs/foundation/` as the synchronized foundation-owned namespace while downstream project documents keep direct `docs/` paths | [ADR-0006](../docs/adr/0006-reserve-a-foundation-documentation-namespace.md) |
 | 2026-07-18 | ADR-0006 (proposed) | Reserve `docs/foundation/` for synchronized foundation-owned guidance and templates while keeping downstream project documents directly under `docs/` | [ADR-0006](../docs/adr/0006-reserve-a-foundation-documentation-namespace.md) |
 | 2026-07-18 | ADR-0005 (accepted) | Repository owner approved the language boundary: foundation-owned instructions remain English, while AI-authored project documents are Japanese after template instantiation | [ADR-0005](../docs/adr/0005-separate-foundation-and-project-document-languages.md) |

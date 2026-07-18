@@ -213,7 +213,8 @@ updated: 2026-07-18
 - **利用目的**：モジュールの公開API・所有データ・不変条件・依存を1ページで宣言（ARC-003）。
 - **利用シーン**：そのモジュールを変更する前に必ず読む。契約が変わったら同PRで更新。
 - **利用しないシーン**：他モジュールの内部実装を知りたい時（内部は非公開。公開APIのみ参照）。
-- **利用例**：[src/modules/catalog/MODULE.md](../../../src/modules/catalog/MODULE.md)（同梱の例）で、公開API `AddProduct.handle` と不変条件4点を把握してから改修。
+- **利用例**：`src/modules/catalog/MODULE.md` が存在するリポジトリでは、公開API
+  `AddProduct.handle` と不変条件を把握してから改修。
 
 ### [src/README.md](../../../src/README.md) / [tests/README.md](../../../tests/README.md)（配置規約）
 

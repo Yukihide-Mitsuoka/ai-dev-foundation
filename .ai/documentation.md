@@ -55,8 +55,9 @@ Governs all prose in `.ai/` and `docs/`. `.skills/requirements.skill.md` and
 |----------|---------|-----------|
 | `.ai/` | rules for agents | yes (authority table) |
 | `CLAUDE.md`, `AGENTS.md` | agent entry points | yes |
-| `docs/adr/` | decisions with context | yes (accepted ADRs) |
-| `docs/foundation/` | synchronized foundation-owned guidance and document templates | descriptive |
+| `docs/foundation/adr/` | synchronized foundation decisions with context | yes (accepted ADRs) |
+| `docs/foundation/` | other synchronized foundation-owned guidance and document templates | descriptive |
+| `docs/adr/` | repository-specific decisions with context | yes (accepted ADRs) |
 | `docs/requirements.md`, `docs/requirements/` | whole-project and initiative requirements | contract |
 | `docs/glossary.md` | project-specific ubiquitous language | descriptive |
 | `docs/roadmap.md` | project direction and sequencing | descriptive |

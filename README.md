@@ -19,7 +19,7 @@ direct, decide, and review.
 | Enforcement L3 | [`.github/workflows/`](.github/workflows/) | CI, CodeQL, secrets/deps/license scan, container, IaC, DAST, Scorecard, release+SBOM |
 | Stable command interface | [`Makefile`](Makefile) | `make test` etc. — the only entry points automation uses |
 | Stack profiles | [`profiles/`](profiles/) | Reference Makefile implementations per stack + the canonical target contract |
-| Decisions | [`docs/adr/`](docs/adr/) | ADRs + decision log |
+| Decisions | [`docs/foundation/adr/`](docs/foundation/adr/) | Synchronized foundation ADRs + decision log |
 | Knowledge | [`docs/`](docs/) | Architecture, domain, API, deployment, operations, runbook, troubleshooting, roadmap, glossary |
 | GitHub scaffolding | [`.github/`](.github/) | Issue forms, PR template, CODEOWNERS, labels-as-code, Dependabot; plus `renovate.json` |
 | GitHub governance | [`.github/governance/`](.github/governance/) + [`scripts/github_governance.py`](scripts/github_governance.py) | Layered policy with `plan`/`audit` and explicitly confirmed administrator `apply` |
@@ -55,7 +55,7 @@ AI First · Secure by Default · Least Privilege · Defense in Depth · Everythi
 (docs, policy, infra) · Convention over Configuration · Clean Architecture · DDD ·
 SOLID · Twelve-Factor · GitHub Flow · Conventional Commits · SemVer.
 
-Why it's built this way: [docs/adr/](docs/adr/). How agents behave here:
+Why it's built this way: [foundation ADRs](docs/foundation/adr/). How agents behave here:
 [.ai/README.md](.ai/README.md).
 
 ## License

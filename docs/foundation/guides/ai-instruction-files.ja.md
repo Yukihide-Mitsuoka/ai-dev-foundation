@@ -29,7 +29,7 @@ updated: 2026-07-18
 │ feature / bugfix / refactor / ... 各タスクの実行手順      │
 └───────────────────────────────────────────────────────┘
 
-  補助: .claude/（Claude固有の自動強制）, docs/adr/（意思決定）,
+  補助: .claude/（Claude固有の自動強制）, docs/foundation/adr/（基盤の意思決定）,
         MODULE.md（モジュール契約）, Issue/PRテンプレート（AIへの構造化入力）,
         ~/.claude・~/projects/CLAUDE.md（全リポ共通のグローバル指示）
 ```
@@ -46,7 +46,7 @@ updated: 2026-07-18
 | ルール本体 | [.ai/](../../../.ai/) の各 `*.md` | 分野別の正準ルール（ID付き） |
 | 手順書 | [.skills/](../../../.skills/) の各 `*.skill.md` | タスク別の実行プレイブック |
 | 自動強制 | [.claude/](../../../.claude/) | Claude Code のフック（即時ブロック/整形）・権限制御・ネイティブSkill |
-| 意思決定 | [docs/adr/](../../adr/) | 「なぜこう作ったか」の不変記録 |
+| 意思決定 | [docs/foundation/adr/](../adr/)、`docs/adr/` | 基盤と利用先の「なぜ」を所有者別に記録 |
 | 用語 | [docs/foundation/glossary.md](../glossary.md)、`docs/glossary.md` | 基盤と利用先プロジェクトの統一用語 |
 | ソース構造 | [src/README.md](../../../src/README.md), [tests/README.md](../../../tests/README.md) | コード配置規約・MODULE.md雛形 |
 | 方向性 | `docs/roadmap.md` | 利用先で何を作る/作らないかの指針 |
@@ -185,12 +185,12 @@ updated: 2026-07-18
 
 ## 6. 意思決定・用語・方向性（利用先の docs/）
 
-### [docs/adr/](../../adr/)（ADR：Architecture Decision Records）
+### [docs/foundation/adr/](../adr/) と `docs/adr/`（ADR）
 
-- **利用目的**：長期的影響のある決定を不変記録。受理された ADR は規範（GR-022）。
-- **利用シーン**：構造/境界/技術の変更前に「既に決まってないか」確認し、新決定は ADR を起票。
+- **利用目的**：基盤の受理済み決定は `docs/foundation/adr/`、利用先固有の決定は `docs/adr/` に不変記録する（GR-022）。
+- **利用シーン**：構造/境界/技術の変更前に両方を確認し、利用先の新決定は `docs/adr/` に起票。
 - **利用しないシーン**：局所的な実装判断（それは decision-log の1行や why コメントで足りる）。
-- **利用例**：[0002](../../adr/0002-ai-facing-docs-in-english.md)「AI向け文書は英語」を読み、なぜ英語かを理解。新規は [ADRテンプレート](../templates/adr.md) を複製。
+- **利用例**：[0002](../adr/0002-ai-facing-docs-in-english.md)を読み基盤の言語方針を理解。利用先の新規ADRは [ADRテンプレート](../templates/adr.md) を `docs/adr/` へ複製。
 
 ### [docs/foundation/glossary.md](../glossary.md) と `docs/glossary.md`（統一用語）
 
@@ -288,7 +288,7 @@ Claude Code は起動時に**親ディレクトリを遡って** `CLAUDE.md` を
 ---
 
 関連：新環境セットアップ手順は [usage.ja.md](usage.ja.md)、`.ai/` の索引は
-[.ai/README.md](../../../.ai/README.md)、決定の経緯は [docs/adr/](../../adr/) を参照。
+[.ai/README.md](../../../.ai/README.md)、基盤の決定の経緯は [docs/foundation/adr/](../adr/) を参照。
 
 ---
 

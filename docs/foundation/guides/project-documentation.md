@@ -6,13 +6,14 @@ title: Project Documentation Guide
 # Project Documentation Guide
 
 This guide defines where an instantiated repository stores project-owned documentation.
-Binding rules live in [`.ai/`](../../../.ai/); project decisions live in
-[`docs/adr/`](../../adr/); writing rules live in
+Binding rules live in [`.ai/`](../../../.ai/); inherited decisions live in the
+[foundation ADRs](../adr/), project decisions live in `docs/adr/`, and writing rules live in
 [`.ai/documentation.md`](../../../.ai/documentation.md).
 
 | Directory | Content | Primary reader task |
 |-----------|---------|---------------------|
-| [docs/adr/](../../adr/) | Architecture Decision Records (**normative** when accepted) | "why is it built this way?" |
+| [docs/foundation/adr/](../adr/) | Synchronized foundation Architecture Decision Records (**normative** when accepted) | "why does the inherited foundation work this way?" |
+| `docs/adr/` | Project Architecture Decision Records (**normative** when accepted) | "why is this project built this way?" |
 | [docs/foundation/](../) | Synchronized foundation-owned guidance and document templates | use inherited documentation support |
 | `docs/requirements.md`, `docs/requirements/` | Project-owned whole-project and initiative requirements | determine what must be built and why |
 | `docs/architecture/` | System structure, C4 diagrams, data flows | understand before changing structure |

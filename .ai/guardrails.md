@@ -75,8 +75,10 @@ Exceptions (docs-only, config-only, generated code) MUST be declared in the PR d
 
 ### GR-022: Never make architecture-level changes without an ADR
 Changes to layers, module boundaries, data flow, storage technology, public API shape,
-or cross-cutting patterns MUST be preceded by an ADR in `docs/adr/` (may be in the same
-PR, but the ADR is reviewed first). See `.skills/architecture.skill.md`.
+or cross-cutting patterns MUST be preceded by an ADR (may be in the same PR, but the ADR
+is reviewed first). `ai-dev-foundation` records synchronized foundation decisions in
+`docs/foundation/adr/`; instantiated repositories record their decisions in `docs/adr/`.
+See `.skills/architecture.skill.md`.
 
 ### GR-023: Never add a dependency without justification
 Adding or upgrading-major a dependency MUST include in the PR description: purpose,

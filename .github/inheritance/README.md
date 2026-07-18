@@ -5,7 +5,8 @@ title: Template Inheritance Contract
 
 # Template Inheritance Contract
 
-This directory defines the child-owned, direct-parent contract from [ADR-0004](../../docs/adr/0004-harden-multi-level-template-inheritance.md).
+This directory defines the child-owned, direct-parent contract from
+[ADR-0004](../../docs/foundation/adr/0004-harden-multi-level-template-inheritance.md).
 Validation and local history planning are read-only; materialization remains a follow-up.
 
 ## Schema version 1

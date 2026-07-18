@@ -6,9 +6,9 @@ title: Architecture Documentation
 # Architecture Documentation
 
 Defines what an instantiated repository records under `docs/architecture/`. The *rules*
-live in [.ai/architecture.md](../../../.ai/architecture.md); project decisions live in
-[docs/adr/](../../adr/). If a project architecture document contradicts either, that
-project document is wrong.
+live in [.ai/architecture.md](../../../.ai/architecture.md); inherited decisions live in
+the [foundation ADRs](../adr/), and project decisions live in `docs/adr/`. If a project
+architecture document contradicts any of them, that project document is wrong.
 
 **Update triggers (DOC-030):** new module, changed module boundary, new external
 dependency/integration, changed data flow, new infrastructure component.

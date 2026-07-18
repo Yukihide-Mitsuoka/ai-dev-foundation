@@ -18,7 +18,7 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       # TEMPLATE: add your runtime setup action here (setup-node / setup-python / setup-go)
       - run: make setup
       - run: make lint
@@ -26,7 +26,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - run: make setup
       - run: make coverage
       - name: Upload coverage artifact
@@ -39,7 +39,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - run: make setup
       - run: make build
 
@@ -49,7 +49,7 @@ jobs:
     # the no-op template Makefile can't. Dependency-free (pure bash).
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - run: make doctor
 
   link-check:
@@ -57,7 +57,7 @@ jobs:
     # Offline mode: verify local file links resolve; external URLs are not fetched.
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Check links (offline)
         uses: lycheeverse/lychee-action@v2.8.0
         with:

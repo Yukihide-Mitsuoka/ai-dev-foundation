@@ -41,10 +41,24 @@ python3 -m unittest discover -s scripts/tests -p 'test_*.py' || err "GitHub gove
 python3 scripts/github_governance.py validate --root . >/dev/null || err "GitHub governance policy is invalid"
 
 # 4. ADR-0006 ownership boundary: reusable scaffolding belongs under docs/foundation/.
-# Only the root foundation bans legacy project-path copies. Instantiated repositories
-# carry an inheritance manifest and may validly create repository-owned files at those
-# paths, including README files (DOC-010).
-if [ ! -f .github/inheritance/manifest.json ]; then
+# Only the canonical foundation repository bans legacy project-path copies. Legacy
+# direct Template Sync children do not necessarily carry an inheritance manifest, so
+# manifest absence cannot identify the root. Children may validly create repository-owned
+# files at these paths, including README files (DOC-010).
+foundation_origin="$(git config --get remote.origin.url 2>/dev/null)"
+case "$foundation_origin" in
+  https://github.com/Yukihide-Mitsuoka/ai-dev-foundation | \
+    https://github.com/Yukihide-Mitsuoka/ai-dev-foundation.git | \
+    git@github.com:Yukihide-Mitsuoka/ai-dev-foundation.git | \
+    ssh://git@github.com/Yukihide-Mitsuoka/ai-dev-foundation.git)
+    is_foundation_root=true
+    ;;
+  *)
+    is_foundation_root=false
+    ;;
+esac
+
+if [ "$is_foundation_root" = true ]; then
   for path in \
     docs/README.md \
     docs/api/README.md \

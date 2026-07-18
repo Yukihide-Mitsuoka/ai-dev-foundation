@@ -1,14 +1,14 @@
 ---
-id: requirements-index
-title: Requirements Documents
+id: foundation-requirements-guide
+title: Foundation Requirements Guide
 ---
 
-# docs/requirements/ — Requirements Documents
+# Requirements document placement
 
-This directory contains requirements definitions for individual initiatives. Follow the
-requirements procedure in
+This foundation-owned guide defines where an instantiated repository stores its
+requirements documents. Follow the binding requirements procedure in
 [`.skills/requirements.skill.md`](../../.skills/requirements.skill.md) and start from
-[`docs/templates/requirements.md`](../templates/requirements.md).
+[`docs/foundation/templates/requirements.md`](templates/requirements.md).
 
 ## Placement
 

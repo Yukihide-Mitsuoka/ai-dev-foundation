@@ -13,3 +13,8 @@ Makefile
 .github/CODEOWNERS
 .github/governance/repository.json
 .templatesyncignore
+
+# Foundation-owned documentation is the only synchronized docs namespace. Keep these
+# exceptions last so broad filename rules such as README.md do not re-exclude its files.
+!docs/foundation/
+!docs/foundation/**

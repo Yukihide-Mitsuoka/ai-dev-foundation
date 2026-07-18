@@ -6,7 +6,7 @@ updated: {{YYYY-MM-DD}}
 ---
 
 <!--
-  TEMPLATE. Copy to docs/requirements.md (whole project) or
+  FOUNDATION TEMPLATE. Copy to docs/requirements.md (whole project) or
   docs/requirements/<initiative>.md (one initiative), then replace every {{...}} and
   delete the guidance comments. Procedure and rationale: .skills/requirements.skill.md.
   Style is binding — DOC-002: objective, conclusion-first, structure carries meaning,

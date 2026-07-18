@@ -2,7 +2,7 @@
 name: requirements
 description: Produce a requirements definition document — purpose-driven, zero-based, objective, complete
 triggers: [requirements definition, 要件定義, spec a feature, write requirements, scope a project, interrogate the plan, grill me]
-reads: [.ai/mission.md, .ai/documentation.md, docs/templates/requirements.md]
+reads: [.ai/mission.md, .ai/documentation.md, docs/foundation/templates/requirements.md]
 ---
 
 # Skill: Requirements Definition
@@ -17,7 +17,7 @@ that design and acceptance testing proceed without re-asking.
   or ambiguous enough that two reasonable implementations would diverge, drive it out by
   interrogation (Process step 2) — do not fill the gap with an assumption (CLAUDE.md §13).
 - The success definition: how the requester will judge the result as met.
-- The template: [docs/templates/requirements.md](../docs/templates/requirements.md) —
+- The template: [docs/foundation/templates/requirements.md](../docs/foundation/templates/requirements.md) —
   structure and required sections.
 - Scope boundaries: [.ai/mission.md](../.ai/mission.md). Read other existing docs and code
   only in Process step 4, not before.

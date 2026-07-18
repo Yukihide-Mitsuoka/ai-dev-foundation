@@ -17,6 +17,8 @@ old one. One line per entry. AI agents append entries in the same PR as the chan
 
 | Date | ID | Decision | Link |
 |------|----|----------|------|
+| 2026-07-18 | ADR-0005 (accepted) | Repository owner approved the language boundary: foundation-owned instructions remain English, while AI-authored project documents are Japanese after template instantiation | [ADR-0005](../docs/adr/0005-separate-foundation-and-project-document-languages.md) |
+| 2026-07-18 | ADR-0005 (proposed) | Keep reusable foundation instructions in English while requiring AI agents to author project-specific documents in Japanese after template instantiation | [ADR-0005](../docs/adr/0005-separate-foundation-and-project-document-languages.md) |
 | 2026-07-16 | LOG-0019 | Template governance profiles auto-discover one explicit parent chain rooted at `ai-dev-foundation`; required checks merge monotonically in foundation-to-repository order with stable cross-layer deduplication for migration compatibility | [ADR-0004](../docs/adr/0004-harden-multi-level-template-inheritance.md) |
 | 2026-07-16 | ADR-0004 (accepted) | Repository owner approved the hardened direct-parent, manifest-owned, local-first inheritance architecture and solo-friendly governance defaults in PR #33 | [ADR-0004](../docs/adr/0004-harden-multi-level-template-inheritance.md) |
 | 2026-07-16 | ADR-0004 (proposed) | Keep direct-parent template topology but replace denylist-only scheduled writes with manifest-owned, local-first inheritance; add inheritable template policy profiles, monotonic required checks, and solo-friendly defaults | [ADR-0004](../docs/adr/0004-harden-multi-level-template-inheritance.md) |

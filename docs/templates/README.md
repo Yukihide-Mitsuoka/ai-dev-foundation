@@ -13,7 +13,8 @@ fill it, and delete the guidance comments. Each template names the skill that dr
 | [requirements.md](requirements.md) | A requirements definition document | [.skills/requirements.skill.md](../../.skills/requirements.skill.md) |
 
 Templates follow the documentation rules ([.ai/documentation.md](../../.ai/documentation.md)),
-especially the writing style in DOC-002. Fill instances in the project's working language;
-the template files themselves stay in English (ADR-0002).
+especially the writing style in DOC-002. After template instantiation, AI agents translate
+the copied structure and write project-specific documents in Japanese. The
+foundation-owned template files remain English (ADR-0005).
 
 **Update trigger:** add a row here whenever a new template lands in this directory.

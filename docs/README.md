@@ -11,6 +11,7 @@ in `.ai/`; decisions in `docs/adr/`. Writing rules: `.ai/documentation.md`.
 | Directory | Content | Primary reader task |
 |-----------|---------|---------------------|
 | [adr/](adr/) | Architecture Decision Records (**normative** when accepted) | "why is it built this way?" |
+| [requirements/](requirements/) | Requirements for individual initiatives; whole-project requirements use `requirements.md` | determine what must be built and why |
 | [architecture/](architecture/) | System structure, C4 diagrams, data flows | understand before changing structure |
 | [domain/](domain/) | Domain model, bounded contexts, ubiquitous language | understand the business rules |
 | [api/](api/) | API contracts (OpenAPI/schema + commentary) | integrate with or change an API |

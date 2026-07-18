@@ -5,8 +5,10 @@ title: Architecture Documentation
 
 # Architecture Documentation
 
-Describes the system as built. The *rules* live in [.ai/architecture.md](../../.ai/architecture.md);
-decisions in [../adr/](../adr/). If this directory contradicts either, this directory is wrong.
+Defines what an instantiated repository records under `docs/architecture/`. The *rules*
+live in [.ai/architecture.md](../../../.ai/architecture.md); project decisions live in
+[docs/adr/](../../adr/). If a project architecture document contradicts either, that
+project document is wrong.
 
 **Update triggers (DOC-030):** new module, changed module boundary, new external
 dependency/integration, changed data flow, new infrastructure component.
@@ -15,11 +17,11 @@ dependency/integration, changed data flow, new infrastructure component.
 
 | File | Content | Format |
 |------|---------|--------|
-| `c4-context.md` | System in its environment: users, external systems | Mermaid C4/flowchart |
-| `c4-container.md` | Deployable units and their interactions | Mermaid |
-| `modules.md` | Bounded-context map: every `src/modules/*` + one-line purpose + dependencies between them | Mermaid + table |
-| `data-flow.md` | How data moves for the 3–5 most important flows | Mermaid sequence |
-| `infrastructure.md` | Runtime topology: compute, storage, network | Mermaid + table |
+| `docs/architecture/c4-context.md` | System in its environment: users, external systems | Mermaid C4/flowchart |
+| `docs/architecture/c4-container.md` | Deployable units and their interactions | Mermaid |
+| `docs/architecture/modules.md` | Bounded-context map: every `src/modules/*` + one-line purpose + dependencies between them | Mermaid + table |
+| `docs/architecture/data-flow.md` | How data moves for the 3–5 most important flows | Mermaid sequence |
+| `docs/architecture/infrastructure.md` | Runtime topology: compute, storage, network | Mermaid + table |
 
 ## Conventions
 

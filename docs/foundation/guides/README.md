@@ -21,5 +21,13 @@ They are descriptive mappings. Binding behavior remains in
 | [runbook.md](runbook.md) | `docs/runbook/` |
 | [troubleshooting.md](troubleshooting.md) | `docs/troubleshooting/` |
 
+## Onboarding references
+
+| Guide | Purpose |
+|-------|---------|
+| [usage.md](usage.md) | Create a project from the foundation or develop the foundation itself |
+| [usage.ja.md](usage.ja.md) | Japanese human-facing version of the usage guide |
+| [ai-instruction-files.ja.md](ai-instruction-files.ja.md) | Japanese guide to the reusable AI instruction system |
+
 **Update trigger:** update the matching guide whenever the project documentation
 inventory, structure, or DOC-030 trigger changes.

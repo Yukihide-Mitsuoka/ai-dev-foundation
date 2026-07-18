@@ -27,14 +27,15 @@ their rules.
 ## Template Sync ownership
 
 Template Sync excludes `docs/**` to protect project-owned documentation and selectively
-includes `docs/foundation/**`. Existing downstream repositories created before this
-namespace was introduced must append this one-time exception block to the end of their
-local `.templatesyncignore`:
+includes `docs/foundation/**`. `actions-template-sync@v2` passes ignore entries to
+`git reset --`; exclusions therefore use Git pathspec `:!` syntax, not `.gitignore` `!`
+negation. Existing downstream repositories must append this exception block to the end
+of their local `.templatesyncignore`:
 
 ```gitignore
 docs/**
-!docs/foundation/
-!docs/foundation/**
+:!docs/foundation/
+:!docs/foundation/**
 ```
 
 The local `.templatesyncignore` is itself protected from synchronization. Review and

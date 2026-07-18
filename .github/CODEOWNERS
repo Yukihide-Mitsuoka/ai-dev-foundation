@@ -17,5 +17,4 @@
 /.pre-commit-config.yaml @{{ORG}}/security
 
 # Decisions
-/docs/foundation/adr/   @{{ORG}}/leads
 /docs/adr/              @{{ORG}}/leads

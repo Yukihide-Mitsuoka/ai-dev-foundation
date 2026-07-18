@@ -18,7 +18,7 @@ alphabetical.
 
 | Term | Definition | Context | Avoid | Not to be confused with |
 |------|------------|---------|-------|--------------------------|
-| ADR | Immutable record of an architectural decision in `docs/foundation/adr/` or project-owned `docs/adr/` | foundation | design doc | decision log (the index of all decisions) |
+| ADR | Immutable record of an architectural decision in `docs/adr/` | foundation | design doc | decision log (the index of all decisions) |
 | Agent | Any AI system working in this repo under CLAUDE.md rules | foundation | bot, assistant | — |
 | Audit | Read-only governance comparison whose exit code fails on drift or unknown state | governance | check | plan (which reports those states without failing) |
 | Bounded context | A domain boundary owning its model and language; maps 1:1 to `src/modules/<context>` | DDD | — | module (the code artifact implementing it) |

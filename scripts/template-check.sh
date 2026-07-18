@@ -54,7 +54,10 @@ for path in \
   docs/usage.ja.md \
   docs/ai-instruction-files.ja.md \
   docs/troubleshooting/github-governance.md \
-  docs/troubleshooting/template-inheritance.md; do
+  docs/troubleshooting/template-inheritance.md \
+  docs/glossary.md \
+  docs/roadmap.md \
+  docs/adr/0000-template.md; do
   if [ -e "$path" ]; then
     err "$path: foundation-owned guidance must live under docs/foundation/ (ADR-0006)"
   fi
@@ -75,7 +78,11 @@ for path in \
   docs/foundation/guides/ai-instruction-files.ja.md \
   docs/foundation/troubleshooting/README.md \
   docs/foundation/troubleshooting/github-governance.md \
-  docs/foundation/troubleshooting/template-inheritance.md; do
+  docs/foundation/troubleshooting/template-inheritance.md \
+  docs/foundation/glossary.md \
+  docs/foundation/templates/adr.md \
+  docs/foundation/templates/glossary.md \
+  docs/foundation/templates/roadmap.md; do
   if [ ! -f "$path" ]; then
     err "$path: required foundation documentation guide is missing"
   fi

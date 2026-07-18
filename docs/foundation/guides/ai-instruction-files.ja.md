@@ -47,9 +47,9 @@ updated: 2026-07-18
 | 手順書 | [.skills/](../../../.skills/) の各 `*.skill.md` | タスク別の実行プレイブック |
 | 自動強制 | [.claude/](../../../.claude/) | Claude Code のフック（即時ブロック/整形）・権限制御・ネイティブSkill |
 | 意思決定 | [docs/adr/](../../adr/) | 「なぜこう作ったか」の不変記録 |
-| 用語 | [docs/glossary.md](../../glossary.md) | AIが使うべき統一用語 |
+| 用語 | [docs/foundation/glossary.md](../glossary.md)、`docs/glossary.md` | 基盤と利用先プロジェクトの統一用語 |
 | ソース構造 | [src/README.md](../../../src/README.md), [tests/README.md](../../../tests/README.md) | コード配置規約・MODULE.md雛形 |
-| 方向性 | [docs/roadmap.md](../../roadmap.md) | 何を作る/作らないかの指針 |
+| 方向性 | `docs/roadmap.md` | 利用先で何を作る/作らないかの指針 |
 | 契約 | `src/modules/*/MODULE.md`, [profiles/README.md](../../../profiles/README.md) | モジュール/makeターゲットの契約 |
 | 構造化入力 | [.github/](../../../.github/) の Issue/PR テンプレート | AIへの指示を型化 |
 | グローバル | `~/.claude/CLAUDE.md`, `~/projects/CLAUDE.md` | 全リポ共通の好み（リポ外・Claude固有） |
@@ -190,18 +190,18 @@ updated: 2026-07-18
 - **利用目的**：長期的影響のある決定を不変記録。受理された ADR は規範（GR-022）。
 - **利用シーン**：構造/境界/技術の変更前に「既に決まってないか」確認し、新決定は ADR を起票。
 - **利用しないシーン**：局所的な実装判断（それは decision-log の1行や why コメントで足りる）。
-- **利用例**：[0002](../../adr/0002-ai-facing-docs-in-english.md)「AI向け文書は英語」を読み、なぜ英語かを理解。新規は [0000-template.md](../../adr/0000-template.md) を複製。
+- **利用例**：[0002](../../adr/0002-ai-facing-docs-in-english.md)「AI向け文書は英語」を読み、なぜ英語かを理解。新規は [ADRテンプレート](../templates/adr.md) を複製。
 
-### [docs/glossary.md](../../glossary.md)（統一用語）
+### [docs/foundation/glossary.md](../glossary.md) と `docs/glossary.md`（統一用語）
 
-- **利用目的**：ユビキタス言語。コード識別子・ドキュメント・会話で同じ語を同じ意味で使う（COD-002）。
-- **利用シーン**：新しい概念に名前を付ける前に確認し、新語は同PRで追記。
+- **利用目的**：基盤の再利用語と、利用先プロジェクト固有のユビキタス言語を所有者別に定義する（COD-002）。
+- **利用シーン**：新しい概念に名前を付ける前に両方を確認し、プロジェクト固有語は `docs/glossary.md` に同PRで追記。
 - **利用しないシーン**：一般的な技術用語（ここは「このプロジェクト固有の語」）。
 - **利用例**：「Contract change」と「breaking change」の違いを glossary で確認して用語を統一。
 
-### [docs/roadmap.md](../../roadmap.md)（方向性）
+### `docs/roadmap.md`（利用先の方向性）
 
-- **利用目的**：プロジェクトの進む方向とマイルストーン。AIが「その変更が方向性に沿うか」を判断する材料。
+- **利用目的**：利用先プロジェクトの進む方向とマイルストーン。新規作成時は [roadmapテンプレート](../templates/roadmap.md) を使う。
 - **利用シーン**：機能提案の妥当性判断、優先順位の把握。「Now / Next / Later / 対象外」を確認。
 - **利用しないシーン**：日々の作業キュー（それは GitHub の issue/milestone）。"Later" 項目の先回り実装（COD-051 で禁止）。
 - **利用例**：提案が roadmap の「対象外」に該当すると分かり、着手せず理由を添えて差し戻す。

@@ -6,8 +6,8 @@ title: Domain Model Documentation
 # Domain Model
 
 Defines how an instantiated repository documents the business reality it models (DDD).
-Code names follow project terms in [docs/glossary.md](../../glossary.md) under
-[COD-002](../../../.ai/coding-rules.md).
+Code names follow reusable terms in the [foundation glossary](../glossary.md) and
+project terms in `docs/glossary.md` under [COD-002](../../../.ai/coding-rules.md).
 
 **Update triggers (DOC-030):** new domain concept, changed business rule, new bounded
 context, changed context relationships, PII-bearing entity added (also SEC-011).

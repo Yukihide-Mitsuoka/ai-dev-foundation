@@ -11,7 +11,8 @@ architectural change (definition: ARC-020 "Architectural" scope). Process:
 
 ## Rules
 
-- Numbered sequentially: `NNNN-kebab-case-title.md`. Copy [0000-template.md](0000-template.md).
+- Numbered sequentially: `NNNN-kebab-case-title.md`. Copy the
+  [foundation ADR template](../foundation/templates/adr.md).
 - Status flow: `proposed → accepted | rejected`; later `deprecated` or
   `superseded by ADR-NNNN`. **Accepted ADRs are never edited** — supersede them.
 - One decision per ADR. Keep it under ~2 pages.

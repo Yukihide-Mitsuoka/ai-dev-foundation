@@ -17,6 +17,8 @@ old one. One line per entry. AI agents append entries in the same PR as the chan
 
 | Date | ID | Decision | Link |
 |------|----|----------|------|
+| 2026-07-18 | ADR-0006 (accepted) | Repository owner approved `docs/foundation/` as the synchronized foundation-owned namespace while downstream project documents keep direct `docs/` paths | [ADR-0006](../docs/adr/0006-reserve-a-foundation-documentation-namespace.md) |
+| 2026-07-18 | ADR-0006 (proposed) | Reserve `docs/foundation/` for synchronized foundation-owned guidance and templates while keeping downstream project documents directly under `docs/` | [ADR-0006](../docs/adr/0006-reserve-a-foundation-documentation-namespace.md) |
 | 2026-07-18 | ADR-0005 (accepted) | Repository owner approved the language boundary: foundation-owned instructions remain English, while AI-authored project documents are Japanese after template instantiation | [ADR-0005](../docs/adr/0005-separate-foundation-and-project-document-languages.md) |
 | 2026-07-18 | ADR-0005 (proposed) | Keep reusable foundation instructions in English while requiring AI agents to author project-specific documents in Japanese after template instantiation | [ADR-0005](../docs/adr/0005-separate-foundation-and-project-document-languages.md) |
 | 2026-07-16 | LOG-0019 | Template governance profiles auto-discover one explicit parent chain rooted at `ai-dev-foundation`; required checks merge monotonically in foundation-to-repository order with stable cross-layer deduplication for migration compatibility | [ADR-0004](../docs/adr/0004-harden-multi-level-template-inheritance.md) |

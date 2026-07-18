@@ -31,7 +31,7 @@ and **optimized for AI readers** — explicit, structured, unambiguous.
 ## DOC-002: Objective, structured prose
 
 Governs all prose in `.ai/` and `docs/`. `.skills/requirements.skill.md` and
-`docs/templates/requirements.md` build on this rule.
+`docs/foundation/templates/requirements.md` build on this rule.
 
 - **Objective basis.** State each claim with its basis — a measurement, a cited source, a
   standard, or explicit reasoning. Separate established fact, inference, and open
@@ -56,6 +56,7 @@ Governs all prose in `.ai/` and `docs/`. `.skills/requirements.skill.md` and
 | `.ai/` | rules for agents | yes (authority table) |
 | `CLAUDE.md`, `AGENTS.md` | agent entry points | yes |
 | `docs/adr/` | decisions with context | yes (accepted ADRs) |
+| `docs/foundation/` | synchronized foundation-owned guidance and document templates | descriptive |
 | `docs/requirements.md`, `docs/requirements/` | whole-project and initiative requirements | contract |
 | `docs/architecture/` | diagrams, flows, C4 | descriptive |
 | `docs/domain/` | domain model, ubiquitous language | descriptive |

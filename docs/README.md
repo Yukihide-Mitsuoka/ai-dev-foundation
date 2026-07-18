@@ -11,7 +11,8 @@ in `.ai/`; decisions in `docs/adr/`. Writing rules: `.ai/documentation.md`.
 | Directory | Content | Primary reader task |
 |-----------|---------|---------------------|
 | [adr/](adr/) | Architecture Decision Records (**normative** when accepted) | "why is it built this way?" |
-| [requirements/](requirements/) | Requirements for individual initiatives; whole-project requirements use `requirements.md` | determine what must be built and why |
+| [foundation/](foundation/) | Synchronized foundation-owned guidance and document templates | use or update inherited documentation support |
+| `requirements.md`, `requirements/` | Project-owned whole-project and initiative requirements | determine what must be built and why |
 | [architecture/](architecture/) | System structure, C4 diagrams, data flows | understand before changing structure |
 | [domain/](domain/) | Domain model, bounded contexts, ubiquitous language | understand the business rules |
 | [api/](api/) | API contracts (OpenAPI/schema + commentary) | integrate with or change an API |
@@ -19,7 +20,6 @@ in `.ai/`; decisions in `docs/adr/`. Writing rules: `.ai/documentation.md`.
 | [operations/](operations/) | Monitoring, alerts, SLOs, maintenance | keep it running |
 | [runbook/](runbook/) | Step-by-step incident/ops procedures | 3am emergency |
 | [troubleshooting/](troubleshooting/) | Known failure modes → diagnosis → fix | "it's broken, what now?" |
-| [templates/](templates/) | Reusable document templates (requirements, ...) | start a standard document |
 | [roadmap.md](roadmap.md) | Direction and planned milestones | prioritize work |
 | [glossary.md](glossary.md) | Ubiquitous language dictionary | name things correctly |
 | [usage.md](usage.md) | Using the template on a new machine/account; new-project setup (日本語: [usage.ja.md](usage.ja.md)) | onboard a new environment |
@@ -27,5 +27,6 @@ in `.ai/`; decisions in `docs/adr/`. Writing rules: `.ai/documentation.md`.
 
 Contribution guide: [/CONTRIBUTING.md](../CONTRIBUTING.md).
 
-Each directory's README defines its own structure and **update triggers** — the doc-update
-matrix (DOC-030) tells you which directory a given change must touch.
+Each foundation-owned directory's README defines its own structure and **update
+triggers**. The doc-update matrix (DOC-030) tells you which directory a given change must
+touch.

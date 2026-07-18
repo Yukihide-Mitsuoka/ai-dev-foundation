@@ -27,5 +27,6 @@ architectural change (definition: ARC-020 "Architectural" scope). Process:
 | [0003](0003-reconcile-github-governance-from-inherited-policy.md) | Reconcile GitHub governance from inherited policy | accepted | 2026-07-15 |
 | [0004](0004-harden-multi-level-template-inheritance.md) | Harden multi-level template inheritance | accepted | 2026-07-16 |
 | [0005](0005-separate-foundation-and-project-document-languages.md) | Separate foundation and project document languages | accepted | 2026-07-18 |
+| [0006](0006-reserve-a-foundation-documentation-namespace.md) | Reserve a foundation documentation namespace | accepted | 2026-07-18 |
 
 <!-- Append new ADRs to this table (newest last). -->

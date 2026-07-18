@@ -304,7 +304,7 @@ Claude Code は起動時に**親ディレクトリを遡って** `CLAUDE.md` を
 | ガバナンス metadata | `.github/CODEOWNERS`, `labels.yml`, `discussion-categories.md` | レビュー経路・ラベル・カテゴリ定義。AIは使うが指示ではない |
 | 人間向け | `README.md`, `CONTRIBUTING.md`, `SECURITY.md`, `docs/usage.md`, `docs/usage.ja.md` | 人間向け。特に `README.md` はAIを「CLAUDE.mdへ」と誘導する側。AI向けセキュリティは `.ai/security.md`（§3収録）が担う |
 | 記述的ドキュメント | `docs/{architecture,domain,api,deployment,operations,runbook,troubleshooting}/README.md`, `docs/README.md` | 権威レベル5の**記述（informative）**。規範ではなく雛形。ただし各READMEの「更新トリガー」は DOC-030 経由でAIを間接的に案内する |
-| ドキュメント雛形 | `docs/templates/` | 記入用テンプレート（例：`requirements.md`）。指示文ではなく、`requirements` スキルが埋める対象。書式規約は DOC-002（§3収録）が担う |
+| ドキュメント雛形 | `docs/foundation/templates/` | 基盤所有の記入用テンプレート（例：`requirements.md`）。指示文ではなく、`requirements` スキルが利用先の `docs/` へ展開する対象。書式規約は DOC-002（§3収録）が担う |
 | 例コード | `src/modules/catalog/**/*.py`, `tests/**/*.py` | "指示"ではなく"手本（imitateする参照, COD-050）"。契約は代表として `MODULE.md` を §7 に収録 |
 
 **線引きの原則**：規範（normative, 従うべき）は収録、記述（descriptive, 参考情報）と純粋な実行/設定は除外。

@@ -41,27 +41,34 @@ python3 -m unittest discover -s scripts/tests -p 'test_*.py' || err "GitHub gove
 python3 scripts/github_governance.py validate --root . >/dev/null || err "GitHub governance policy is invalid"
 
 # 4. ADR-0006 ownership boundary: reusable scaffolding belongs under docs/foundation/.
-for path in \
-  docs/README.md \
-  docs/api/README.md \
-  docs/architecture/README.md \
-  docs/deployment/README.md \
-  docs/domain/README.md \
-  docs/operations/README.md \
-  docs/runbook/README.md \
-  docs/troubleshooting/README.md \
-  docs/usage.md \
-  docs/usage.ja.md \
-  docs/ai-instruction-files.ja.md \
-  docs/troubleshooting/github-governance.md \
-  docs/troubleshooting/template-inheritance.md \
-  docs/glossary.md \
-  docs/roadmap.md \
-  docs/adr/0000-template.md; do
-  if [ -e "$path" ]; then
-    err "$path: foundation-owned guidance must live under docs/foundation/ (ADR-0006)"
+# Only the root foundation bans legacy project-path copies. Instantiated repositories
+# carry an inheritance manifest and may validly create repository-owned files at those
+# paths, including README files (DOC-010).
+if [ ! -f .github/inheritance/manifest.json ]; then
+  for path in \
+    docs/README.md \
+    docs/api/README.md \
+    docs/architecture/README.md \
+    docs/deployment/README.md \
+    docs/domain/README.md \
+    docs/operations/README.md \
+    docs/runbook/README.md \
+    docs/troubleshooting/README.md \
+    docs/usage.md \
+    docs/usage.ja.md \
+    docs/ai-instruction-files.ja.md \
+    docs/troubleshooting/github-governance.md \
+    docs/troubleshooting/template-inheritance.md \
+    docs/glossary.md \
+    docs/roadmap.md; do
+    if [ -e "$path" ]; then
+      err "$path: foundation-owned guidance must live under docs/foundation/ (ADR-0006)"
+    fi
+  done
+  if find docs/adr -type f -print -quit 2>/dev/null | grep -q .; then
+    err "docs/adr/: ai-dev-foundation ADRs must live under docs/foundation/adr/ (ADR-0006)"
   fi
-done
+fi
 
 for path in \
   docs/foundation/guides/README.md \
@@ -76,6 +83,13 @@ for path in \
   docs/foundation/guides/usage.md \
   docs/foundation/guides/usage.ja.md \
   docs/foundation/guides/ai-instruction-files.ja.md \
+  docs/foundation/adr/README.md \
+  docs/foundation/adr/0001-record-architecture-decisions.md \
+  docs/foundation/adr/0002-ai-facing-docs-in-english.md \
+  docs/foundation/adr/0003-reconcile-github-governance-from-inherited-policy.md \
+  docs/foundation/adr/0004-harden-multi-level-template-inheritance.md \
+  docs/foundation/adr/0005-separate-foundation-and-project-document-languages.md \
+  docs/foundation/adr/0006-reserve-a-foundation-documentation-namespace.md \
   docs/foundation/troubleshooting/README.md \
   docs/foundation/troubleshooting/github-governance.md \
   docs/foundation/troubleshooting/template-inheritance.md \

@@ -6,11 +6,12 @@ updated: {{YYYY-MM-DD}}
 ---
 
 <!--
-  FOUNDATION TEMPLATE. Copy to docs/adr/NNNN-kebab-case-title.md, replace every
-  placeholder, and delete this guidance comment. After template instantiation, write
-  project-specific ADR content in Japanese unless the repository owner or an external
-  contract explicitly requires another language. Keep this template in English
-  (ADR-0005).
+  FOUNDATION TEMPLATE. In ai-dev-foundation, copy to
+  docs/foundation/adr/NNNN-kebab-case-title.md. After template instantiation, copy to
+  docs/adr/NNNN-kebab-case-title.md. Replace every placeholder and delete this guidance
+  comment. Write project-specific ADR content in Japanese unless the repository owner or
+  an external contract explicitly requires another language. Keep this template in
+  English (ADR-0005).
 -->
 
 # ADR-{{NNNN}}: {{decision as a short imperative statement}}

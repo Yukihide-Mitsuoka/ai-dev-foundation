@@ -3,21 +3,21 @@ id: adr-index
 title: Architecture Decision Records
 ---
 
-# Architecture Decision Records (ADR)
+# Foundation Architecture Decision Records (ADR)
 
-Immutable records of decisions with long-term consequences. Required by GR-022 for any
-architectural change (definition: ARC-020 "Architectural" scope). Process:
-`.skills/architecture.skill.md`.
+Immutable records of decisions owned by `ai-dev-foundation` and synchronized to
+downstream repositories. Project-specific decisions belong in `docs/adr/`. Both use the
+process in `.skills/architecture.skill.md`.
 
 ## Rules
 
 - Numbered sequentially: `NNNN-kebab-case-title.md`. Copy the
-  [foundation ADR template](../foundation/templates/adr.md).
+  [foundation ADR template](../templates/adr.md).
 - Status flow: `proposed → accepted | rejected`; later `deprecated` or
   `superseded by ADR-NNNN`. **Accepted ADRs are never edited** — supersede them.
 - One decision per ADR. Keep it under ~2 pages.
 - The ADR PR is approved by a human before implementation starts (GR-022).
-- Every ADR gets a line in [.ai/decision-log.md](../../.ai/decision-log.md).
+- Every ADR gets a line in [.ai/decision-log.md](../../../.ai/decision-log.md).
 
 ## Index
 

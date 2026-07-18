@@ -33,8 +33,8 @@ standard. Cons: small process overhead per decision.
 ## Decision
 
 Adopt Option 3. Architectural decisions (ARC-020 "Architectural" scope) MUST be
-recorded as an ADR in `docs/adr/` using `docs/foundation/templates/adr.md`, approved by a
-human before implementation (GR-022), and indexed in `.ai/decision-log.md`.
+recorded as an ADR in `docs/adr/` using `0000-template.md`, approved by a human before
+implementation (GR-022), and indexed in `.ai/decision-log.md`.
 
 ## Consequences
 

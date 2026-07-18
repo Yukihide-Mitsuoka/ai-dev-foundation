@@ -65,6 +65,12 @@ Governs all prose in `.ai/` and `docs/`. `.skills/requirements.skill.md` and
 | `src/modules/*/MODULE.md` | module contracts | yes |
 | `README.md` | project front door | descriptive |
 
+The structure and update triggers for project-owned `docs/` paths are defined once in
+[`docs/foundation/guides/`](../docs/foundation/guides/). A project-owned documentation
+directory MUST NOT contain a foundation-owned placeholder README. A repository MAY add
+a local README only when it describes actual project content and is maintained by that
+repository.
+
 ## DOC-030: Doc-update matrix (binding — GR-024)
 
 When a PR contains a change of type X, it MUST update the docs listed:
@@ -87,4 +93,6 @@ When a PR contains a change of type X, it MUST update the docs listed:
 - If you read a doc that contradicts the code: the code is usually truth for *behavior*,
   the doc for *intent*. Investigate, fix the wrong one in the current PR, note it.
 - Docs describing removed features are deleted, not marked "deprecated" forever.
-- Each `docs/**/README.md` lists its own update triggers; obey them.
+- Use the matching `docs/foundation/guides/` entry for directory structure and update
+  triggers. If a repository adds a project-owned README, obey its additional local
+  triggers as well.

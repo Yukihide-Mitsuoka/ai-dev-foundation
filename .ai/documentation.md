@@ -58,6 +58,8 @@ Governs all prose in `.ai/` and `docs/`. `.skills/requirements.skill.md` and
 | `docs/adr/` | decisions with context | yes (accepted ADRs) |
 | `docs/foundation/` | synchronized foundation-owned guidance and document templates | descriptive |
 | `docs/requirements.md`, `docs/requirements/` | whole-project and initiative requirements | contract |
+| `docs/glossary.md` | project-specific ubiquitous language | descriptive |
+| `docs/roadmap.md` | project direction and sequencing | descriptive |
 | `docs/architecture/` | diagrams, flows, C4 | descriptive |
 | `docs/domain/` | domain model, ubiquitous language | descriptive |
 | `docs/api/` | API contracts (OpenAPI etc.) | contract |
@@ -84,6 +86,7 @@ When a PR contains a change of type X, it MUST update the docs listed:
 | New dependency | PR justification (GR-023); `docs/architecture/` if structural |
 | Behavior change visible to users | README, CHANGELOG (via commit type) |
 | New error state / failure mode | `docs/troubleshooting/`, `docs/runbook/` if ops action needed |
+| New or changed reusable foundation term | `docs/foundation/glossary.md` |
 | New domain term | `docs/glossary.md` |
 | Decision that constrains the future | ADR + `.ai/decision-log.md` |
 | Change to how AI should behave | `.ai/*` (via reviewed PR) |

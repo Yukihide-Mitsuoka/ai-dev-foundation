@@ -1,20 +1,20 @@
 ---
-id: glossary
-title: Glossary — Ubiquitous Language
-updated: 2026-07-16
+id: foundation-glossary
+title: Foundation Glossary
+updated: 2026-07-18
 ---
 
-# Glossary
+# Foundation Glossary
 
-The ubiquitous language (DDD). Code identifiers, docs, and conversation MUST use these
-terms with exactly these meanings (COD-002). Before naming a new concept, check here;
-when introducing a term, add it here in the same PR (DOC-030).
+Reusable foundation terminology. Code identifiers, documentation, and conversation use
+these terms with the meanings defined here under COD-002. Project-specific ubiquitous
+language belongs in `docs/glossary.md` after a repository is instantiated.
 
 Format: term, one-sentence definition, context it belongs to, banned synonyms (*Avoid* —
 never use these for the concept; COD-002), and what it is NOT when confusable. Keep
 alphabetical.
 
-## Template & foundation terms
+## Terms
 
 | Term | Definition | Context | Avoid | Not to be confused with |
 |------|------------|---------|-------|--------------------------|
@@ -31,22 +31,10 @@ alphabetical.
 | Skill | A task playbook in `.skills/*.skill.md` | foundation | — | Claude Code native skill (optional wrapper) |
 | Unknown | A governance control that could not be evaluated because required state was not visible | governance | indeterminate | compliant or drift |
 
-## Project terms
-
-<!-- TEMPLATE: add your domain's terms here as the first bounded context is modeled. -->
-
-| Term | Definition | Context | Avoid | Not to be confused with |
-|------|------------|---------|-------|--------------------------|
-
 ## Resolved ambiguities
 
 Append-only log of naming collisions and their resolution — one word carrying two
 meanings, or two words carrying one meaning. Recording the resolution keeps the
 collision from returning; move the surviving term into the tables above.
-
-<!-- TEMPLATE: example entry —
-- "handler" meant both HTTP controllers and event consumers; resolved 2026-07-10:
-  HTTP side is "controller", event side is "consumer". "handler" is no longer used.
--->
 
 *None yet.*

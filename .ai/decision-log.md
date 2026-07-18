@@ -17,6 +17,7 @@ old one. One line per entry. AI agents append entries in the same PR as the chan
 
 | Date | ID | Decision | Link |
 |------|----|----------|------|
+| 2026-07-18 | LOG-0023 | Complete ADR-0006 phase 3 by separating reusable foundation terminology into `docs/foundation/glossary.md`, moving project-document skeletons into `docs/foundation/templates/`, and leaving `docs/glossary.md`, `docs/roadmap.md`, and new files under `docs/adr/` for repository-owned content | [Foundation documentation](../docs/foundation/) |
 | 2026-07-18 | LOG-0022 | Complete ADR-0006 phase 2 by moving reusable onboarding and foundation-tool troubleshooting from project-owned `docs/` paths into synchronized `docs/foundation/`; `make doctor` prevents the legacy paths from returning | [Foundation documentation](../docs/foundation/) |
 | 2026-07-18 | LOG-0021 | Complete ADR-0006 phase 1 by moving reusable project-documentation directory guidance from project-owned `docs/**/README.md` paths into synchronized `docs/foundation/guides/`; project directories remain absent until they contain repository-owned documents, and `make doctor` prevents foundation scaffold READMEs from returning | [Foundation guides](../docs/foundation/guides/) |
 | 2026-07-18 | LOG-0020 | Upgrade every `actions/checkout` workflow use from v4 to v6 to adopt its Node.js 24 runtime and separate credential storage while preserving existing triggers, permissions, and inputs | [actions/checkout](https://github.com/actions/checkout) |

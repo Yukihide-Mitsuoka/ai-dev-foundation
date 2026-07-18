@@ -17,6 +17,7 @@ their rules.
 
 | Path | Purpose |
 |------|---------|
+| [glossary.md](glossary.md) | Define reusable foundation terminology without occupying the project glossary path |
 | [requirements.md](requirements.md) | Choose the project-owned requirements location and naming |
 | [guides/](guides/) | Define project documentation structure, onboarding, and update triggers without occupying project-owned paths |
 | [templates/](templates/) | Copyable skeletons for project-owned documents |

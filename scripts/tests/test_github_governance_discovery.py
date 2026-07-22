@@ -270,6 +270,23 @@ class GitHubDiscoveryTest(unittest.TestCase):
             2,
         )
 
+    def test_unreadable_legacy_status_remains_unknown_for_an_admin(self):
+        runner = FakeRunner(
+            {
+                **observed_check_responses(),
+                "repos/acme/demo": Completed(payload=repository_payload()),
+                "repos/acme/demo/branches/main": Completed(payload=branch_payload(True)),
+                "repos/acme/demo/rules/branches/main?per_page=100": Completed(
+                    payload=[[]]
+                ),
+                "repos/acme/demo/branches/main/protection": Completed(returncode=1),
+            }
+        )
+
+        result = governance.discover_github("acme/demo", "main", runner=runner)
+
+        self.assertEqual(result["legacy_branch_protection"]["status"], "unknown")
+
     def test_admin_visible_disabled_security_controls_are_not_unknown(self):
         runner = FakeRunner(
             {

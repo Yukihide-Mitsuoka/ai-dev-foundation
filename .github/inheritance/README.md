@@ -47,6 +47,12 @@ pathspec exclusion used by `actions-template-sync`, not `.gitignore` negation. T
 intentional `:!docs/foundation/**` exception permits only the inherited foundation
 documentation namespace.
 
+`actions-template-sync@v2` exposes an abbreviated source hash even though its action
+metadata calls the value a Git hash. The workflow must expand that exact abbreviation
+through the GitHub commits API and validate the resulting 40-character commit before
+writing PR provenance. Resolving only the current parent branch head is insufficient
+because the parent can move while synchronization runs.
+
 ## Validate
 
 ```bash

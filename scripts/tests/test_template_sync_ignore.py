@@ -31,8 +31,9 @@ class TemplateSyncIgnoreTest(unittest.TestCase):
         workflow = WORKFLOW_FILE.read_text(encoding="utf-8")
 
         self.assertIn("id: template-sync", workflow)
-        self.assertIn("steps.template-sync.outputs.template_git_hash", workflow)
-        self.assertIn("steps.template-sync.outputs.pr_number", workflow)
+        self.assertIn("steps.template-sync.outputs.pr_branch", workflow)
+        self.assertIn('gh api "repos/${SOURCE_REPOSITORY}/commits/${SOURCE_SHORT}"', workflow)
+        self.assertIn("Unable to expand the Template Sync source commit", workflow)
         self.assertIn("gh pr edit", workflow)
 
 

@@ -39,21 +39,33 @@ jobs:
           pr_labels: "type:ci,type:dependencies"
           pr_commit_msg: "build: sync with ai-dev-foundation template"
       - name: Record exact direct-parent source commit
-        if: steps.template-sync.outputs.pr_number != ''
+        if: steps.template-sync.outputs.pr_branch != ''
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
           PR_NUMBER: ${{ steps.template-sync.outputs.pr_number }}
-          SOURCE_COMMIT: ${{ steps.template-sync.outputs.template_git_hash }}
+          PR_BRANCH: ${{ steps.template-sync.outputs.pr_branch }}
+          SOURCE_SHORT: ${{ steps.template-sync.outputs.template_git_hash }}
           SOURCE_REPOSITORY: "{{ORG}}/ai-dev-foundation"
         run: |
           set -euo pipefail
-          if [[ ! "$PR_NUMBER" =~ ^[0-9]+$ ]]; then
-            echo "Template Sync returned an invalid pull request number" >&2
+          if [[ -z "$SOURCE_SHORT" ]]; then
+            SOURCE_SHORT="${PR_BRANCH##*_}"
+          fi
+          if [[ ! "$SOURCE_SHORT" =~ ^[0-9a-f]{7,40}$ ]]; then
+            echo "Template Sync returned an invalid abbreviated source commit" >&2
             exit 1
           fi
-          if [[ ! "$SOURCE_COMMIT" =~ ^[0-9a-f]{40}$ ]]; then
-            echo "Template Sync returned an invalid source commit" >&2
+          SOURCE_COMMIT="$(gh api "repos/${SOURCE_REPOSITORY}/commits/${SOURCE_SHORT}" --jq .sha)"
+          if [[ ! "$SOURCE_COMMIT" =~ ^[0-9a-f]{40}$ || "$SOURCE_COMMIT" != "$SOURCE_SHORT"* ]]; then
+            echo "Unable to expand the Template Sync source commit" >&2
+            exit 1
+          fi
+          if [[ -z "$PR_NUMBER" ]]; then
+            PR_NUMBER="$(gh pr view "$PR_BRANCH" --json number --jq .number)"
+          fi
+          if [[ ! "$PR_NUMBER" =~ ^[0-9]+$ ]]; then
+            echo "Template Sync returned an invalid pull request number" >&2
             exit 1
           fi
           body="Direct-parent-source: https://github.com/${SOURCE_REPOSITORY}@${SOURCE_COMMIT}

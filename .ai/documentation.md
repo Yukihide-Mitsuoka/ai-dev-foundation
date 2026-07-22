@@ -21,11 +21,15 @@ and **optimized for AI readers** — explicit, structured, unambiguous.
 - Every doc starts with YAML frontmatter (`id`, `title`, plus `status`/`updated` where
   meaningful) and states its purpose in the first paragraph.
 - Concrete examples for every rule or API. Fake credentials only (GR-002).
-- Foundation-owned instructions and documentation remain English. After template
-  instantiation, AI agents MUST write new project-specific documents under `docs/` in
-  Japanese unless the repository owner or an external contract explicitly requires
-  another language. Do not create a translated sibling solely to duplicate the same
-  facts (ADR-0005).
+- Foundation-owned instructions and documentation remain English. The only Japanese
+  foundation-document exceptions are the descriptive, human-facing
+  `docs/foundation/guides/usage.ja.md` and
+  `docs/foundation/guides/ai-instruction-files.ja.md`; they never override their English
+  authorities, and another exception requires a superseding ADR (ADR-0008). After
+  template instantiation, AI agents MUST write new project-specific documents under
+  `docs/` in Japanese unless the repository owner or an external contract explicitly
+  requires another language. Do not create another translated sibling solely to
+  duplicate the same facts (ADR-0005).
 - Files use kebab-case names; headings form a strict hierarchy (one `#`, then `##`...).
 
 ## DOC-002: Objective, structured prose

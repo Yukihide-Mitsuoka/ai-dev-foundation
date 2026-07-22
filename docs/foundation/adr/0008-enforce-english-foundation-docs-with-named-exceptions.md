@@ -1,7 +1,7 @@
 ---
 id: adr-0008
 title: ADR-0008 — Enforce English foundation docs with two named Japanese exceptions
-status: proposed
+status: accepted
 updated: 2026-07-22
 ---
 
@@ -9,7 +9,7 @@ updated: 2026-07-22
 
 | Field | Value |
 |-------|-------|
-| Status | proposed |
+| Status | accepted |
 | Date | 2026-07-22 |
 | Deciders | repository owner |
 | Author | Codex (AI agent) |

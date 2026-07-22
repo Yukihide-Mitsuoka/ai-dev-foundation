@@ -18,6 +18,7 @@ old one. One line per entry. AI agents append entries in the same PR as the chan
 
 | Date | ID | Decision | Link |
 |------|----|----------|------|
+| 2026-07-22 | ADR-0008 (proposed) | Require English throughout `docs/foundation/` while preserving only `guides/usage.ja.md` and `guides/ai-instruction-files.ja.md` as repository-owner-approved, descriptive Japanese exceptions; reject any additional localized foundation file without a superseding ADR | [ADR-0008](../docs/foundation/adr/0008-enforce-english-foundation-docs-with-named-exceptions.md) |
 | 2026-07-22 | LOG-0025 | Governance discovery treats a legacy branch-protection HTTP 404 as absent only when repository-admin access is confirmed; Ruleset-only branches then replan as compliant, while permission and transport ambiguity remains fail-closed `unknown` | [Issue #56](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/issues/56) |
 | 2026-07-22 | ADR-0007 (accepted) | Repository owner approved the bounded transitional sync contract in PR #53: non-workflow reviewed transport, protected-path validation, exact source provenance, and ordered direct-parent propagation | [ADR-0007](../docs/foundation/adr/0007-constrain-transitional-template-sync.md) |
 | 2026-07-22 | ADR-0007 (proposed) | Until ADR-0004 materialization is available, constrain Template Sync to reviewed non-workflow changes, prove protected-path coverage and exact source provenance, and propagate each merged direct-parent hop in order | [ADR-0007](../docs/foundation/adr/0007-constrain-transitional-template-sync.md) |

@@ -18,6 +18,7 @@ old one. One line per entry. AI agents append entries in the same PR as the chan
 
 | Date | ID | Decision | Link |
 |------|----|----------|------|
+| 2026-07-22 | ADR-0007 (proposed) | Until ADR-0004 materialization is available, constrain Template Sync to reviewed non-workflow changes, prove protected-path coverage and exact source provenance, and propagate each merged direct-parent hop in order | [ADR-0007](../docs/foundation/adr/0007-constrain-transitional-template-sync.md) |
 | 2026-07-18 | LOG-0024 | Complete ADR-0006 phase 4 by moving immutable `ai-dev-foundation` ADRs into synchronized `docs/foundation/adr/`; instantiated repositories keep their own ADRs at `docs/adr/`, and root-only doctor checks avoid rejecting valid downstream project documents | [Foundation ADRs](../docs/foundation/adr/) |
 | 2026-07-18 | LOG-0023 | Complete ADR-0006 phase 3 by separating reusable foundation terminology into `docs/foundation/glossary.md`, moving project-document skeletons into `docs/foundation/templates/`, and leaving `docs/glossary.md`, `docs/roadmap.md`, and new files under `docs/adr/` for repository-owned content | [Foundation documentation](../docs/foundation/) |
 | 2026-07-18 | LOG-0022 | Complete ADR-0006 phase 2 by moving reusable onboarding and foundation-tool troubleshooting from project-owned `docs/` paths into synchronized `docs/foundation/`; `make doctor` prevents the legacy paths from returning | [Foundation documentation](../docs/foundation/) |

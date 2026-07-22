@@ -104,6 +104,7 @@ for path in \
   docs/foundation/adr/0004-harden-multi-level-template-inheritance.md \
   docs/foundation/adr/0005-separate-foundation-and-project-document-languages.md \
   docs/foundation/adr/0006-reserve-a-foundation-documentation-namespace.md \
+  docs/foundation/adr/0007-constrain-transitional-template-sync.md \
   docs/foundation/troubleshooting/README.md \
   docs/foundation/troubleshooting/github-governance.md \
   docs/foundation/troubleshooting/template-inheritance.md \

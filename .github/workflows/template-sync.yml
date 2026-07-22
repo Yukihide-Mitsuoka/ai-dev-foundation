@@ -26,10 +26,40 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - uses: AndreasAugustin/actions-template-sync@v2
+        id: template-sync
         with:
           # TEMPLATE: replace {{ORG}} with the org/user that owns the template repo.
           source_repo_path: "{{ORG}}/ai-dev-foundation"
           upstream_branch: main
           pr_title: "build: sync with ai-dev-foundation template"
+          pr_body: >-
+            Direct-parent source commit will be recorded after synchronization. Before
+            merge, review the accepted lock-to-source range and update
+            .github/inheritance/lock.json in this PR.
           pr_labels: "type:ci,type:dependencies"
           pr_commit_msg: "build: sync with ai-dev-foundation template"
+      - name: Record exact direct-parent source commit
+        if: steps.template-sync.outputs.pr_number != ''
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ steps.template-sync.outputs.pr_number }}
+          SOURCE_COMMIT: ${{ steps.template-sync.outputs.template_git_hash }}
+          SOURCE_REPOSITORY: "{{ORG}}/ai-dev-foundation"
+        run: |
+          set -euo pipefail
+          if [[ ! "$PR_NUMBER" =~ ^[0-9]+$ ]]; then
+            echo "Template Sync returned an invalid pull request number" >&2
+            exit 1
+          fi
+          if [[ ! "$SOURCE_COMMIT" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "Template Sync returned an invalid source commit" >&2
+            exit 1
+          fi
+          body="Direct-parent-source: https://github.com/${SOURCE_REPOSITORY}@${SOURCE_COMMIT}
+
+Before merge:
+- Review the accepted lock-to-source commit range.
+- Port direct-parent workflow changes in a separate reviewed PR.
+- Update .github/inheritance/lock.json only after the complete parent delta is accepted."
+          gh pr edit "$PR_NUMBER" --body "$body"

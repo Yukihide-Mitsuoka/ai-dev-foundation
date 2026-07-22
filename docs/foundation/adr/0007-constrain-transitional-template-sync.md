@@ -2,9 +2,9 @@
 
 | Field | Value |
 |-------|-------|
-| Status | proposed |
+| Status | accepted |
 | Date | 2026-07-22 |
-| Deciders | repository owner |
+| Deciders | repository owner (approved in PR #53 on 2026-07-22) |
 | Author | Codex (AI agent) |
 | Supersedes / Superseded by | Extends the migration rules of ADR-0004 |
 

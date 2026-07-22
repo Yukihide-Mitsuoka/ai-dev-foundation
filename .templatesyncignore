@@ -1,5 +1,7 @@
 # Files the template-sync workflow must NEVER overwrite in downstream repos —
-# everything a project customizes. Rules/workflows/skills DO sync (that's the point).
+# everything a project customizes. Rules and skills sync; executable workflows are
+# ported through separately reviewed PRs because the legacy GitHub App lacks Workflows
+# permission (ADR-0007).
 src/**
 tests/**
 docs/**
@@ -12,6 +14,7 @@ Makefile
 .ai/decision-log.md
 .github/CODEOWNERS
 .github/governance/repository.json
+.github/workflows/**
 .templatesyncignore
 
 # Foundation-owned documentation is the only synchronized docs namespace. This Action

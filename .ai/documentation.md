@@ -78,6 +78,23 @@ directory MUST NOT contain a foundation-owned placeholder README. A repository M
 a local README only when it describes actual project content and is maintained by that
 repository.
 
+## DOC-011: Project document singleton and collection placement
+
+Choose a project-owned path by document scope
+([ADR-0009](../docs/foundation/adr/0009-place-project-document-singletons-and-collections.md)):
+
+| Scope | Required path | Example |
+|-------|---------------|---------|
+| One authoritative project-wide document | `docs/<category>.md` | `docs/requirements.md` |
+| Independently maintained documents that repeat by subject | `docs/<category>/<subject>.md` | `docs/requirements/account-recovery.md` |
+| Both project-wide and subject scopes | Use both paths, with distinct ownership | `docs/requirements.md` and `docs/requirements/account-recovery.md` |
+
+The project-wide singleton MUST own cross-subject facts and link to narrower documents.
+A subject document MUST own only its narrower facts. Authors MUST NOT repeat the same
+fact between the singleton and collection (DOC-001). Create a project-owned directory or
+local index only when it contains actual maintained project content; do not create empty
+scaffolding or a foundation-owned placeholder in a project namespace.
+
 ## DOC-030: Doc-update matrix (binding — GR-024)
 
 When a PR contains a change of type X, it MUST update the docs listed:

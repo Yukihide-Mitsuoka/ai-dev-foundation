@@ -29,6 +29,7 @@ relevant source. A budget cannot justify omitting one.
 |-------|---------------:|---------------:|
 | Before ADR-0012 route implementation | 18,565 | 2,625 |
 | After PR #88 | 17,561 | 2,472 |
+| After entry-point deduplication | 16,553 | 2,323 |
 
 Before ADR-0012, `docs/` contained approximately 17,424 words and the foundation ADR set
 plus decision log contained approximately 9,458 words. They are now discovered through
@@ -58,10 +59,11 @@ been updated for more than 30 days. These handoff findings never justify skippin
 document.
 
 The largest route remains `requirements`. On 2026-07-29, separating its procedural skill
-from its standalone output template reduced the declared route from 44,231 bytes / 6,245
-words to 41,298 bytes / 5,776 words without removing a mandatory source. A PR that
-intentionally increases a ceiling states the reason and confirms that no narrower route
-preserves completeness.
+from its standalone output template reduced the route from 44,231 bytes / 6,245 words to
+41,298 bytes / 5,776 words. Entry-point deduplication then reduced every route, leaving
+`requirements` at 40,290 bytes / 5,627 words. Neither change removed a mandatory source.
+A PR that intentionally increases a ceiling states the reason and confirms that no
+narrower route preserves completeness.
 
 **Update trigger:** update this guide and the budget constants together whenever the
 baseline file set, mandatory skill routes, measurement method, or ceiling changes.

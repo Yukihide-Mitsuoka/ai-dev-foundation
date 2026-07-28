@@ -1,12 +1,10 @@
 # CLAUDE.md — AI Agent Operating Manual
 
-Binding entry point for every AI agent in this repository. Read this file completely at
-task start. ChatGPT, Gemini, Codex, and other agents enter through `AGENTS.md`, which
-maps runtime-specific capabilities to this contract.
+Binding vendor-neutral manual. Every agent reads it completely at task start;
+`AGENTS.md` maps runtime-specific capabilities.
 
-Normative rules live in [`.ai/`](.ai/). Authority order is guardrails > security > this
-file and `AGENTS.md` > other `.ai/` rules > `docs/`. Never resolve a conflict silently:
-apply the higher authority and report it.
+Authority: guardrails > security > this file and `AGENTS.md` > other `.ai/` rules >
+`docs/`. Apply the higher authority and report every conflict.
 
 ## 1. Repository overview
 

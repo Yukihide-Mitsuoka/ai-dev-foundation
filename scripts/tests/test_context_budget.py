@@ -2,6 +2,7 @@ import tempfile
 import unittest
 from datetime import date
 from pathlib import Path
+from unittest import mock
 
 from scripts import context_budget
 
@@ -23,6 +24,34 @@ class ContextBudgetTest(unittest.TestCase):
         }
         self.assertTrue(set(context_budget.REQUIRED_READS).issubset(actual_skills))
         self.assertTrue(report["largest_route_name"])
+
+    def test_baseline_wording_is_enforced_only_in_strict_mode(self):
+        finding = "canonical baseline marker is missing"
+        with mock.patch.object(
+            context_budget,
+            "baseline_contract_errors",
+            return_value=[finding],
+        ) as contract_check:
+            non_strict_errors, _, _ = context_budget.audit(
+                REPOSITORY_ROOT,
+                enforce_budget=False,
+            )
+
+        contract_check.assert_not_called()
+        self.assertNotIn(finding, non_strict_errors)
+
+        with mock.patch.object(
+            context_budget,
+            "baseline_contract_errors",
+            return_value=[finding],
+        ) as contract_check:
+            strict_errors, _, _ = context_budget.audit(
+                REPOSITORY_ROOT,
+                enforce_budget=True,
+            )
+
+        contract_check.assert_called_once_with(REPOSITORY_ROOT)
+        self.assertIn(finding, strict_errors)
 
     def test_baseline_preserves_safety_contract_and_headroom(self):
         agents = (REPOSITORY_ROOT / "AGENTS.md").read_text(encoding="utf-8")

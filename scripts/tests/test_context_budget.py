@@ -182,7 +182,66 @@ class ContextBudgetTest(unittest.TestCase):
 
             error = context_budget.route_path_error(root, "linked.md")
 
-            self.assertIn("outside", error)
+        self.assertIn("outside", error)
+
+    def test_conditional_authority_validates_target_references_and_size(self):
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            target = root / ".ai/conditional.md"
+            reference = root / ".ai/router.md"
+            target.parent.mkdir()
+            target.write_text(
+                "# Conditional\n\n## RULE-001: First\n\n## RULE-002: Second\n",
+                encoding="utf-8",
+            )
+            reference.write_text(
+                "Read [the conditional authority](conditional.md) completely "
+                "when the trigger matches.\n",
+                encoding="utf-8",
+            )
+            contract = context_budget.ConditionalAuthority(
+                name="fixture",
+                target=".ai/conditional.md",
+                references=(
+                    (
+                        ".ai/router.md",
+                        ("conditional.md", "completely", "trigger matches"),
+                    ),
+                ),
+                target_markers=("## RULE-001:", "## RULE-002:"),
+            )
+
+            errors, measurements = (
+                context_budget.validate_conditional_authorities(
+                    root,
+                    (contract,),
+                )
+            )
+            expected = context_budget.count_file(target)
+
+        self.assertEqual([], errors)
+        self.assertEqual(expected, measurements["fixture"])
+
+    def test_conditional_authority_reports_missing_files_and_markers(self):
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            target = root / ".ai/conditional.md"
+            target.parent.mkdir()
+            target.write_text("# Conditional\n", encoding="utf-8")
+            contract = context_budget.ConditionalAuthority(
+                name="fixture",
+                target=".ai/conditional.md",
+                references=((".ai/missing-router.md", ("conditional.md",)),),
+                target_markers=("## RULE-001:",),
+            )
+
+            errors, _ = context_budget.validate_conditional_authorities(
+                root,
+                (contract,),
+            )
+
+        self.assertTrue(any("missing target marker" in error for error in errors))
+        self.assertTrue(any("missing-router.md: does not exist" in error for error in errors))
 
     def test_budget_overage_fails_only_when_enforced(self):
         actual = context_budget.Counts(bytes=101, words=51)

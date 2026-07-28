@@ -118,6 +118,17 @@ class Counts:
         return Counts(self.bytes + other.bytes, self.words + other.words)
 
 
+@dataclass(frozen=True)
+class ConditionalAuthority:
+    name: str
+    target: str
+    references: tuple[tuple[str, tuple[str, ...]], ...]
+    target_markers: tuple[str, ...]
+
+
+CONDITIONAL_AUTHORITIES: tuple[ConditionalAuthority, ...] = ()
+
+
 def count_file(path: Path) -> Counts:
     content = path.read_text(encoding="utf-8")
     return Counts(len(content.encode("utf-8")), len(content.split()))
@@ -324,6 +335,50 @@ def route_path_error(root: Path, value: str) -> str | None:
     return None
 
 
+def validate_conditional_authorities(
+    root: Path,
+    contracts: tuple[ConditionalAuthority, ...],
+) -> tuple[list[str], dict[str, Counts]]:
+    errors: list[str] = []
+    measurements: dict[str, Counts] = {}
+    for contract in contracts:
+        target_error = route_path_error(root, contract.target)
+        if target_error:
+            errors.append(
+                f"conditional authority {contract.name}: "
+                f"{contract.target}: {target_error}"
+            )
+        else:
+            target = root / contract.target
+            normalized = " ".join(target.read_text(encoding="utf-8").split())
+            measurements[contract.name] = count_file(target)
+            errors.extend(
+                f"conditional authority {contract.name}: "
+                f"{contract.target}: missing target marker: {marker!r}"
+                for marker in contract.target_markers
+                if marker not in normalized
+            )
+
+        for reference, markers in contract.references:
+            reference_error = route_path_error(root, reference)
+            if reference_error:
+                errors.append(
+                    f"conditional authority {contract.name}: "
+                    f"{reference}: {reference_error}"
+                )
+                continue
+            normalized = " ".join(
+                (root / reference).read_text(encoding="utf-8").split()
+            )
+            errors.extend(
+                f"conditional authority {contract.name}: "
+                f"{reference}: missing reference marker: {marker!r}"
+                for marker in markers
+                if marker not in normalized
+            )
+    return errors, measurements
+
+
 def budget_findings(
     label: str,
     actual: Counts,
@@ -403,6 +458,11 @@ def audit(
     errors.extend(validate_adr_index(root))
     errors.extend(validate_guide_index(root))
     warnings.extend(handoff_warnings(root, current_date=current_date or date.today()))
+    conditional_errors, conditional_routes = validate_conditional_authorities(
+        root,
+        CONDITIONAL_AUTHORITIES,
+    )
+    errors.extend(conditional_errors)
     baseline = Counts()
     for value in BASELINE_FILES:
         path = root / value
@@ -453,6 +513,7 @@ def audit(
         "largest_route": largest,
         "skill_count": len(skill_files),
         "budget_mode": "enforced" if enforce_budget else "reported",
+        "conditional_routes": conditional_routes,
     }
     return errors, warnings, report
 
@@ -488,6 +549,11 @@ def main() -> int:
         f"{largest.words}/{ROUTE_WORD_LIMIT} words; "
         f"skills={report['skill_count']}; mode={report['budget_mode']}"
     )
+    for name, counts in report["conditional_routes"].items():
+        print(
+            f"context budget: conditional={name} "
+            f"{counts.bytes} bytes, {counts.words} words"
+        )
     for warning in warnings:
         print(f"context budget: WARNING: {warning}")
     for error in errors:

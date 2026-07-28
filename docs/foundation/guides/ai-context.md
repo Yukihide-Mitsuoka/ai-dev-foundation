@@ -57,9 +57,11 @@ warning when it exceeds 1,500 words, has an invalid or future `updated` date, or
 been updated for more than 30 days. These handoff findings never justify skipping the
 document.
 
-The largest route on 2026-07-29 is `requirements`: approximately 44,231 bytes and 6,245
-words. A PR that intentionally increases a ceiling states the reason and confirms that
-no narrower route preserves completeness.
+The largest route remains `requirements`. On 2026-07-29, separating its procedural skill
+from its standalone output template reduced the declared route from 44,231 bytes / 6,245
+words to 41,298 bytes / 5,776 words without removing a mandatory source. A PR that
+intentionally increases a ceiling states the reason and confirms that no narrower route
+preserves completeness.
 
 **Update trigger:** update this guide and the budget constants together whenever the
 baseline file set, mandatory skill routes, measurement method, or ceiling changes.

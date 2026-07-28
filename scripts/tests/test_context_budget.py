@@ -24,6 +24,82 @@ class ContextBudgetTest(unittest.TestCase):
         self.assertTrue(set(context_budget.REQUIRED_READS).issubset(actual_skills))
         self.assertTrue(report["largest_route_name"])
 
+    def test_requirements_route_preserves_method_template_and_headroom(self):
+        skill_path = REPOSITORY_ROOT / ".skills/requirements.skill.md"
+        skill = skill_path.read_text(encoding="utf-8")
+        normalized_skill = " ".join(skill.split()).lower()
+        for marker in (
+            "one fork at a time",
+            "recommended draft",
+            "zero-based",
+            "purpose or metric",
+            "existing assets, constraints, and platform limits",
+            "fr-00x/nfr-00x",
+            "moscow",
+            "what must hold and why",
+            "open questions",
+            "japanese",
+            "claude.md §13",
+        ):
+            self.assertIn(marker, normalized_skill)
+
+        template = (
+            REPOSITORY_ROOT / "docs/foundation/templates/requirements.md"
+        ).read_text(encoding="utf-8")
+        for heading in (
+            "## 1. Terms",
+            "## 2. Assumptions and constraints",
+            "## 3. Purpose and scope",
+            "## 4. Functional requirements",
+            "## 5. Non-functional requirements",
+            "## 6. Data requirements",
+            "## 7. External interfaces and dependencies",
+            "## 8. Infrastructure and cost estimate",
+            "## 9. Operational requirements",
+            "## 10. Acceptance criteria",
+            "## 11. Risks",
+            "## 12. Milestones",
+            "## 13. Open questions",
+        ):
+            self.assertIn(heading, template)
+        for field in (
+            "ISO/IEC 25010",
+            "Measurement method",
+            "Cost assumptions",
+            "unit prices as of",
+            "Fixed / month",
+            "Usage-based basis",
+            "Increment per",
+            "Verifies (req IDs)",
+            "Likelihood",
+            "Target date",
+            "Blocks (req IDs)",
+        ):
+            self.assertIn(field, template)
+
+        baseline = context_budget.Counts()
+        for baseline_file in context_budget.BASELINE_FILES:
+            baseline += context_budget.count_file(REPOSITORY_ROOT / baseline_file)
+        route_errors, route = context_budget.measure_skill_route(
+            REPOSITORY_ROOT,
+            "requirements",
+            skill_path,
+            baseline,
+        )
+        budget_errors, budget_warnings = context_budget.budget_findings(
+            "requirements",
+            route,
+            context_budget.Counts(
+                context_budget.ROUTE_BYTE_LIMIT,
+                context_budget.ROUTE_WORD_LIMIT,
+            ),
+            enforce=True,
+        )
+
+        self.assertEqual([], route_errors)
+        self.assertEqual([], budget_errors)
+        self.assertEqual([], budget_warnings)
+
     def test_directory_and_glob_routes_are_rejected(self):
         with tempfile.TemporaryDirectory() as temporary_directory:
             root = Path(temporary_directory)

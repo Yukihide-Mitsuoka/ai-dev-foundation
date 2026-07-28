@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.2.0](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/compare/v1.1.0...v1.2.0) (2026-07-28)
+
+
+### Features
+
+* **ai:** enforce context route budgets ([#89](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/issues/89)) ([957b642](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/commit/957b6429fe96d80b5322e5cc00230289aea97f23))
+* **ai:** strengthen context safety checks ([#92](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/issues/92)) ([ecc0762](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/commit/ecc0762049f1dbe0a446eb97a057d6ab5a3fd14a))
+
 ## [1.1.0](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/compare/v1.0.1...v1.1.0) (2026-07-28)
 
 

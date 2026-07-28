@@ -53,81 +53,26 @@ class ContextBudgetTest(unittest.TestCase):
         contract_check.assert_called_once_with(REPOSITORY_ROOT)
         self.assertIn(finding, strict_errors)
 
-    def test_baseline_preserves_safety_contract_and_headroom(self):
-        agents = (REPOSITORY_ROOT / "AGENTS.md").read_text(encoding="utf-8")
-        normalized_agents = " ".join(agents.split())
-        for marker in (
-            "CLAUDE.md",
-            "completely and follow it before acting",
-            "make format && make lint",
-            ".ai/guardrails.md",
-            ".skills/*.skill.md",
-            "never store secrets",
-        ):
-            self.assertIn(marker, normalized_agents)
+    def test_baseline_contract_detector_preserves_safety_markers(self):
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            for value, markers in context_budget.BASELINE_CONTRACT_MARKERS.items():
+                path = root / value
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_text("\n".join(markers), encoding="utf-8")
 
-        manual = (REPOSITORY_ROOT / "CLAUDE.md").read_text(encoding="utf-8")
-        normalized_manual = " ".join(manual.split())
-        for marker in (
-            "Binding vendor-neutral manual",
-            "Every agent reads it completely at task start",
-            "Authority: guardrails > security",
-            "## 2. Start every task",
-            "docs/development-handoff.md",
-            "read every selected source completely",
-            "one issue, one task branch, and a reviewed PR",
-            "Architectural changes require an approved ADR first",
-            "Use the pull-request template completely",
-            ".ai/review-checklist.md",
-            "no direct push to `main`",
-            "make doctor",
-            "## 13. Escalation",
-            "## 14. Definition of done",
-        ):
-            self.assertIn(marker, normalized_manual)
+            clean_errors = context_budget.baseline_contract_errors(root)
+            agents = root / "AGENTS.md"
+            agents.write_text("different local entry wording", encoding="utf-8")
+            missing_errors = context_budget.baseline_contract_errors(root)
 
-        guardrails = (
-            REPOSITORY_ROOT / ".ai/guardrails.md"
-        ).read_text(encoding="utf-8")
-        normalized_guardrails = " ".join(guardrails.split())
-        for marker in (
-            "Never write secrets into the repository",
-            "Never push directly to main/master",
-            "Never bypass hooks or checks",
-            "Never lower the security level",
-            "Never run destructive operations without explicit human approval",
-            "Never fabricate results",
-        ):
-            self.assertIn(marker, normalized_guardrails)
-
-        router = (REPOSITORY_ROOT / ".ai/README.md").read_text(encoding="utf-8")
-        normalized_router = " ".join(router.split())
-        for marker in (
-            "Quality takes priority over context reduction",
-            "Read every file selected by the baseline or task route completely",
-            "Broaden discovery and reading until uncertainty is resolved",
-            "Never use a context budget to skip a relevant source",
-            "Reading protocol by task type",
-        ):
-            self.assertIn(marker, normalized_router)
-
-        baseline = context_budget.Counts()
-        for baseline_file in context_budget.BASELINE_FILES:
-            baseline += context_budget.count_file(REPOSITORY_ROOT / baseline_file)
-        budget_errors, budget_warnings = context_budget.budget_findings(
-            "baseline",
-            baseline,
-            context_budget.Counts(
-                context_budget.BASELINE_BYTE_LIMIT,
-                context_budget.BASELINE_WORD_LIMIT,
-            ),
-            enforce=True,
+        self.assertEqual([], clean_errors)
+        self.assertTrue(
+            any("AGENTS.md: missing canonical baseline marker" in error
+                for error in missing_errors)
         )
 
-        self.assertEqual([], budget_errors)
-        self.assertEqual([], budget_warnings)
-
-    def test_requirements_route_preserves_method_template_and_headroom(self):
+    def test_requirements_route_preserves_method_and_template_contract(self):
         skill_path = REPOSITORY_ROOT / ".skills/requirements.skill.md"
         skill = skill_path.read_text(encoding="utf-8")
         normalized_skill = " ".join(skill.split()).lower()
@@ -179,29 +124,6 @@ class ContextBudgetTest(unittest.TestCase):
             "Blocks (req IDs)",
         ):
             self.assertIn(field, template)
-
-        baseline = context_budget.Counts()
-        for baseline_file in context_budget.BASELINE_FILES:
-            baseline += context_budget.count_file(REPOSITORY_ROOT / baseline_file)
-        route_errors, route = context_budget.measure_skill_route(
-            REPOSITORY_ROOT,
-            "requirements",
-            skill_path,
-            baseline,
-        )
-        budget_errors, budget_warnings = context_budget.budget_findings(
-            "requirements",
-            route,
-            context_budget.Counts(
-                context_budget.ROUTE_BYTE_LIMIT,
-                context_budget.ROUTE_WORD_LIMIT,
-            ),
-            enforce=True,
-        )
-
-        self.assertEqual([], route_errors)
-        self.assertEqual([], budget_errors)
-        self.assertEqual([], budget_warnings)
 
     def test_directory_and_glob_routes_are_rejected(self):
         with tempfile.TemporaryDirectory() as temporary_directory:

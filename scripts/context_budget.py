@@ -54,6 +54,47 @@ REQUIRED_READS = {
     "security": {".ai/security.md", "SECURITY.md"},
     "test": {".ai/testing.md", ".ai/coding-rules.md"},
 }
+BASELINE_CONTRACT_MARKERS = {
+    "AGENTS.md": (
+        "CLAUDE.md",
+        "completely and follow it before acting",
+        "make format && make lint",
+        ".ai/guardrails.md",
+        ".skills/*.skill.md",
+        "never store secrets",
+    ),
+    "CLAUDE.md": (
+        "Binding vendor-neutral manual",
+        "Every agent reads it completely at task start",
+        "Authority: guardrails > security",
+        "## 2. Start every task",
+        "docs/development-handoff.md",
+        "read every selected source completely",
+        "one issue, one task branch, and a reviewed PR",
+        "Architectural changes require an approved ADR first",
+        "Use the pull-request template completely",
+        ".ai/review-checklist.md",
+        "no direct push to `main`",
+        "make doctor",
+        "## 13. Escalation",
+        "## 14. Definition of done",
+    ),
+    ".ai/guardrails.md": (
+        "Never write secrets into the repository",
+        "Never push directly to main/master",
+        "Never bypass hooks or checks",
+        "Never lower the security level",
+        "Never run destructive operations without explicit human approval",
+        "Never fabricate results",
+    ),
+    ".ai/README.md": (
+        "Quality takes priority over context reduction",
+        "Read every file selected by the baseline or task route completely",
+        "Broaden discovery and reading until uncertainty is resolved",
+        "Never use a context budget to skip a relevant source",
+        "Reading protocol by task type",
+    ),
+}
 
 
 @dataclass(frozen=True)
@@ -106,6 +147,21 @@ def adr_metadata_value(path: Path, key: str) -> str | None:
 
 def duplicate_values(values: list[str]) -> list[str]:
     return sorted(value for value, count in Counter(values).items() if count > 1)
+
+
+def baseline_contract_errors(root: Path) -> list[str]:
+    errors: list[str] = []
+    for value, markers in BASELINE_CONTRACT_MARKERS.items():
+        path = root / value
+        if not path.is_file():
+            continue
+        normalized = " ".join(path.read_text(encoding="utf-8").split())
+        errors.extend(
+            f"{value}: missing canonical baseline marker: {marker!r}"
+            for marker in markers
+            if marker not in normalized
+        )
+    return errors
 
 
 def validate_adr_index(root: Path) -> list[str]:
@@ -329,6 +385,8 @@ def audit(
 ) -> tuple[list[str], list[str], dict]:
     errors: list[str] = []
     warnings: list[str] = []
+    if enforce_budget:
+        errors.extend(baseline_contract_errors(root))
     errors.extend(validate_adr_index(root))
     errors.extend(validate_guide_index(root))
     warnings.extend(handoff_warnings(root, current_date=current_date or date.today()))

@@ -48,7 +48,9 @@ indexes and search instead of declared as directory-wide reads.
 baseline read, or missing mandatory authority in any skill route. It enforces the
 ceilings in the canonical foundation repository. Descendants always receive structural
 validation and measurement output, but budget excess is initially a warning because
-their protected entry documents can legitimately differ.
+their protected entry documents can legitimately differ. Exact canonical baseline
+wording is validated only in the foundation; descendants retain their protected local
+entry wording.
 
 At 90% of either ceiling, `make doctor` emits a warning before the hard limit becomes a
 failure. It also rejects an incomplete or stale foundation ADR/guide index because

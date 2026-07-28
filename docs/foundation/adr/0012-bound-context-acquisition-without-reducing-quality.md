@@ -1,7 +1,7 @@
 ---
 id: adr-0012
 title: ADR-0012 — Bound context acquisition without reducing quality
-status: proposed
+status: accepted
 updated: 2026-07-29
 ---
 
@@ -9,9 +9,9 @@ updated: 2026-07-29
 
 | Field | Value |
 |-------|-------|
-| Status | proposed |
+| Status | accepted |
 | Date | 2026-07-29 |
-| Deciders | repository owner (pending) |
+| Deciders | repository owner (approved 2026-07-29) |
 | Author | Codex (AI agent) |
 | Supersedes / Superseded by | Refines the routing model in ADR-0002 |
 

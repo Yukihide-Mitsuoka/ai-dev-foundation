@@ -2,7 +2,7 @@
 name: documentation
 description: Create or maintain documentation optimized for AI readers
 triggers: [write docs, update README, document API, stale docs, ADR writing help, ドキュメント作成, ドキュメント, ドキュメント更新, README更新]
-reads: [.ai/documentation.md, docs/]
+reads: [.ai/documentation.md, docs/foundation/guides/README.md]
 ---
 
 # Skill: Documentation
@@ -18,9 +18,13 @@ current, unambiguous, in the right place, and no larger than needed.
   the code — never document from memory or assumption (GR-042).
 
 ## Process
-1. Locate the correct home using the inventory (DOC-010). One fact, one place — if the
-   fact exists elsewhere, link to it instead of restating (DOC-001).
-2. Check the doc type's own README for structure and update triggers; follow it.
+1. Locate the correct home using the inventory (DOC-010) and foundation guide index.
+   Search filenames, headings, links, and affected terms without recursively loading
+   document bodies. Apply the broader fallback in `.ai/README.md` when ownership or
+   relevance is uncertain.
+2. Read the selected guide and every existing document that owns an affected fact
+   completely. One fact, one place — if the fact exists elsewhere, link to it instead of
+   restating (DOC-001). Follow a project doc type's own README when present.
 3. Write for a reader with zero conversation context: purpose first, frontmatter set,
    tables/lists over prose, absolute dates, runnable examples with fake credentials.
 4. For APIs: document contract (inputs, outputs, errors, auth) not implementation;

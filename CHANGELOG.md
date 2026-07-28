@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.1.0](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/compare/v1.0.1...v1.1.0) (2026-07-28)
+
+
+### Features
+
+* **ai:** bound context acquisition routes ([#88](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/issues/88)) ([14ba217](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/commit/14ba2171692e0657df8a5c265b71e005f91bae70))
+* **docs:** enforce root README ownership ([#84](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/issues/84)) ([a5e41d2](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/commit/a5e41d25cf3865cc886f503d1c9edcdbc40f7f54))
+
 ## [1.0.1](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/compare/v1.0.0...v1.0.1) (2026-07-28)
 
 

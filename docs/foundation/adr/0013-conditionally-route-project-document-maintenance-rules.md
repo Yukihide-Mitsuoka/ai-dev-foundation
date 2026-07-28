@@ -1,7 +1,7 @@
 ---
 id: adr-0013
 title: ADR-0013 — Conditionally route project-document maintenance rules
-status: proposed
+status: accepted
 updated: 2026-07-29
 ---
 
@@ -9,9 +9,9 @@ updated: 2026-07-29
 
 | Field | Value |
 |-------|-------|
-| Status | proposed |
+| Status | accepted |
 | Date | 2026-07-29 |
-| Deciders | repository owner (approval pending) |
+| Deciders | repository owner (approved 2026-07-29) |
 | Author | Codex (AI agent) |
 | Supersedes / Superseded by | Refines ADR-0010, ADR-0011, and ADR-0012 |
 
@@ -71,7 +71,7 @@ because each file is already limited to one short rule section.
 
 ## Decision
 
-Adopt Option 3 after human approval.
+Adopt Option 3.
 
 DOC-012 through DOC-014 MUST move without semantic edits to
 `.ai/project-document-maintenance.md`, which remains an authority-4 source.

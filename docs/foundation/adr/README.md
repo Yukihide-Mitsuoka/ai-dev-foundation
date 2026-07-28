@@ -38,6 +38,6 @@ broaden the search under ADR-0012 when relevance is uncertain.
 | [0010](0010-separate-roadmap-work-tracking-and-handoff.md) | Separate roadmap, work tracking, and handoff | handoff, roadmap, work tracking | accepted | 2026-07-28 |
 | [0011](0011-own-the-root-readme-in-the-current-repository.md) | Own the root README in the current repository | AI context, inheritance, README ownership | accepted | 2026-07-28 |
 | [0012](0012-bound-context-acquisition-without-reducing-quality.md) | Bound context acquisition without reducing quality | AI context, task routing, token efficiency | accepted | 2026-07-29 |
-| [0013](0013-conditionally-route-project-document-maintenance-rules.md) | Conditionally route project-document maintenance rules | AI context, documentation rules, task routing | proposed | 2026-07-29 |
+| [0013](0013-conditionally-route-project-document-maintenance-rules.md) | Conditionally route project-document maintenance rules | AI context, documentation rules, task routing | accepted | 2026-07-29 |
 
 <!-- Append new ADRs to this table (newest last). -->

@@ -18,6 +18,7 @@ old one. One line per entry. AI agents append entries in the same PR as the chan
 
 | Date | ID | Decision | Link |
 |------|----|----------|------|
+| 2026-07-28 | ADR-0011 (accepted) | Repository owner approved one current-repository README at the root, owner-qualified preserved ancestor READMEs under `docs/inheritance/readmes/`, and incremental migration when relevant AI work exposes a mismatch | [ADR-0011](../docs/foundation/adr/0011-own-the-root-readme-in-the-current-repository.md) |
 | 2026-07-28 | ADR-0011 (proposed) | Keep only the current repository's README at the root; preserve each ancestor README at an owner-qualified path under a Template Sync-protected inheritance archive when an agent detects a mismatch | [ADR-0011](../docs/foundation/adr/0011-own-the-root-readme-in-the-current-repository.md) |
 | 2026-07-28 | LOG-0026 | Run opt-in Template Sync daily at 07:17 UTC: reviewed PRs, exact direct-parent provenance, and target-owned regression tests expose inheritance debt; the former weekly delay added latency but no safety boundary | [Issue #79](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/issues/79) |
 | 2026-07-28 | ADR-0010 (accepted) | Repository owner approved GitHub issues and milestones as the task checklist, `docs/roadmap.md` as periodically reconciled direction, and `docs/development-handoff.md` as the resumable current snapshot for work spanning sessions or agents | [ADR-0010](../docs/foundation/adr/0010-separate-roadmap-work-tracking-and-handoff.md) |

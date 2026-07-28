@@ -12,6 +12,7 @@
 #   4. Child repositories with a manifest satisfy the local inheritance and legacy
 #      Template Sync protection contract.
 #   5. Foundation-owned project-documentation guides do not occupy project-owned paths.
+#   6. Root README ownership is valid when marked; legacy missing markers remain warnings.
 
 set -u
 cd "$(dirname "$0")/.." || exit 9
@@ -92,6 +93,13 @@ if [ "$is_foundation_root" = true ]; then
     err "docs/adr/: ai-dev-foundation ADRs must live under docs/foundation/adr/ (ADR-0006)"
   fi
 fi
+
+# 6. ADR-0011: detect ownership mismatches without moving or rewriting files. Existing
+# repositories without a marker receive a warning so rule propagation does not force a
+# fleet-wide migration. An unpacked repository without an origin also remains auditable
+# by the other doctor checks.
+python3 scripts/readme_ownership.py audit --root . --allow-missing-marker \
+  --allow-unknown-repository || err "Root README ownership is invalid (ADR-0011)"
 
 for path in \
   docs/foundation/guides/README.md \

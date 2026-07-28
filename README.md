@@ -1,5 +1,7 @@
 # ai-dev-foundation
 
+<!-- repository-readme-owner: Yukihide-Mitsuoka/ai-dev-foundation -->
+
 **AI-native development foundation** — a template repository for projects where AI
 agents (Claude Code, ChatGPT, Gemini, Codex, ...) are the primary developers and humans
 direct, decide, and review.

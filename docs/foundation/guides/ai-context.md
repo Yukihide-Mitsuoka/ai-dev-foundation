@@ -19,6 +19,7 @@ across model providers. They are regression proxies, not exact token counts.
 |-------------|----------|----------|
 | Baseline | `AGENTS.md`, `CLAUDE.md`, `.ai/README.md`, `.ai/guardrails.md` | Active handoff and runtime-owned instructions, including `.claude/README.md` |
 | Declared task route | Baseline, selected skill, every file in its `reads` declaration | Task-specific sources found through bounded discovery |
+| Conditional authority | One authority selected by an explicit trigger contract | Baseline and unrelated declared task routes |
 
 Discovered sources are excluded from the ceiling because quality requires reading every
 relevant source. A budget cannot justify omitting one.
@@ -37,6 +38,19 @@ did not record that dimension for the stated point.
 | After entry-point deduplication | 16,553 | 2,323 | 40,290 | 5,627 |
 | After Claude-specific routing | 16,329 | 2,288 | 40,066 | 5,592 |
 | After AI inventory unification | 16,156 | 2,258 | 39,893 | 5,562 |
+| After conditional project-document routing | 16,300 | 2,272 | 37,121 | 5,151 |
+
+ADR-0013 also changed the declared `documentation` route and introduced a separately
+measured conditional authority:
+
+| State | `documentation` bytes | `documentation` words | Conditional bytes | Conditional words |
+|-------|----------------------:|----------------------:|------------------:|------------------:|
+| Before conditional routing | 33,799 | 4,640 | — | — |
+| After conditional routing | 31,273 | 4,257 | 4,368 | 572 |
+
+The after measurements exclude `.ai/project-document-maintenance.md` from unrelated
+requirements and documentation routes. A matching handoff, roadmap, root README,
+onboarding, or inheritance trigger loads its complete 572-word authority.
 
 Before ADR-0012, `docs/` contained approximately 17,424 words and the foundation ADR set
 plus decision log contained approximately 9,458 words. They are now discovered through
@@ -61,6 +75,10 @@ entry wording. The strict foundation validation also pins the §12 link and all 
 in `.claude/README.md`, although that conditional runtime file is excluded from baseline
 measurement.
 
+The validator also rejects a missing conditional authority, routing reference, or
+required rule marker. It reports each conditional authority separately and does not add
+that measurement to a declared route unless the skill lists the file as unconditional.
+
 At 90% of either ceiling, `make doctor` emits a warning before the hard limit becomes a
 failure. It also rejects an incomplete or stale foundation ADR/guide index because
 bounded discovery depends on those indexes. A project-owned
@@ -73,5 +91,6 @@ These changes removed no mandatory source and did not alter Claude Code obligati
 that intentionally increases a ceiling states the reason and confirms that no narrower
 route preserves completeness.
 
-**Update trigger:** update this guide and the budget constants together whenever the
-baseline file set, mandatory skill routes, measurement method, or ceiling changes.
+**Update trigger:** update this guide and the budget constants or conditional contracts
+together whenever the baseline file set, mandatory skill routes, conditional
+authorities, measurement method, or ceiling changes.

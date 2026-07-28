@@ -25,6 +25,25 @@ class ContextBudgetTest(unittest.TestCase):
         self.assertTrue(set(context_budget.REQUIRED_READS).issubset(actual_skills))
         self.assertTrue(report["largest_route_name"])
 
+    def test_project_document_maintenance_stays_conditional(self):
+        target = ".ai/project-document-maintenance.md"
+        for skill_name in ("documentation", "requirements"):
+            reads = context_budget.parse_reads(
+                REPOSITORY_ROOT / f".skills/{skill_name}.skill.md"
+            )
+            self.assertNotIn(target, reads)
+
+        errors, _, report = context_budget.audit(
+            REPOSITORY_ROOT,
+            enforce_budget=False,
+        )
+
+        self.assertEqual([], errors)
+        self.assertEqual(
+            context_budget.count_file(REPOSITORY_ROOT / target),
+            report["conditional_routes"]["project-document-maintenance"],
+        )
+
     def test_baseline_wording_is_enforced_only_in_strict_mode(self):
         finding = "canonical baseline marker is missing"
         with mock.patch.object(

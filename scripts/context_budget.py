@@ -126,7 +126,37 @@ class ConditionalAuthority:
     target_markers: tuple[str, ...]
 
 
-CONDITIONAL_AUTHORITIES: tuple[ConditionalAuthority, ...] = ()
+CONDITIONAL_AUTHORITIES = (
+    ConditionalAuthority(
+        name="project-document-maintenance",
+        target=".ai/project-document-maintenance.md",
+        references=(
+            (
+                ".ai/documentation.md",
+                (
+                    "project-document-maintenance.md",
+                    "docs/development-handoff.md",
+                    "roadmap",
+                    "root README",
+                    "broader fallback",
+                ),
+            ),
+            (
+                ".skills/documentation.skill.md",
+                (
+                    ".ai/project-document-maintenance.md",
+                    "read it completely",
+                    "broader fallback",
+                ),
+            ),
+            (
+                ".ai/README.md",
+                ("project-document-maintenance.md",),
+            ),
+        ),
+        target_markers=("## DOC-012:", "## DOC-013:", "## DOC-014:"),
+    ),
+)
 
 
 def count_file(path: Path) -> Counts:

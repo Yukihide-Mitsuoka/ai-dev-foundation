@@ -18,6 +18,7 @@ old one. One line per entry. AI agents append entries in the same PR as the chan
 
 | Date | ID | Decision | Link |
 |------|----|----------|------|
+| 2026-07-29 | ADR-0012 (proposed) | Discover relevant context through indexes and repository search, then read every selected authority completely and broaden discovery whenever quality or relevance is uncertain | [ADR-0012](../docs/foundation/adr/0012-bound-context-acquisition-without-reducing-quality.md) |
 | 2026-07-28 | ADR-0011 (accepted) | Repository owner approved one current-repository README at the root, owner-qualified preserved ancestor READMEs under `docs/inheritance/readmes/`, and incremental migration when relevant AI work exposes a mismatch | [ADR-0011](../docs/foundation/adr/0011-own-the-root-readme-in-the-current-repository.md) |
 | 2026-07-28 | ADR-0011 (proposed) | Keep only the current repository's README at the root; preserve each ancestor README at an owner-qualified path under a Template Sync-protected inheritance archive when an agent detects a mismatch | [ADR-0011](../docs/foundation/adr/0011-own-the-root-readme-in-the-current-repository.md) |
 | 2026-07-28 | LOG-0026 | Run opt-in Template Sync daily at 07:17 UTC: reviewed PRs, exact direct-parent provenance, and target-owned regression tests expose inheritance debt; the former weekly delay added latency but no safety boundary | [Issue #79](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/issues/79) |

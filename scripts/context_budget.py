@@ -76,8 +76,20 @@ BASELINE_CONTRACT_MARKERS = {
         ".ai/review-checklist.md",
         "no direct push to `main`",
         "make doctor",
+        "## 12. Claude Code integration",
+        ".claude/README.md",
+        "Claude Code MUST read",
         "## 13. Escalation",
         "## 14. Definition of done",
+    ),
+    ".claude/README.md": (
+        "Hooks in `.claude/settings.json` enforce the command guard",
+        "Fix hook failures; never bypass them",
+        "`.skills/*.skill.md` is the vendor-neutral skill source",
+        "`.claude/skills/` contains only native wrappers",
+        "Store only durable, non-derivable, non-secret facts in runtime memory",
+        "Follow WF-040 for subagents and parallel work",
+        "one task, one branch, one agent",
     ),
     ".ai/guardrails.md": (
         "Never write secrets into the repository",
@@ -154,6 +166,7 @@ def baseline_contract_errors(root: Path) -> list[str]:
     for value, markers in BASELINE_CONTRACT_MARKERS.items():
         path = root / value
         if not path.is_file():
+            errors.append(f"{value}: canonical contract file is missing")
             continue
         normalized = " ".join(path.read_text(encoding="utf-8").split())
         errors.extend(

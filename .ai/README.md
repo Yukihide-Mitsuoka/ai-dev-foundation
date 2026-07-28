@@ -39,6 +39,7 @@ Every normative rule has a stable prefix. Reference rule IDs in commits, PRs, an
 | [testing.md](testing.md) | TST- | Test pyramid, coverage gates, what to test |
 | [release.md](release.md) | REL- | Versioning, release flow, pre-release gates |
 | [documentation.md](documentation.md) | DOC- | Doc standards and the doc-update matrix |
+| [project-document-maintenance.md](project-document-maintenance.md) | DOC- | Conditional handoff, roadmap, and root README maintenance rules |
 | [review-checklist.md](review-checklist.md) | REV- | 10-viewpoint AI review checklist |
 | [workflow.md](workflow.md) | WF- | Task lifecycle: intake → design → implement → PR |
 | [decision-log.md](decision-log.md) | — | Append-only index of decisions (links to ADRs) |

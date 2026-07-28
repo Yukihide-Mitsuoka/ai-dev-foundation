@@ -54,6 +54,25 @@ class ContextBudgetTest(unittest.TestCase):
         self.assertIn(finding, strict_errors)
 
     def test_baseline_contract_detector_preserves_safety_markers(self):
+        self.assertTrue(
+            {
+                "## 12. Claude Code integration",
+                ".claude/README.md",
+                "Claude Code MUST read",
+            }.issubset(context_budget.BASELINE_CONTRACT_MARKERS["CLAUDE.md"])
+        )
+        self.assertEqual(
+            (
+                "Hooks in `.claude/settings.json` enforce the command guard",
+                "Fix hook failures; never bypass them",
+                "`.skills/*.skill.md` is the vendor-neutral skill source",
+                "`.claude/skills/` contains only native wrappers",
+                "Store only durable, non-derivable, non-secret facts in runtime memory",
+                "Follow WF-040 for subagents and parallel work",
+                "one task, one branch, one agent",
+            ),
+            context_budget.BASELINE_CONTRACT_MARKERS[".claude/README.md"],
+        )
         with tempfile.TemporaryDirectory() as temporary_directory:
             root = Path(temporary_directory)
             for value, markers in context_budget.BASELINE_CONTRACT_MARKERS.items():
@@ -65,11 +84,17 @@ class ContextBudgetTest(unittest.TestCase):
             agents = root / "AGENTS.md"
             agents.write_text("different local entry wording", encoding="utf-8")
             missing_errors = context_budget.baseline_contract_errors(root)
+            (root / ".claude/README.md").unlink()
+            missing_file_errors = context_budget.baseline_contract_errors(root)
 
         self.assertEqual([], clean_errors)
         self.assertTrue(
             any("AGENTS.md: missing canonical baseline marker" in error
                 for error in missing_errors)
+        )
+        self.assertIn(
+            ".claude/README.md: canonical contract file is missing",
+            missing_file_errors,
         )
 
     def test_requirements_route_preserves_method_and_template_contract(self):

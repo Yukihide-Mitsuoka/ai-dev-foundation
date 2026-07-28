@@ -63,14 +63,9 @@ template can contain documented no-op implementations until its stack profile is
 
 ## 12. Claude Code integration
 
-- Hooks in `.claude/settings.json` enforce the command guard and post-edit quality
-  checks. Fix hook failures; never bypass them.
-- `.skills/*.skill.md` is the vendor-neutral skill source. `.claude/skills/` contains
-  only native wrappers.
-- Store only durable, non-derivable, non-secret facts in runtime memory.
-- Follow WF-040 for subagents and parallel work: one task, one branch, one agent.
-
-Other runtimes apply equivalent controls as mapped in `AGENTS.md`.
+Claude Code MUST read [`.claude/README.md`](.claude/README.md) completely and follow its
+runtime-specific integration requirements. Other runtimes apply equivalent controls as
+mapped in `AGENTS.md` and do not load the Claude-specific file.
 
 ## 13. Escalation
 

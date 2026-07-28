@@ -1,7 +1,7 @@
 ---
 id: adr-0011
 title: ADR-0011 — Own the root README in the current repository
-status: proposed
+status: accepted
 updated: 2026-07-28
 ---
 
@@ -9,9 +9,9 @@ updated: 2026-07-28
 
 | Field | Value |
 |-------|-------|
-| Status | proposed |
+| Status | accepted |
 | Date | 2026-07-28 |
-| Deciders | repository owner (pending) |
+| Deciders | repository owner (approved 2026-07-28) |
 | Author | Codex (AI agent) |
 | Supersedes / Superseded by | Refines ADR-0006 and ADR-0009 |
 
@@ -101,6 +101,12 @@ In a multi-level chain, each repository performs the same operation for its dire
 parent. Existing ancestor archives remain at their owner-qualified paths. The result is
 one current-repository README at the root and at most one preserved README per ancestor
 repository.
+
+Archived READMEs are historical records, not routine task context. Agents MUST NOT load
+or summarize `docs/inheritance/readmes/**` during normal intake or general documentation
+discovery. They read a snapshot only while migrating or reviewing root README ownership,
+or when tracing inheritance provenance. The automated audit examines the ownership
+marker locally and sends no README content to an AI.
 
 This rule applies during new-repository initialization. Existing repositories do not
 require a bulk migration. When an agent reads or changes the root README, onboarding

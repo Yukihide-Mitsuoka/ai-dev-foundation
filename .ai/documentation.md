@@ -75,6 +75,7 @@ build on this rule.
 | `docs/foundation/adr/` | synchronized foundation decisions with context | yes (accepted ADRs) |
 | `docs/foundation/` | other synchronized foundation-owned guidance and document templates | descriptive |
 | `docs/adr/` | repository-specific decisions with context | yes (accepted ADRs) |
+| `docs/inheritance/readmes/<owner>/<repository>.md` | repository-owned snapshots of inherited ancestor READMEs | descriptive |
 | `docs/requirements.md`, `docs/requirements/` | whole-project and initiative requirements | contract |
 | `docs/glossary.md` | project-specific ubiquitous language | descriptive |
 | `docs/roadmap.md` | project direction and sequencing | descriptive |
@@ -146,6 +147,40 @@ At each review:
 Also review immediately when a milestone completes or project scope, priority, or
 direction changes. Detailed completed-task history remains in GitHub and release records.
 
+## DOC-014: Root README ownership
+
+The root `README.md` MUST describe the current repository and MUST contain exactly one
+ownership marker:
+
+```html
+<!-- repository-readme-owner: owner/repository -->
+```
+
+The marker MUST match the current GitHub repository. When an agent reads or changes the
+root README, onboarding documentation, or inheritance configuration, it MUST inspect
+both the marker and the README subject. If either identifies an ancestor, the agent MUST
+preserve the inherited README before replacing the root file.
+
+Preserve each ancestor at
+`docs/inheritance/readmes/<owner>/<repository>.md`, using lowercase path components.
+The archive MUST retain the source language and substantive content, repair relative
+links for its new location, and record `source-repository` plus the exact 40-character
+`source-commit` in YAML frontmatter. If the commit cannot be established from inheritance
+provenance, record `unknown`; never invent it (GR-042). Review an existing archive before
+replacement and never discard a different ancestor version silently.
+
+New repositories MUST establish current ownership during initialization. Existing
+repositories migrate when the inspection trigger above exposes a mismatch. Repair it in
+the same PR when the change remains within GR-020; otherwise open a migration issue.
+Archived READMEs are historical records: agents MUST NOT load
+`docs/inheritance/readmes/**` during routine intake or general documentation discovery.
+Read a snapshot only while migrating or reviewing root README ownership, or when tracing
+inheritance provenance. The local ownership audit examines only the marker for ownership
+purposes and sends no README content to an AI.
+
+[ADR-0011](../docs/foundation/adr/0011-own-the-root-readme-in-the-current-repository.md)
+defines the rationale and migration boundary.
+
 ## DOC-030: Doc-update matrix (binding — GR-024)
 
 When a PR contains a change of type X, it MUST update the docs listed:
@@ -161,6 +196,7 @@ When a PR contains a change of type X, it MUST update the docs listed:
 | New error state / failure mode | `docs/troubleshooting/`, `docs/runbook/` if ops action needed |
 | New or changed reusable foundation term | `docs/foundation/glossary.md` |
 | New domain term | `docs/glossary.md` |
+| Root README, onboarding, or inheritance configuration read or changed | Verify DOC-014 ownership; repair or open a migration issue when mismatched |
 | Active work, blocker, next action, or verified baseline changes when a handoff is maintained | `docs/development-handoff.md` |
 | Milestone completes or project direction, priority, or scope changes | `docs/roadmap.md` |
 | Decision that constrains the future | ADR + `.ai/decision-log.md` |

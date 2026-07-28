@@ -8,6 +8,7 @@ import re
 import sys
 from collections import Counter
 from dataclasses import dataclass
+from datetime import date
 from pathlib import Path, PurePosixPath
 
 
@@ -21,7 +22,21 @@ BASELINE_BYTE_LIMIT = 18_500
 BASELINE_WORD_LIMIT = 2_600
 ROUTE_BYTE_LIMIT = 46_000
 ROUTE_WORD_LIMIT = 6_500
+SOFT_BUDGET_RATIO = 0.9
+HANDOFF_WORD_WARNING = 1_500
+HANDOFF_STALE_DAYS = 30
 READS_PATTERN = re.compile(r"^reads:\s*\[(.*)]\s*$", re.MULTILINE)
+FRONTMATTER_PATTERN = re.compile(r"^---\n(?P<body>.*?)\n---\n", re.DOTALL)
+ADR_ROW_PATTERN = re.compile(
+    r"^\| \[(?P<number>\d{4})\]\((?P<target>[^)]+)\)"
+    r" \| (?P<title>[^|]+) \| (?P<scope>[^|]*)"
+    r" \| (?P<status>[^|]*) \| (?P<updated>[^|]*) \|$",
+    re.MULTILINE,
+)
+GUIDE_ROW_PATTERN = re.compile(
+    r"^\| \[(?P<label>[^]]+\.md)\]\((?P<target>[^)]+\.md)\) \| [^|]+ \|$",
+    re.MULTILINE,
+)
 GLOB_CHARACTERS = frozenset("*?[")
 REQUIRED_READS = {
     "architecture": {".ai/architecture.md", "docs/foundation/adr/README.md"},
@@ -62,6 +77,164 @@ def parse_reads(skill_file: Path) -> list[str]:
     return [value.strip() for value in match.group(1).split(",") if value.strip()]
 
 
+def frontmatter_value(path: Path, key: str) -> str | None:
+    match = FRONTMATTER_PATTERN.match(path.read_text(encoding="utf-8"))
+    if not match:
+        return None
+    key_match = re.search(
+        rf"^{re.escape(key)}:\s*(?P<value>.+?)\s*$",
+        match.group("body"),
+        re.MULTILINE,
+    )
+    return key_match.group("value") if key_match else None
+
+
+def adr_metadata_value(path: Path, key: str) -> str | None:
+    frontmatter_key = "updated" if key == "date" else key
+    value = frontmatter_value(path, frontmatter_key)
+    if value is not None:
+        return value
+
+    label = "Date" if key == "date" else key.title()
+    match = re.search(
+        rf"^\| {re.escape(label)} \| (?P<value>.+?) \|$",
+        path.read_text(encoding="utf-8"),
+        re.MULTILINE,
+    )
+    return match.group("value") if match else None
+
+
+def duplicate_values(values: list[str]) -> list[str]:
+    return sorted(value for value, count in Counter(values).items() if count > 1)
+
+
+def validate_adr_index(root: Path) -> list[str]:
+    directory = root / "docs/foundation/adr"
+    index = directory / "README.md"
+    if not index.is_file():
+        return ["foundation ADR index is missing: docs/foundation/adr/README.md"]
+
+    entries = [match.groupdict() for match in ADR_ROW_PATTERN.finditer(
+        index.read_text(encoding="utf-8")
+    )]
+    actual_targets = {
+        path.name for path in directory.glob("[0-9][0-9][0-9][0-9]-*.md")
+    }
+    indexed_targets = [entry["target"] for entry in entries]
+    errors = [
+        f"foundation ADR index: duplicate target: {target}"
+        for target in duplicate_values(indexed_targets)
+    ]
+    errors.extend(
+        f"foundation ADR index: duplicate number: {number}"
+        for number in duplicate_values([entry["number"] for entry in entries])
+    )
+    errors.extend(
+        f"foundation ADR index: missing entry: {target}"
+        for target in sorted(actual_targets - set(indexed_targets))
+    )
+    errors.extend(
+        f"foundation ADR index: stale entry: {target}"
+        for target in sorted(set(indexed_targets) - actual_targets)
+    )
+
+    for entry in entries:
+        target = entry["target"]
+        if target not in actual_targets:
+            continue
+        if not target.startswith(f"{entry['number']}-"):
+            errors.append(
+                f"foundation ADR index: label {entry['number']} does not match {target}"
+            )
+        if not entry["scope"].strip():
+            errors.append(f"foundation ADR index: {target}: Scope is empty")
+
+        adr_path = directory / target
+        for field, key in (("status", "status"), ("updated", "date")):
+            indexed_value = entry[field].strip()
+            actual_value = adr_metadata_value(adr_path, key)
+            if not indexed_value:
+                errors.append(
+                    f"foundation ADR index: {target}: {field.title()} is empty"
+                )
+            elif actual_value != indexed_value:
+                errors.append(
+                    f"foundation ADR index: {target}: {field} "
+                    f"{indexed_value!r} != document metadata {actual_value!r}"
+                )
+    return errors
+
+
+def validate_guide_index(root: Path) -> list[str]:
+    directory = root / "docs/foundation/guides"
+    index = directory / "README.md"
+    if not index.is_file():
+        return ["foundation guide index is missing: docs/foundation/guides/README.md"]
+
+    entries = [match.groupdict() for match in GUIDE_ROW_PATTERN.finditer(
+        index.read_text(encoding="utf-8")
+    )]
+    actual_targets = {
+        path.name for path in directory.glob("*.md") if path.name != "README.md"
+    }
+    indexed_targets = [entry["target"] for entry in entries]
+    errors = [
+        f"foundation guide index: duplicate target: {target}"
+        for target in duplicate_values(indexed_targets)
+    ]
+    errors.extend(
+        f"foundation guide index: missing entry: {target}"
+        for target in sorted(actual_targets - set(indexed_targets))
+    )
+    errors.extend(
+        f"foundation guide index: stale entry: {target}"
+        for target in sorted(set(indexed_targets) - actual_targets)
+    )
+    for entry in entries:
+        if entry["label"] != entry["target"]:
+            errors.append(
+                "foundation guide index: "
+                f"label {entry['label']!r} does not match target {entry['target']!r}"
+            )
+    return errors
+
+
+def handoff_warnings(root: Path, *, current_date: date) -> list[str]:
+    handoff = root / "docs/development-handoff.md"
+    if not handoff.is_file():
+        return []
+
+    warnings: list[str] = []
+    counts = count_file(handoff)
+    if counts.words > HANDOFF_WORD_WARNING:
+        warnings.append(
+            "development handoff is unusually large: "
+            f"{counts.words} words > {HANDOFF_WORD_WARNING}; "
+            "remove completed history and link authoritative records"
+        )
+
+    updated = frontmatter_value(handoff, "updated")
+    try:
+        updated_date = date.fromisoformat(updated or "")
+    except ValueError:
+        warnings.append(
+            "development handoff has a missing or invalid ISO updated date"
+        )
+        return warnings
+
+    age = (current_date - updated_date).days
+    if age < 0:
+        warnings.append(
+            f"development handoff updated date is {abs(age)} days in the future"
+        )
+    elif age > HANDOFF_STALE_DAYS:
+        warnings.append(
+            "development handoff may be stale: "
+            f"updated {age} days ago > {HANDOFF_STALE_DAYS}"
+        )
+    return warnings
+
+
 def route_path_error(root: Path, value: str) -> str | None:
     route_path = PurePosixPath(value)
     if route_path.is_absolute() or ".." in route_path.parts:
@@ -95,7 +268,17 @@ def budget_findings(
     if actual.words > limit.words:
         exceeded.append(f"{actual.words} words > {limit.words}")
     if not exceeded:
-        return [], []
+        soft_limit_exceeded = []
+        if actual.bytes >= limit.bytes * SOFT_BUDGET_RATIO:
+            soft_limit_exceeded.append(f"{actual.bytes}/{limit.bytes} bytes")
+        if actual.words >= limit.words * SOFT_BUDGET_RATIO:
+            soft_limit_exceeded.append(f"{actual.words}/{limit.words} words")
+        if not soft_limit_exceeded:
+            return [], []
+        return [], [
+            f"{label} context budget at or above "
+            f"{SOFT_BUDGET_RATIO:.0%}: {', '.join(soft_limit_exceeded)}"
+        ]
     message = f"{label} context budget exceeded: {', '.join(exceeded)}"
     return ([message], []) if enforce else ([], [message])
 
@@ -138,9 +321,17 @@ def measure_skill_route(
     return errors, route
 
 
-def audit(root: Path, *, enforce_budget: bool) -> tuple[list[str], list[str], dict]:
+def audit(
+    root: Path,
+    *,
+    enforce_budget: bool,
+    current_date: date | None = None,
+) -> tuple[list[str], list[str], dict]:
     errors: list[str] = []
     warnings: list[str] = []
+    errors.extend(validate_adr_index(root))
+    errors.extend(validate_guide_index(root))
+    warnings.extend(handoff_warnings(root, current_date=current_date or date.today()))
     baseline = Counts()
     for value in BASELINE_FILES:
         path = root / value

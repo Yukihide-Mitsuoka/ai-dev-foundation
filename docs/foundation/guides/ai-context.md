@@ -49,6 +49,14 @@ ceilings in the canonical foundation repository. Descendants always receive stru
 validation and measurement output, but budget excess is initially a warning because
 their protected entry documents can legitimately differ.
 
+At 90% of either ceiling, `make doctor` emits a warning before the hard limit becomes a
+failure. It also rejects an incomplete or stale foundation ADR/guide index because
+bounded discovery depends on those indexes. A project-owned
+`docs/development-handoff.md` remains outside the hard context budget, but receives a
+warning when it exceeds 1,500 words, has an invalid or future `updated` date, or has not
+been updated for more than 30 days. These handoff findings never justify skipping the
+document.
+
 The largest route on 2026-07-29 is `requirements`: approximately 44,231 bytes and 6,245
 words. A PR that intentionally increases a ceiling states the reason and confirms that
 no narrower route preserves completeness.

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.1](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/compare/v1.2.0...v1.2.1) (2026-07-28)
+
+
+### Bug Fixes
+
+* **ai:** preserve descendant entry contracts ([#99](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/issues/99)) ([f4ca3f1](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/commit/f4ca3f1f0ded291e9ad7051c67630052e8ba2e85))
+
 ## [1.2.0](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/compare/v1.1.0...v1.2.0) (2026-07-28)
 
 

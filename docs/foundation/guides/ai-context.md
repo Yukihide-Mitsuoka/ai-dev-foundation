@@ -31,6 +31,7 @@ relevant source. A budget cannot justify omitting one.
 | After PR #88 | 17,561 | 2,472 |
 | After entry-point deduplication | 16,553 | 2,323 |
 | After Claude-specific routing | 16,329 | 2,288 |
+| After AI inventory unification | 16,156 | 2,258 |
 
 Before ADR-0012, `docs/` contained approximately 17,424 words and the foundation ADR set
 plus decision log contained approximately 9,458 words. They are now discovered through
@@ -69,8 +70,10 @@ from its standalone output template reduced the route from 44,231 bytes / 6,245 
 `requirements` at 40,290 bytes / 5,627 words. Neither change removed a mandatory source.
 Routing Claude-specific details out of the shared baseline then reduced every declared
 route; `requirements` became 40,066 bytes / 5,592 words without changing Claude Code
-obligations. A PR that intentionally increases a ceiling states the reason and confirms
-that no narrower route preserves completeness.
+obligations. Combining the duplicate rule-ID and file inventories then reduced the
+baseline to 16,156 bytes / 2,258 words and `requirements` to 39,893 bytes / 5,562 words
+without removing an inventory entry. A PR that intentionally increases a ceiling states
+the reason and confirms that no narrower route preserves completeness.
 
 **Update trigger:** update this guide and the budget constants together whenever the
 baseline file set, mandatory skill routes, measurement method, or ceiling changes.

@@ -23,22 +23,25 @@ apply the higher-authority rule, then report the conflict to the human.
 | 4 | Other `.ai/*.md` | Domain rules (coding, testing, release, ...). |
 | 5 | `docs/**` | Descriptive documentation. Informative, not normative. |
 
-## Rule ID scheme
+## Rule and file inventory
 
-Every normative rule has a stable ID. Reference IDs in commits, PRs, and reviews
-(e.g. "Rejected: violates GR-002").
+Every normative rule has a stable prefix. Reference rule IDs in commits, PRs, and reviews
+(e.g. "Rejected: violates GR-002"). Support files without rules use `—`.
 
-| Prefix | File | Domain |
-|--------|------|--------|
-| GR- | guardrails.md | Absolute prohibitions |
-| SEC- | security.md | Security |
-| ARC- | architecture.md | Architecture |
-| COD- | coding-rules.md | Coding |
-| TST- | testing.md | Testing |
-| REL- | release.md | Release |
-| DOC- | documentation.md | Documentation |
-| REV- | review-checklist.md | Review |
-| WF- | workflow.md | Workflow |
+| File | Rule prefix | Content |
+|------|-------------|---------|
+| [README.md](README.md) | — | Authority, context acquisition, and task routing |
+| [mission.md](mission.md) | — | Why this project exists; success criteria; AI's role |
+| [guardrails.md](guardrails.md) | GR- | Absolute prohibitions with detection and alternatives |
+| [security.md](security.md) | SEC- | Secrets, authN/Z, data handling, vulnerability response |
+| [architecture.md](architecture.md) | ARC- | Structure, layers, dependency rules, module layout |
+| [coding-rules.md](coding-rules.md) | COD- | Naming, style, error handling, dependency policy |
+| [testing.md](testing.md) | TST- | Test pyramid, coverage gates, what to test |
+| [release.md](release.md) | REL- | Versioning, release flow, pre-release gates |
+| [documentation.md](documentation.md) | DOC- | Doc standards and the doc-update matrix |
+| [review-checklist.md](review-checklist.md) | REV- | 10-viewpoint AI review checklist |
+| [workflow.md](workflow.md) | WF- | Task lifecycle: intake → design → implement → PR |
+| [decision-log.md](decision-log.md) | — | Append-only index of decisions (links to ADRs) |
 
 Rule language follows RFC 2119: **MUST / MUST NOT** are binding, **SHOULD / SHOULD NOT**
 require justification to deviate, **MAY** is optional.
@@ -91,19 +94,3 @@ Read only what the task requires. Do not load all files for every task.
 | Documentation | documentation.md, foundation guide index, then the relevant guide through bounded discovery | `.skills/documentation.skill.md` |
 | Code review | review-checklist.md | `.skills/review.skill.md` |
 | Release | release.md, security.md | `.skills/release.skill.md` |
-
-## File inventory
-
-| File | Content |
-|------|---------|
-| [mission.md](mission.md) | Why this project exists; success criteria; AI's role |
-| [architecture.md](architecture.md) | Structure, layers, dependency rules, module layout |
-| [coding-rules.md](coding-rules.md) | Naming, style, error handling, dependency policy |
-| [security.md](security.md) | Secrets, authN/Z, data handling, vulnerability response |
-| [testing.md](testing.md) | Test pyramid, coverage gates, what to test |
-| [release.md](release.md) | Versioning, release flow, pre-release gates |
-| [documentation.md](documentation.md) | Doc standards and the doc-update matrix |
-| [review-checklist.md](review-checklist.md) | 10-viewpoint AI review checklist |
-| [decision-log.md](decision-log.md) | Append-only index of decisions (links to ADRs) |
-| [guardrails.md](guardrails.md) | Absolute prohibitions with detection and alternatives |
-| [workflow.md](workflow.md) | Task lifecycle: intake → design → implement → PR |

@@ -87,7 +87,7 @@ detail; it does not copy individual completed tasks from GitHub.
 
 The root README is a singleton owned by the current repository. It contains the marker
 defined by
-[DOC-014](../../../.ai/documentation.md#doc-014-root-readme-ownership):
+[DOC-014](../../../.ai/project-document-maintenance.md#doc-014-root-readme-ownership):
 
 ```html
 <!-- repository-readme-owner: owner/repository -->

@@ -27,6 +27,12 @@ class TemplateSyncIgnoreTest(unittest.TestCase):
     def test_legacy_sync_excludes_every_workflow(self):
         self.assertIn(".github/workflows/**", self.entries())
 
+    def test_legacy_sync_protects_agent_profile_and_project_overlay(self):
+        entries = self.entries()
+
+        self.assertIn(".github/inheritance/agent-profile.json", entries)
+        self.assertIn(".ai/project/**", entries)
+
     def test_sync_pr_records_the_source_commit_used_by_the_action(self):
         workflow = WORKFLOW_FILE.read_text(encoding="utf-8")
 

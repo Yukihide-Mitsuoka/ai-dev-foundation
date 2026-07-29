@@ -18,6 +18,7 @@ old one. One line per entry. AI agents append entries in the same PR as the chan
 
 | Date | ID | Decision | Link |
 |------|----|----------|------|
+| 2026-07-29 | ADR-0014 (proposed) | Separate synchronized foundation contracts, owner-qualified template exports, and protected project overlays so ordinary parent-owned changes propagate without overwriting repository semantics or security boundaries | [ADR-0014](../docs/foundation/adr/0014-separate-inherited-agent-contracts-from-project-overlays.md) |
 | 2026-07-29 | ADR-0013 (accepted) | Repository owner approved one synchronized conditional authority for DOC-012 through DOC-014, explicit trigger routing, complete reads on matches, and deterministic validation before excluding the rules from unrelated task routes | [ADR-0013](../docs/foundation/adr/0013-conditionally-route-project-document-maintenance-rules.md) |
 | 2026-07-29 | ADR-0013 (proposed) | Move DOC-012 through DOC-014 unchanged to one synchronized conditional authority, retain explicit triggers in the general documentation rules, and validate complete routing before excluding them from unrelated task routes | [ADR-0013](../docs/foundation/adr/0013-conditionally-route-project-document-maintenance-rules.md) |
 | 2026-07-29 | ADR-0012 (accepted) | Repository owner approved bounded discovery followed by complete reading of selected sources, mandatory broader fallback under uncertainty, and model-independent context regression checks | [ADR-0012](../docs/foundation/adr/0012-bound-context-acquisition-without-reducing-quality.md) |

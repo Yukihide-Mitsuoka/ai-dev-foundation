@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.4.0](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/compare/v1.3.0...v1.4.0) (2026-07-29)
+
+
+### Features
+
+* **inheritance:** add foundation agent entry contract ([#120](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/issues/120)) ([13bacb5](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/commit/13bacb5d5fcf4100e7bbef129a6d7155a7764597))
+* **inheritance:** validate ordered agent profiles ([#118](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/issues/118)) ([843bd86](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/commit/843bd866d82948963c9ee021589d95b933ba3098))
+
 ## [1.3.0](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/compare/v1.2.1...v1.3.0) (2026-07-29)
 
 

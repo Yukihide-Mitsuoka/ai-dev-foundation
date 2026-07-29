@@ -13,9 +13,11 @@ new path entry in every child manifest.
 
 The identity-free foundation entry contract is
 [`agent-entry.md`](agent-entry.md). Adding it during the expand phase does not change
-current agent entry behavior. `CLAUDE.md`, `AGENTS.md`, and `.skills/` remain
-authoritative until a later reviewed migration activates manifest schema version 2
-and an entry adapter in each child.
+current agent entry behavior. It carries the reusable current-entry responsibilities
+so a later thin-adapter migration does not lose commands, escalation conditions, or
+completion rules. `CLAUDE.md`, `AGENTS.md`, and `.skills/` remain authoritative until a
+later reviewed migration activates manifest schema version 2 and an entry adapter in
+each child.
 
 Template exports use
 `.ai/contracts/templates/<owner>/<repository>/`. Project-owned instructions use the

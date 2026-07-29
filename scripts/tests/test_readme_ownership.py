@@ -89,6 +89,15 @@ class ReadmeOwnershipTest(unittest.TestCase):
         self.assertEqual([], warnings)
         self.assertEqual(1, len(errors))
 
+    def test_missing_readme_fails(self):
+        errors, warnings = readme_ownership.audit_readme(
+            self.root,
+            "acme/child",
+        )
+
+        self.assertEqual(["README.md is missing"], errors)
+        self.assertEqual([], warnings)
+
     def test_multiple_markers_fail(self):
         self.write_readme(
             "<!-- repository-readme-owner: acme/child -->\n"

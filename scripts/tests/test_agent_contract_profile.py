@@ -15,6 +15,7 @@ PARENT = "acme/stack-template"
 PROJECT = "acme/product"
 COMMIT = "a" * 40
 PROFILE_PATH = ".github/inheritance/agent-profile.json"
+FOUNDATION_ENTRY_PATH = ".ai/contracts/foundation/agent-entry.md"
 REQUIRED_PROTECTED = [
     ".gitignore",
     ".github/governance/repository.json",
@@ -185,6 +186,35 @@ class AgentContractProfileTest(unittest.TestCase):
         self.write_contract(parent=PARENT, inputs=inputs)
         with self.assertRaisesRegex(inheritance.InheritanceError, "owner-qualified"):
             inheritance.validate_inheritance(self.root)
+
+
+class FoundationAgentEntryTest(unittest.TestCase):
+    def test_entry_is_identity_free_and_routes_required_foundation_context(self):
+        root = Path(__file__).parents[2]
+        entry_path = root / FOUNDATION_ENTRY_PATH
+
+        self.assertTrue(entry_path.is_file(), f"missing {FOUNDATION_ENTRY_PATH}")
+        content = entry_path.read_text(encoding="utf-8")
+        for project_identity in (
+            "{{PROJECT_NAME}}",
+            "{{STACK}}",
+            "Yukihide-Mitsuoka",
+            "ai-dev-foundation",
+        ):
+            self.assertNotIn(project_identity, content)
+        for required_reference in (
+            ".ai/guardrails.md",
+            ".ai/README.md",
+            "docs/development-handoff.md",
+            "make format",
+            "make lint",
+            "foundation",
+            "template",
+            "project",
+            "strengthen-only",
+        ):
+            with self.subTest(required_reference=required_reference):
+                self.assertIn(required_reference, content)
 
 
 if __name__ == "__main__":

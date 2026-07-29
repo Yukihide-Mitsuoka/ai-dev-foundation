@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.3.0](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/compare/v1.2.1...v1.3.0) (2026-07-29)
+
+
+### Features
+
+* **ai:** route project maintenance rules conditionally ([#109](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/issues/109)) ([3d8a65b](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/commit/3d8a65ba7267b970ee4fc10999019520d17710b5))
+
+
+### Bug Fixes
+
+* **docs:** point DOC-014 to its current authority ([#112](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/issues/112)) ([9962904](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/commit/996290402085e30224451a9916b76cab5bf2f6d5))
+
 ## [1.2.1](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/compare/v1.2.0...v1.2.1) (2026-07-28)
 
 

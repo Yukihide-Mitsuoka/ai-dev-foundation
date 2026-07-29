@@ -195,6 +195,7 @@ class FoundationAgentEntryTest(unittest.TestCase):
 
         self.assertTrue(entry_path.is_file(), f"missing {FOUNDATION_ENTRY_PATH}")
         content = entry_path.read_text(encoding="utf-8")
+        normalized_content = " ".join(content.split())
         for project_identity in (
             "{{PROJECT_NAME}}",
             "{{STACK}}",
@@ -205,16 +206,40 @@ class FoundationAgentEntryTest(unittest.TestCase):
         for required_reference in (
             ".ai/guardrails.md",
             ".ai/README.md",
+            ".ai/workflow.md",
+            ".ai/review-checklist.md",
             "docs/development-handoff.md",
+            "profiles/README.md",
+            ".claude/README.md",
+            "AGENTS.md",
+            "Conventional Commits",
+            "SemVer",
+            "WF-090",
+            "authentication",
+            "payments",
+            "data deletion",
+            "production configuration",
+            "spending money",
+            "make setup",
             "make format",
             "make lint",
+            "make test",
+            "make test-unit",
+            "make test-integration",
+            "make coverage",
+            "make build",
+            "make run",
+            "make security-scan",
+            "make sbom",
+            "make clean",
+            "make doctor",
             "foundation",
             "template",
             "project",
             "strengthen-only",
         ):
             with self.subTest(required_reference=required_reference):
-                self.assertIn(required_reference, content)
+                self.assertIn(required_reference, normalized_content)
 
 
 if __name__ == "__main__":

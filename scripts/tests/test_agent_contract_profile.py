@@ -41,6 +41,11 @@ REQUIRED_PROTECTED = [
 ]
 
 
+def is_canonical_foundation_root(root):
+    """Represent the current unscoped behavior for the failing regression test."""
+    return True
+
+
 def profile_input(layer, repository, path):
     return {"layer": layer, "repository": repository, "path": path}
 
@@ -100,6 +105,17 @@ class AgentContractProfileTest(unittest.TestCase):
 
         self.assertEqual(result["agent_contract"]["inputs"], inputs)
         self.assertEqual(result["agent_contract"]["authority_policy"], "strengthen-only")
+
+    def test_descendant_root_is_not_canonical_foundation(self):
+        inputs = [
+            profile_input(
+                "foundation", FOUNDATION, ".ai/contracts/foundation/agent-entry.md"
+            ),
+            profile_input("project", PROJECT, ".ai/project/agent-overlay.md"),
+        ]
+        self.write_contract(parent=FOUNDATION, inputs=inputs)
+
+        self.assertFalse(is_canonical_foundation_root(self.root))
 
     def test_multi_level_child_preserves_parent_to_child_template_order(self):
         inputs = [

@@ -17,6 +17,9 @@ COMMIT = "a" * 40
 PROFILE_PATH = ".github/inheritance/agent-profile.json"
 FOUNDATION_ENTRY_PATH = ".ai/contracts/foundation/agent-entry.md"
 REPOSITORY_ROOT = Path(__file__).parents[2]
+FOUNDATION_README_OWNER = (
+    "<!-- repository-readme-owner: Yukihide-Mitsuoka/ai-dev-foundation -->"
+)
 FOUNDATION_ROOT_INPUTS = [
     {
         "layer": "foundation",
@@ -42,8 +45,11 @@ REQUIRED_PROTECTED = [
 
 
 def is_canonical_foundation_root(root):
-    """Represent the current unscoped behavior for the failing regression test."""
-    return True
+    """Identify the canonical root without using its descendant-owned profile."""
+    readme = root / "README.md"
+    return readme.is_file() and FOUNDATION_README_OWNER in readme.read_text(
+        encoding="utf-8"
+    )
 
 
 def profile_input(layer, repository, path):
@@ -114,6 +120,8 @@ class AgentContractProfileTest(unittest.TestCase):
             profile_input("project", PROJECT, ".ai/project/agent-overlay.md"),
         ]
         self.write_contract(parent=FOUNDATION, inputs=inputs)
+        self.write("README.md", "<!-- repository-readme-owner: acme/product -->\n")
+        self.write("CLAUDE.md", "# Compatibility entry\n\nProject-specific entry.\n")
 
         self.assertFalse(is_canonical_foundation_root(self.root))
 
@@ -271,6 +279,10 @@ class FoundationAgentEntryTest(unittest.TestCase):
                 self.assertIn(required_reference, normalized_content)
 
 
+@unittest.skipUnless(
+    is_canonical_foundation_root(REPOSITORY_ROOT),
+    "canonical ai-dev-foundation root assertions",
+)
 class FoundationRootAgentAdapterTest(unittest.TestCase):
     def test_profile_orders_foundation_then_project(self):
         profile_path = REPOSITORY_ROOT / PROFILE_PATH

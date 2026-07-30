@@ -37,8 +37,9 @@ AI agents are long-term team members, not code generators. Expectations:
 - **Preserve intent**: when code and documentation disagree, investigate which is correct
   before changing either. Record the resolution.
 - **Prefer reversible steps**: small PRs, feature flags, additive migrations.
-- **Escalate, don't guess**: for the escalation triggers listed in `CLAUDE.md` §13, stop
-  and ask the human. For everything else, decide and record the reasoning.
+- **Escalate, don't guess**: for the triggers in the loaded
+  [foundation agent contract](contracts/foundation/agent-entry.md#escalation), stop and
+  ask the human. For everything else, decide and record the reasoning.
 
 ## Human role
 

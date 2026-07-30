@@ -12,12 +12,15 @@ Child manifests inherit the directory root so a new contract file does not requi
 new path entry in every child manifest.
 
 The identity-free foundation entry contract is
-[`agent-entry.md`](agent-entry.md). Adding it during the expand phase does not change
-current agent entry behavior. It carries the reusable current-entry responsibilities
-so a later thin-adapter migration does not lose commands, escalation conditions, or
-completion rules. `CLAUDE.md`, `AGENTS.md`, and `.skills/` remain authoritative until a
-later reviewed migration activates manifest schema version 2 and an entry adapter in
-each child.
+[`agent-entry.md`](agent-entry.md). The foundation root activates it through the
+checked-in agent profile and thin `CLAUDE.md` / `AGENTS.md` adapters. Each descendant
+activates its own reviewed profile and adapters when its manifest migrates to schema
+version 2; transport alone must not overwrite those child-owned protected files.
+
+The profile is the composition source of truth. It preserves commands, escalation
+conditions, and completion rules while allowing owner-qualified template overlays and
+one project-owned overlay to add facts or strengthen controls without duplicating the
+foundation contract.
 
 Template exports use
 `.ai/contracts/templates/<owner>/<repository>/`. Project-owned instructions use the

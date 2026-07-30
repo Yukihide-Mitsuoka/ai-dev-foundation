@@ -18,6 +18,7 @@ old one. One line per entry. AI agents append entries in the same PR as the chan
 
 | Date | ID | Decision | Link |
 |------|----|----------|------|
+| 2026-07-30 | LOG-0030 | Activate the behavior-complete foundation contract in the canonical repository through an explicit strengthen-only profile, identity-free CLAUDE/AGENTS adapters, and a protected repository-facts overlay; child, skill, and workflow migrations remain separate reviewed steps | [Issue #123](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/issues/123) |
 | 2026-07-30 | LOG-0029 | Before activating thin entry adapters, make the identity-free foundation entry contract behavior-complete for reusable authority, intake, workflow, commands, runtime integration, escalation, and completion semantics while leaving current entry files unchanged | [Issue #121](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/issues/121) |
 | 2026-07-30 | LOG-0028 | Add an identity-free foundation agent entry contract as an inactive expand-phase artifact so direct children can prove manifest v2 composition before any existing entry file migrates | [Issue #115](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/issues/115) |
 | 2026-07-30 | LOG-0027 | Begin ADR-0014 with a backward-compatible manifest v2 agent profile, explicit strengthen-only foundation/template/project order, owner-qualified template paths, and read-only direct-child and multi-level validation; manifest v1 remains valid until each child migrates | [Issue #115](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/issues/115) |

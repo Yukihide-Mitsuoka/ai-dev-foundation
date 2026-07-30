@@ -7,61 +7,35 @@ read_when: [agent-entry, task-intake]
 
 # Foundation Agent Entry Contract
 
-This vendor-neutral contract defines the reusable foundation instructions for AI
-agents. It contains no repository identity, product requirements, or stack-specific
-behavior. A protected agent profile activates and composes this file; its presence
-alone does not replace the repository's current entry files.
+Identity-free, vendor-neutral instructions; identity and stack facts belong in overlays.
 
-## Authority and conflicts
+## Authority and intake
 
-Apply instructions in this order: `.ai/guardrails.md`, security rules, the active
-agent entry contract, routed `.ai/` rules, then `docs/`. Never resolve a conflict
-silently: apply the higher authority and report the conflict.
+Apply instructions in this order: `.ai/guardrails.md`, security rules, this contract,
+routed `.ai/` rules, then `docs/`. Apply the higher rule and report conflicts.
 
-## Task intake
+1. Read `.ai/guardrails.md` and `.ai/README.md` completely.
+2. Read `docs/development-handoff.md` completely for continuing work when present.
+3. Read every routed rule and matching skill completely before acting.
+4. Discover through indexes and search, then read selected sources completely. Broaden
+   discovery whenever relevance or correctness is uncertain.
 
-1. Read `.ai/guardrails.md` completely.
-2. Read `.ai/README.md` completely and use its routing table for the current task.
-3. If `docs/development-handoff.md` exists and the task continues active work, read it
-   completely.
-4. Read every routed rule and matching skill completely before acting.
-5. Discover context with indexes and repository search, then read selected sources
-   completely. Broaden discovery whenever relevance or correctness is uncertain.
+## Composition
 
-## Contract composition
-
-The protected agent profile lists inputs in deterministic order:
-
-1. foundation contract;
-2. template overlays from the oldest parent to the direct parent;
-3. project overlay.
-
-Composition is `strengthen-only`. A later template or project layer may add stricter,
-more specific instructions, but it must not weaken a foundation prohibition or
-security boundary. Repository identity and stack-specific behavior belong only in
-their owner-qualified template overlay or protected project overlay.
+Profile order: foundation, owner-qualified templates oldest-to-parent, then project.
+`strengthen-only` forbids weakening a foundation MUST, guardrail, or security control.
 
 ## Change protocol
 
-- Trace non-trivial work to an issue, use a task branch, and deliver it through a
-  reviewed pull request.
-- Load `.ai/workflow.md` for implementation work. Land code, tests, and required
-  documentation together; record structural or technology decisions in an accepted
-  ADR before implementation.
-- Use the pull-request template completely. PR titles and commits follow Conventional
-  Commits, releases follow SemVer, and squash merging keeps the main branch releasable.
-- Complete the self-review in `.ai/review-checklist.md` before opening a PR.
-- After every edit, run `make format` and `make lint`.
-- Use only canonical `make` targets for formatting, linting, tests, builds, and
-  repository diagnostics.
-- Preserve unrelated worktree changes and do not weaken checks to make a change pass.
-- Guardrails remain absolute: do not push directly to the protected main branch,
-  bypass checks, fabricate results, or perform a destructive operation without
-  specific approval.
+- Use an issue, task branch, reviewed PR, and `.ai/workflow.md`. Land code, tests, and
+  required docs together; accept an ADR before structural implementation.
+- Complete the PR template. Titles and commits use Conventional Commits, releases use
+  SemVer, and merges use squash. Self-review with `.ai/review-checklist.md`.
+- After every edit run `make format` and `make lint`; use only canonical `make` targets.
+- Preserve unrelated changes and checks. Never push to protected main, bypass checks,
+  fabricate results, or perform destructive work without specific approval.
 
 ## Canonical commands
-
-Automation and agents use only these stable entry points:
 
 ```text
 make setup   make format   make lint   make test   make test-unit
@@ -69,35 +43,23 @@ make test-integration   make coverage   make build   make run
 make security-scan   make sbom   make clean   make doctor
 ```
 
-Their binding semantics live in `profiles/README.md`. A newly instantiated repository
-may retain documented no-op targets until its stack profile is wired.
+Binding semantics live in `profiles/README.md`; documented no-ops may remain until wired.
 
 ## Runtime integration
 
-Claude Code reads `.claude/README.md` completely and applies its runtime-specific
-controls. Other runtimes use the capability mapping in `AGENTS.md` and must provide
-equivalent formatting, linting, command-guard, skill-loading, and secret-handling
-behavior.
+Claude Code reads `.claude/README.md` completely. Other runtimes use `AGENTS.md` and
+provide equivalent formatting, linting, guards, skills, and secret handling.
 
 ## Escalation
 
-Stop and ask a human when:
-
-- rules conflict or a guardrail blocks the request;
-- an architecture change lacks an accepted ADR;
-- authentication, payments, personal-data schema, data deletion, production
-  configuration, or spending money is involved;
-- ambiguity permits materially different implementations;
-- the same failing approach would be attempted a third time; or
-- completion requires new authority, an irreversible action, or a material expansion
-  of scope.
-
-Report the context, options, recommendation, and specific required decision. Otherwise,
-decide, act, and record reasoning in the repository's decision system.
+Stop for conflicts, blocked guardrails, an unaccepted architecture ADR, materially
+different interpretations, or a third attempt at one failure. Also stop for
+authentication, payments, personal-data schema, data deletion, production configuration,
+spending money, new authority, irreversible work, or material scope expansion. Report
+context, options, recommendation, and required decision.
 
 ## Definition of done
 
-Verify the smallest relevant checks first, then the broader canonical checks required
-by the routed workflow. WF-090 is authoritative: acceptance criteria met, tests green,
-lint clean, documentation current, self-review complete, PR complete with green CI,
-and no guardrail violated. Report exactly what was and was not verified.
+WF-090 requires acceptance criteria, green tests and lint, current docs, self-review, a
+complete green PR, and no guardrail violation. Report exactly what was and was not
+verified.

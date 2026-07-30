@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.4.1](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/compare/v1.4.0...v1.4.1) (2026-07-30)
+
+
+### Bug Fixes
+
+* **inheritance:** scope adapter assertions to foundation root ([#128](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/issues/128)) ([db11be9](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/commit/db11be9e8e621605ad9d27b680dbfde80305cbcb))
+
 ## [1.4.0](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/compare/v1.3.0...v1.4.0) (2026-07-29)
 
 

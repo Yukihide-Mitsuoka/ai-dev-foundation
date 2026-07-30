@@ -14,7 +14,7 @@ direct, decide, and review.
 | Layer | Location | Purpose |
 |-------|----------|---------|
 | Rules (single source of truth) | [`.ai/`](.ai/) | Guardrails, security, architecture, coding, testing, release, docs, review — every rule has a stable ID (GR-010, SEC-020, ...) |
-| Agent entry points | [`CLAUDE.md`](CLAUDE.md), [`AGENTS.md`](AGENTS.md) | Operating manual + task routing table |
+| Agent entry | [`CLAUDE.md`](CLAUDE.md), [`AGENTS.md`](AGENTS.md), [agent profile](.github/inheritance/agent-profile.json) | Thin runtime adapters load the ordered foundation, template, and project instructions |
 | Task playbooks | [`.skills/`](.skills/) | 10 vendor-neutral skills: requirements, feature, bugfix, refactor, architecture, test, security, documentation, review, release — also exposed as native Claude Code skills under `.claude/skills/` |
 | Enforcement L1 | [`.claude/`](.claude/) | Claude Code hooks (command guard + auto format/lint), a read-only command allow-list, native skill wrappers, and a read-only `code-reviewer` subagent |
 | Enforcement L2 | [`.pre-commit-config.yaml`](.pre-commit-config.yaml) | Any committer: secret scan, branch guard, lint, unit tests |
@@ -30,8 +30,11 @@ direct, decide, and review.
 ## Using this template
 
 1. **Create the repo** from this template (GitHub → "Use this template").
-2. **Replace placeholders**: search for `{{` — mission, stack, CODEOWNERS teams, issue
-   config URLs.
+2. **Set project facts**: replace every `{{...}}` placeholder, then update
+   [`.ai/project/agent-overlay.md`](.ai/project/agent-overlay.md) with this repository's
+   identity and stack. In the [agent profile](.github/inheritance/agent-profile.json),
+   keep the foundation input and change the final project input's `repository` value to
+   the new `OWNER/REPOSITORY`.
 3. **Wire the Makefile**: copy the closest [`profiles/`](profiles/) Makefile to the
    root (or implement `setup/format/lint/test/build` yourself) — everything else
    (hooks, CI) starts working automatically.
@@ -43,8 +46,10 @@ direct, decide, and review.
    the same policy-driven `plan` and explicitly confirmed `apply` paths.
 5. **Install local gates**: `make setup && pre-commit install --hook-type pre-commit
    --hook-type pre-push`.
-6. **Point your agent at it**: open the repo with Claude Code (reads `CLAUDE.md`
-   automatically) or tell any other agent to read `AGENTS.md`. Assign it an issue.
+6. **Point your agent at it**: open the repo with Claude Code (reads the thin
+   `CLAUDE.md` adapter automatically) or tell any other agent to read `AGENTS.md`.
+   The adapter loads the exact ordered files declared by the agent profile. Assign it
+   an issue.
    Run the agent inside the [Dev Container](.devcontainer/README.md) so host credentials
    stay out of its reach; customize `.devcontainer/devcontainer.json` for your stack.
 

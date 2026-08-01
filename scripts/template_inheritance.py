@@ -693,6 +693,7 @@ def _fleet_repository(repository, child_root, parent_root):
     pending_manual_port = []
     manually_ported = []
     protected_review = []
+    ownership_review = []
     deletion_review = [
         {"path": path, "reason": "deletion-review-required"}
         for path in plan["changes"]["candidate_delete"]
@@ -732,6 +733,14 @@ def _fleet_repository(repository, child_root, parent_root):
                 protected_review.append(
                     {"path": path, "reason": _manual_boundary_reason(path)}
                 )
+        for path in plan["skipped"]["unowned"]:
+            child_entry = _child_entry(child_root, parent_root, path)
+            target_entry = _parent_entry(parent_root, target, path)
+            if child_entry is None and target_entry is None:
+                continue
+            ownership_review.append(
+                {"path": path, "reason": "ownership-decision-required"}
+            )
     else:
         ownership_roots = validate_inheritance(child_root)["ownership"]["inherited"]
         parent_entries = _parent_inherited_entries(parent_root, target, ownership_roots)
@@ -772,10 +781,7 @@ def _fleet_repository(repository, child_root, parent_root):
         ),
         "manually_ported": sorted(manually_ported),
         "protected_review": protected_review,
-        "ownership_review": [
-            {"path": path, "reason": "ownership-decision-required"}
-            for path in plan["skipped"]["unowned"]
-        ],
+        "ownership_review": ownership_review,
         "deletion_review": sorted(deletion_review, key=lambda item: item["path"]),
     }
 

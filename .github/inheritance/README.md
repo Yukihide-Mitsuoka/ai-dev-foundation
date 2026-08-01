@@ -181,7 +181,7 @@ its `OWNER/REPOSITORY` shape but does not call GitHub to verify it.
 | `pending_manual_port` | Inherited content differs but the transitional transport intentionally excludes it; each item reports the manual-port reason |
 | `manually_ported` | Content at a manual transport or protected boundary equals the selected candidate or current parent target exactly |
 | `protected_review` | Protected child content differs; the reported reason identifies the manual boundary |
-| `ownership_review` | The path is unowned and needs an explicit ownership decision |
+| `ownership_review` | An unowned path exists in the current parent target or child and needs an explicit ownership decision |
 | `deletion_review` | The parent deleted inherited content; the read-only tool never deletes it |
 
 An inherited path excluded by `.templatesyncignore` is reported as `pending_manual_port`
@@ -191,8 +191,11 @@ are required. Manual boundaries are intentional. Protected workflow callers reta
 permissions, secrets, and environment selection. Project overlays and profiles retain
 repository identity and semantics. Manifests, locks, and ignore files retain accepted
 provenance and ownership. Other protected paths remain repository-owned unless a
-reviewed contract change moves their ownership. Unowned paths require a reviewed
-ownership decision before synchronization.
+reviewed contract change moves their ownership. Unowned paths present in the current
+parent target or child require a reviewed ownership decision before synchronization. A
+transient unowned candidate path absent from both is reported by `plan` for history
+visibility but does not create fleet attention because the current transport target
+cannot write it.
 
 Target comparison recognizes content accepted ahead of its lock during a reviewed
 mechanical sync. The report does not advance provenance: every intermediate

@@ -15,6 +15,7 @@ AGENT_PROFILE_SCHEMA_VERSION = 1
 MANIFEST_PATH = ".github/inheritance/manifest.json"
 AGENT_PROFILE_PATH = ".github/inheritance/agent-profile.json"
 TEMPLATE_SYNC_IGNORE_PATH = ".templatesyncignore"
+DEFAULT_FLEET_CONFIG_PATH = Path("docs/foundation/inheritance-fleet.json")
 MAX_CONTRACT_BYTES = 1_000_000
 MAX_OWNERSHIP_ROOTS = 1_000
 MAX_AGENT_INPUTS = 32
@@ -692,6 +693,7 @@ def _fleet_repository(repository, child_root, parent_root):
     pending_manual_port = []
     manually_ported = []
     protected_review = []
+    ownership_review = []
     deletion_review = [
         {"path": path, "reason": "deletion-review-required"}
         for path in plan["changes"]["candidate_delete"]
@@ -731,6 +733,14 @@ def _fleet_repository(repository, child_root, parent_root):
                 protected_review.append(
                     {"path": path, "reason": _manual_boundary_reason(path)}
                 )
+        for path in plan["skipped"]["unowned"]:
+            child_entry = _child_entry(child_root, parent_root, path)
+            target_entry = _parent_entry(parent_root, target, path)
+            if child_entry is None and target_entry is None:
+                continue
+            ownership_review.append(
+                {"path": path, "reason": "ownership-decision-required"}
+            )
     else:
         ownership_roots = validate_inheritance(child_root)["ownership"]["inherited"]
         parent_entries = _parent_inherited_entries(parent_root, target, ownership_roots)
@@ -771,10 +781,7 @@ def _fleet_repository(repository, child_root, parent_root):
         ),
         "manually_ported": sorted(manually_ported),
         "protected_review": protected_review,
-        "ownership_review": [
-            {"path": path, "reason": "ownership-decision-required"}
-            for path in plan["skipped"]["unowned"]
-        ],
+        "ownership_review": ownership_review,
         "deletion_review": sorted(deletion_review, key=lambda item: item["path"]),
     }
 
@@ -1009,7 +1016,7 @@ def main(argv=None):
     audit.add_argument(
         "--config",
         type=Path,
-        default=Path("scripts/inheritance-fleet.json"),
+        default=DEFAULT_FLEET_CONFIG_PATH,
         help="machine-readable fleet configuration",
     )
     audit.add_argument(

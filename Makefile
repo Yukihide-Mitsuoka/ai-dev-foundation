@@ -58,5 +58,5 @@ doctor: ## Self-check the template: metadata invariants + guard-hook tests (foun
 
 fleet-audit: ## Audit every configured local inheritance relationship without writes
 	@python3 scripts/template_inheritance.py fleet-audit \
-		--config scripts/inheritance-fleet.json \
+		--config docs/foundation/inheritance-fleet.json \
 		--workspace-root "$(FLEET_WORKSPACE_ROOT)"

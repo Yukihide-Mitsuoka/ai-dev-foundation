@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.5.1](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/compare/v1.5.0...v1.5.1) (2026-08-01)
+
+
+### Bug Fixes
+
+* **inheritance:** audit complete configured fleet ([#147](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/issues/147)) ([cf4ebed](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/commit/cf4ebed1422977adc15efb595ccedf479f0f0d7c))
+* **inheritance:** tolerate pending protected ports ([#144](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/issues/144)) ([c3b5dbf](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/commit/c3b5dbf33761282e4657a25382892892604001cd)), closes [#143](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/issues/143)
+
 ## [1.5.0](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/compare/v1.4.1...v1.5.0) (2026-08-01)
 
 

@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.5.0](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/compare/v1.4.1...v1.5.0) (2026-08-01)
+
+
+### Features
+
+* **inheritance:** expose manual transport boundaries ([#136](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/issues/136)) ([5fdc09e](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/commit/5fdc09e61b959171b91312bd3b7dedc6bbe0bfad))
+* **inheritance:** report fleet propagation boundaries ([#131](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/issues/131)) ([a2c647a](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/commit/a2c647a605b10a63c970cd4799d9a3d4c6b796bb))
+
 ## [1.4.1](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/compare/v1.4.0...v1.4.1) (2026-07-30)
 
 

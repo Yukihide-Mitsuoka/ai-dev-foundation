@@ -75,7 +75,12 @@ class ContextBudgetTest(unittest.TestCase):
         self.assertIn(finding, strict_errors)
 
     def test_baseline_contract_detector_preserves_safety_markers(self):
-        self.assertIn(CANONICAL_GUARDRAILS, context_budget.BASELINE_FILES)
+        self.assertNotIn(CANONICAL_GUARDRAILS, context_budget.BASELINE_FILES)
+        profile_errors, active_files = context_budget.active_baseline_files(
+            REPOSITORY_ROOT
+        )
+        self.assertEqual([], profile_errors)
+        self.assertIn(CANONICAL_GUARDRAILS, active_files)
         self.assertTrue(
             {
                 ".github/inheritance/agent-profile.json",
@@ -164,6 +169,21 @@ class ContextBudgetTest(unittest.TestCase):
             with self.subTest(rule_id=rule_id):
                 self.assertNotIn(f"### {rule_id}:", adapter)
                 self.assertIn(f"### {rule_id}:", canonical)
+
+    def test_legacy_guardrail_body_does_not_add_canonical_copy_to_baseline(self):
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            legacy = root / ".ai/guardrails.md"
+            canonical = root / CANONICAL_GUARDRAILS
+            legacy.parent.mkdir(parents=True)
+            canonical.parent.mkdir(parents=True)
+            legacy.write_text("### GR-001: legacy body\n", encoding="utf-8")
+            canonical.write_text("### GR-001: canonical body\n", encoding="utf-8")
+
+            errors, files = context_budget.active_baseline_files(root)
+
+        self.assertEqual([], errors)
+        self.assertNotIn(CANONICAL_GUARDRAILS, files)
 
     def test_active_profile_extends_baseline_in_declared_order(self):
         with tempfile.TemporaryDirectory() as temporary_directory:

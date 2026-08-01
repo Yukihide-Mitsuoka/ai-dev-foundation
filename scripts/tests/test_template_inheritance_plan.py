@@ -332,6 +332,26 @@ class TemplateInheritancePlanTest(unittest.TestCase):
         self.assertEqual(repository["pending_manual_port"], [])
         self.assertIn(".github/workflows/shared.yml", repository["manually_ported"])
 
+    def test_fleet_report_ignores_transient_unowned_path_absent_from_target_and_child(self):
+        (self.parent / "unowned.txt").unlink()
+        target_without_transient_path = self.commit("remove transient unowned path")
+        self.git(
+            "update-ref", "refs/remotes/origin/main", target_without_transient_path
+        )
+
+        result = inheritance.fleet_report(
+            [("acme/child-template", self.child, self.parent)]
+        )
+
+        repository = result["repositories"][0]
+        self.assertEqual(
+            repository["parent"]["candidate_commit"], self.candidate_commit
+        )
+        self.assertEqual(
+            repository["parent"]["target_commit"], target_without_transient_path
+        )
+        self.assertEqual(repository["ownership_review"], [])
+
     def test_fleet_report_audits_all_inherited_files_when_lock_matches_head(self):
         self.synchronize_child_to_target()
         self.write(self.child, "inherited/modify.txt", "child drift\n")

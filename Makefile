@@ -6,9 +6,10 @@
 # to one file.
 
 .PHONY: setup format lint test test-unit test-integration coverage build run \
-        security-scan sbom clean help doctor
+        security-scan sbom clean help doctor fleet-audit
 
 FILE ?=
+FLEET_WORKSPACE_ROOT ?= ..
 
 help: ## List available targets
 	@grep -E '^[a-z-]+:.*##' $(MAKEFILE_LIST) | awk -F':.*## ' '{printf "  make %-18s %s\n", $$1, $$2}'
@@ -54,3 +55,8 @@ clean: ## Remove build artifacts
 doctor: ## Self-check the template: metadata invariants + guard-hook tests (foundation-level, stack-independent)
 	@bash scripts/template-check.sh
 	@bash .claude/hooks/tests/guard-bash.test.sh
+
+fleet-audit: ## Audit every configured local inheritance relationship without writes
+	@python3 scripts/template_inheritance.py fleet-audit \
+		--config scripts/inheritance-fleet.json \
+		--workspace-root "$(FLEET_WORKSPACE_ROOT)"

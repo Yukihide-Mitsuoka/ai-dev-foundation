@@ -9,7 +9,7 @@ JAPANESE_GUIDE = REPOSITORY_ROOT / "docs" / "foundation" / "guides" / "usage.ja.
 
 class ParentSelectionGuideTest(unittest.TestCase):
     def test_english_guide_defines_parent_selection_and_initialization(self):
-        content = USAGE_GUIDE.read_text(encoding="utf-8")
+        content = " ".join(USAGE_GUIDE.read_text(encoding="utf-8").split())
 
         for contract in (
             "Choose the direct parent template",
@@ -27,7 +27,7 @@ class ParentSelectionGuideTest(unittest.TestCase):
                 self.assertIn(contract, content)
 
     def test_japanese_guide_matches_the_parent_selection_contract(self):
-        content = JAPANESE_GUIDE.read_text(encoding="utf-8")
+        content = " ".join(JAPANESE_GUIDE.read_text(encoding="utf-8").split())
 
         for contract in (
             "直接の親テンプレートを選ぶ",

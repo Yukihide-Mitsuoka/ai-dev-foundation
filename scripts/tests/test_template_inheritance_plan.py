@@ -254,6 +254,17 @@ class TemplateInheritancePlanTest(unittest.TestCase):
         self.assertEqual(result["summary"]["pending_manual_port"], 2)
         self.assertEqual(result["summary"]["protected_review"], 2)
 
+    def test_fleet_report_recognizes_an_exact_ignored_inherited_manual_port(self):
+        self.write(self.child, ".github/workflows/shared.yml", "new\n")
+
+        result = inheritance.fleet_report(
+            [("acme/child-template", self.child, self.parent)]
+        )
+
+        repository = result["repositories"][0]
+        self.assertEqual(repository["pending_manual_port"], [])
+        self.assertIn(".github/workflows/shared.yml", repository["manually_ported"])
+
     def test_fleet_report_rejects_duplicate_children_and_pair_limit(self):
         with self.assertRaisesRegex(inheritance.InheritanceError, "duplicate child"):
             inheritance.fleet_report(

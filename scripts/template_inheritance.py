@@ -15,6 +15,7 @@ AGENT_PROFILE_SCHEMA_VERSION = 1
 MANIFEST_PATH = ".github/inheritance/manifest.json"
 AGENT_PROFILE_PATH = ".github/inheritance/agent-profile.json"
 TEMPLATE_SYNC_IGNORE_PATH = ".templatesyncignore"
+DEFAULT_FLEET_CONFIG_PATH = Path("docs/foundation/inheritance-fleet.json")
 MAX_CONTRACT_BYTES = 1_000_000
 MAX_OWNERSHIP_ROOTS = 1_000
 MAX_AGENT_INPUTS = 32
@@ -1009,7 +1010,7 @@ def main(argv=None):
     audit.add_argument(
         "--config",
         type=Path,
-        default=Path("scripts/inheritance-fleet.json"),
+        default=DEFAULT_FLEET_CONFIG_PATH,
         help="machine-readable fleet configuration",
     )
     audit.add_argument(

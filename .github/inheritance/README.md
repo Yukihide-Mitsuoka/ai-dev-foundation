@@ -204,18 +204,23 @@ current remote state is required.
 
 ## Audit the fixed fleet
 
-[`scripts/inheritance-fleet.json`](../../scripts/inheritance-fleet.json) is the canonical,
-machine-readable list of active direct-parent relationships and retired repositories.
-It stores repository identities and workspace-relative directory names, never absolute
+[`docs/foundation/inheritance-fleet.json`](../../docs/foundation/inheritance-fleet.json)
+is the canonical, machine-readable list of active direct-parent relationships and
+retired repositories. Its location is already inherited by every maintained direct
+child, so adding the config does not require a child-specific ownership migration. It
+stores repository identities and workspace-relative directory names, never absolute
 paths or credentials. The checked-in regression test pins all five active relationships
 and rejects reintroduction of the retired `Yukihide-Mitsuoka/chat-chart` repository.
 
 Place the configured repositories as sibling Git worktrees under one directory, refresh
-their remote refs explicitly, then run:
+their remote refs explicitly, then run from the `ai-dev-foundation` worktree:
 
 ```bash
 make fleet-audit FLEET_WORKSPACE_ROOT=/path/to/worktrees
 ```
+
+Descendant Makefiles are protected repository-owned files and do not receive this target.
+Use the Foundation worktree as the fleet-wide audit entry point.
 
 The target audits every configured relationship exactly once and labels repository
 identity as `repository_source: fixed-fleet-config`. It validates each child's declared

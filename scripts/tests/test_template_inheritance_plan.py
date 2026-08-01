@@ -9,6 +9,7 @@ from pathlib import Path
 
 
 MODULE_PATH = Path(__file__).parents[1] / "template_inheritance.py"
+REPOSITORY_ROOT = MODULE_PATH.parent.parent
 SPEC = importlib.util.spec_from_file_location("template_inheritance_plan", MODULE_PATH)
 inheritance = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(inheritance)
@@ -424,6 +425,12 @@ class TemplateInheritancePlanTest(unittest.TestCase):
 
         with self.assertRaisesRegex(inheritance.InheritanceError, "duplicate child"):
             inheritance.fleet_audit(config_path, Path(self.temporary_directory.name))
+
+    def test_canonical_fleet_config_uses_the_common_foundation_docs_root(self):
+        expected = Path("docs/foundation/inheritance-fleet.json")
+
+        self.assertEqual(inheritance.DEFAULT_FLEET_CONFIG_PATH, expected)
+        self.assertTrue((REPOSITORY_ROOT / expected).is_file())
 
     def test_fleet_report_rejects_duplicate_children_and_pair_limit(self):
         with self.assertRaisesRegex(inheritance.InheritanceError, "duplicate child"):

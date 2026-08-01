@@ -9,6 +9,7 @@ from scripts import context_budget
 
 
 REPOSITORY_ROOT = Path(__file__).parents[2]
+CANONICAL_GUARDRAILS = ".ai/contracts/foundation/guardrails.md"
 
 
 class ContextBudgetTest(unittest.TestCase):
@@ -74,6 +75,7 @@ class ContextBudgetTest(unittest.TestCase):
         self.assertIn(finding, strict_errors)
 
     def test_baseline_contract_detector_preserves_safety_markers(self):
+        self.assertIn(CANONICAL_GUARDRAILS, context_budget.BASELINE_FILES)
         self.assertTrue(
             {
                 ".github/inheritance/agent-profile.json",
@@ -106,6 +108,26 @@ class ContextBudgetTest(unittest.TestCase):
             ),
             context_budget.BASELINE_CONTRACT_MARKERS[".claude/README.md"],
         )
+        self.assertEqual(
+            (
+                CANONICAL_GUARDRAILS,
+                "Read it completely before any task work",
+                "MUST NOT duplicate guardrail rules",
+            ),
+            context_budget.BASELINE_CONTRACT_MARKERS[".ai/guardrails.md"],
+        )
+        self.assertTrue(
+            {
+                "Never write secrets into the repository",
+                "Never push directly to main/master",
+                "Never bypass hooks or checks",
+                "Never lower the security level",
+                "Never run destructive operations without explicit human approval",
+                "Never fabricate results",
+            }.issubset(
+                context_budget.BASELINE_CONTRACT_MARKERS[CANONICAL_GUARDRAILS]
+            )
+        )
         with tempfile.TemporaryDirectory() as temporary_directory:
             root = Path(temporary_directory)
             for value, markers in context_budget.BASELINE_CONTRACT_MARKERS.items():
@@ -129,6 +151,19 @@ class ContextBudgetTest(unittest.TestCase):
             ".claude/README.md: canonical contract file is missing",
             missing_file_errors,
         )
+
+    def test_guardrail_adapter_loads_one_canonical_rule_body(self):
+        adapter = (REPOSITORY_ROOT / ".ai/guardrails.md").read_text(encoding="utf-8")
+        canonical = (REPOSITORY_ROOT / CANONICAL_GUARDRAILS).read_text(
+            encoding="utf-8"
+        )
+
+        self.assertLessEqual(len(adapter.splitlines()), 20)
+        self.assertIn(CANONICAL_GUARDRAILS, adapter)
+        for rule_id in ("GR-001", "GR-010", "GR-020", "GR-030", "GR-040"):
+            with self.subTest(rule_id=rule_id):
+                self.assertNotIn(f"### {rule_id}:", adapter)
+                self.assertIn(f"### {rule_id}:", canonical)
 
     def test_active_profile_extends_baseline_in_declared_order(self):
         with tempfile.TemporaryDirectory() as temporary_directory:

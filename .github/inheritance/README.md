@@ -59,6 +59,13 @@ foundation itself is the direct parent. Every reference is a bounded, existing,
 non-symlink file. `strengthen-only` prohibits later layers from weakening foundation
 MUST, guardrail, or security controls.
 
+Validation proves the declared policy, layer order, bounded references, and ownership;
+it does not claim to decide whether arbitrary natural-language statements are
+semantically equivalent. Guardrails therefore keep one authority body under
+`.ai/contracts/foundation/guardrails.md`, and `.ai/guardrails.md` is a stable entry
+adapter. Higher authority wins and a semantic conflict in an overlay fails closed for
+human review.
+
 An ownership root is either a literal file or a directory prefix ending in `/`. Globs,
 absolute paths, traversal, `.git`, duplicates, and overlap within or across ownership
 classes are invalid. Protected roots must cover the manifest, selected lock file,

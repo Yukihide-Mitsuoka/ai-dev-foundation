@@ -49,7 +49,7 @@ class TemplateInheritancePlanTest(unittest.TestCase):
         self.locked_commit = self.commit("base")
 
         for path, content in {
-            "inherited/modify.txt": "old\n",
+            "inherited/modify.txt": "future\n",
             "inherited/delete.txt": "old\n",
             "inherited/current.txt": "new\n",
             ".gitignore": "child-local\n",
@@ -69,6 +69,7 @@ class TemplateInheritancePlanTest(unittest.TestCase):
             self.write(self.parent, path, content)
         (self.parent / "inherited/delete.txt").unlink()
         self.candidate_commit = self.commit("candidate")
+        self.write(self.parent, "inherited/modify.txt", "future\n")
         self.write(self.parent, "inherited/later.txt", "later\n")
         self.target_commit = self.commit("later")
         self.git("update-ref", "refs/remotes/origin/main", self.target_commit)
@@ -190,11 +191,12 @@ class TemplateInheritancePlanTest(unittest.TestCase):
 
         repository = result["repositories"][0]
         self.assertEqual(repository["repository"], "acme/child-template")
-        self.assertEqual(repository["synchronized"], ["inherited/current.txt"])
+        self.assertEqual(repository["repository_source"], "explicit-argument")
         self.assertEqual(
-            repository["pending_sync"],
-            ["inherited/add.txt", "inherited/modify.txt"],
+            repository["synchronized"],
+            ["inherited/current.txt", "inherited/modify.txt"],
         )
+        self.assertEqual(repository["pending_sync"], ["inherited/add.txt"])
         self.assertEqual(
             repository["manually_ported"],
             [".github/workflows/template-sync.yml"],
@@ -250,6 +252,25 @@ class TemplateInheritancePlanTest(unittest.TestCase):
         ]
         with self.assertRaisesRegex(inheritance.InheritanceError, "fleet repositories"):
             inheritance.fleet_report(too_many)
+
+    def test_fleet_report_rejects_a_protected_child_symlink(self):
+        outside = Path(self.temporary_directory.name) / "outside-ignore"
+        outside.write_text("outside\n", encoding="utf-8")
+        (self.child / ".gitignore").unlink()
+        (self.child / ".gitignore").symlink_to(outside)
+
+        with self.assertRaisesRegex(inheritance.InheritanceError, "symlink"):
+            inheritance.fleet_report(
+                [("acme/child-template", self.child, self.parent)]
+            )
+
+    def test_fleet_report_preserves_parent_identity_validation(self):
+        self.git("remote", "set-url", "origin", "https://github.com/acme/other.git")
+
+        with self.assertRaisesRegex(inheritance.InheritanceError, "origin"):
+            inheritance.fleet_report(
+                [("acme/child-template", self.child, self.parent)]
+            )
 
     def test_fleet_report_cli_prints_deterministic_json(self):
         stdout = io.StringIO()

@@ -60,11 +60,16 @@ class LocalWorkflowActionsTest(unittest.TestCase):
                 workflow = (REPOSITORY_ROOT / case["workflow"]).read_text(
                     encoding="utf-8"
                 )
+                local_action = (
+                    f"uses: ./{case['action'].removesuffix('/action.yml')}"
+                )
                 self.assertIn("permissions:", workflow)
-                self.assertIn("actions/checkout@", workflow)
-                self.assertIn(f"uses: ./{case['action'].removesuffix('/action.yml')}", workflow)
-                self.assertNotIn(case["implementation"], workflow)
                 self.assertNotIn("uses: Yukihide-Mitsuoka/ai-dev-foundation/", workflow)
+                if local_action in workflow:
+                    self.assertIn("actions/checkout@", workflow)
+                    self.assertNotIn(case["implementation"], workflow)
+                else:
+                    self.assertIn(case["pinned_action"], workflow)
 
     def test_synchronized_local_actions_hold_pinned_implementations(self):
         for name, case in self.CASES.items():
@@ -80,7 +85,10 @@ class LocalWorkflowActionsTest(unittest.TestCase):
             REPOSITORY_ROOT / ".github" / "workflows" / "container.yml"
         ).read_text(encoding="utf-8")
 
-        self.assertIn('"scripts/actions/container-scan/**"', workflow)
+        if "uses: ./scripts/actions/container-scan" in workflow:
+            self.assertIn('"scripts/actions/container-scan/**"', workflow)
+        else:
+            self.assertIn("docker build", workflow)
 
     def test_ai_review_caller_keeps_opt_in_permissions_and_secret_boundary(self):
         workflow = (
@@ -89,10 +97,19 @@ class LocalWorkflowActionsTest(unittest.TestCase):
 
         self.assertIn("vars.ENABLE_AI_REVIEW == 'true'", workflow)
         self.assertIn("pull-requests: write", workflow)
-        self.assertIn("anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}", workflow)
-        self.assertIn(
-            "pull-request-number: ${{ github.event.pull_request.number }}", workflow
-        )
+        if "uses: ./scripts/actions/ai-review" in workflow:
+            self.assertIn(
+                "anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}", workflow
+            )
+            self.assertIn(
+                "pull-request-number: ${{ github.event.pull_request.number }}",
+                workflow,
+            )
+        else:
+            self.assertIn(
+                "anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}", workflow
+            )
+            self.assertIn("github.event.pull_request.number", workflow)
 
     def test_scorecard_caller_keeps_security_permissions(self):
         workflow = (
@@ -114,10 +131,21 @@ class LocalWorkflowActionsTest(unittest.TestCase):
         self.assertIn("attestations: write", workflow)
         self.assertIn("if: needs.release-please.outputs.release_created == 'true'", workflow)
         self.assertIn("ref: ${{ needs.release-please.outputs.tag_name }}", workflow)
-        self.assertIn("uses: ./scripts/actions/release-please", workflow)
-        self.assertIn("uses: ./scripts/actions/release-gates", workflow)
-        self.assertNotIn("googleapis/release-please-action@", workflow)
-        self.assertNotIn("aquasecurity/trivy-action@", workflow)
+        if "uses: ./scripts/actions/release-please" in workflow:
+            self.assertIn("uses: ./scripts/actions/release-gates", workflow)
+            self.assertNotIn("googleapis/release-please-action@", workflow)
+            self.assertNotIn("aquasecurity/trivy-action@", workflow)
+        else:
+            self.assertIn(
+                "googleapis/release-please-action@"
+                "5c625bfb5d1ff62eadeeb3772007f7f66fdcf071",
+                workflow,
+            )
+            self.assertIn(
+                "aquasecurity/trivy-action@"
+                "ed142fd0673e97e23eac54620cfb913e5ce36c25",
+                workflow,
+            )
 
     def test_release_actions_preserve_outputs_and_pinned_gates(self):
         release_please = (

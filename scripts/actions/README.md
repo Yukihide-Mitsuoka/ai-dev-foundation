@@ -35,3 +35,7 @@ secrets, variables, environments, concurrency, and job-level conditions (ADR-001
 
 After the one-time caller port, implementation-only updates under this directory arrive
 through ordinary reviewed Template Sync PRs. Caller-boundary changes remain manual.
+
+`release-please` accepts `release-type` from the protected caller so each downstream
+repository retains its release strategy. `ai-review` accepts the API key and pull
+request number explicitly; local actions MUST NOT read additional secrets implicitly.

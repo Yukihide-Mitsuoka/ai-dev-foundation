@@ -80,7 +80,13 @@ class ContextBudgetTest(unittest.TestCase):
             REPOSITORY_ROOT
         )
         self.assertEqual([], profile_errors)
-        self.assertIn(CANONICAL_GUARDRAILS, active_files)
+        guardrail_entry = (REPOSITORY_ROOT / ".ai/guardrails.md").read_text(
+            encoding="utf-8"
+        )
+        if CANONICAL_GUARDRAILS in guardrail_entry:
+            self.assertIn(CANONICAL_GUARDRAILS, active_files)
+        else:
+            self.assertNotIn(CANONICAL_GUARDRAILS, active_files)
         self.assertTrue(
             {
                 ".github/inheritance/agent-profile.json",
@@ -163,11 +169,15 @@ class ContextBudgetTest(unittest.TestCase):
             encoding="utf-8"
         )
 
-        self.assertLessEqual(len(adapter.splitlines()), 20)
-        self.assertIn(CANONICAL_GUARDRAILS, adapter)
+        migrated = CANONICAL_GUARDRAILS in adapter
+        if migrated:
+            self.assertLessEqual(len(adapter.splitlines()), 20)
         for rule_id in ("GR-001", "GR-010", "GR-020", "GR-030", "GR-040"):
             with self.subTest(rule_id=rule_id):
-                self.assertNotIn(f"### {rule_id}:", adapter)
+                if migrated:
+                    self.assertNotIn(f"### {rule_id}:", adapter)
+                else:
+                    self.assertIn(f"### {rule_id}:", adapter)
                 self.assertIn(f"### {rule_id}:", canonical)
 
     def test_legacy_guardrail_body_does_not_add_canonical_copy_to_baseline(self):

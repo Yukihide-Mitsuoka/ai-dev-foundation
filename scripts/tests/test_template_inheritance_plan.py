@@ -115,6 +115,18 @@ class TemplateInheritancePlanTest(unittest.TestCase):
             "\n".join(PROTECTED_PATHS + [".github/workflows/**"]) + "\n",
         )
 
+    def synchronize_child_to_target(self):
+        for path, content in {
+            "inherited/add.txt": "new\n",
+            "inherited/modify.txt": "future\n",
+            "inherited/current.txt": "new\n",
+            "inherited/later.txt": "later\n",
+            ".github/workflows/shared.yml": "new\n",
+        }.items():
+            self.write(self.child, path, content)
+        (self.child / "inherited/delete.txt").unlink()
+        self.write_contract(self.target_commit)
+
     def snapshot_child(self):
         return {
             str(path.relative_to(self.child)): path.read_bytes()
@@ -264,6 +276,101 @@ class TemplateInheritancePlanTest(unittest.TestCase):
         repository = result["repositories"][0]
         self.assertEqual(repository["pending_manual_port"], [])
         self.assertIn(".github/workflows/shared.yml", repository["manually_ported"])
+
+    def test_fleet_report_audits_all_inherited_files_when_lock_matches_head(self):
+        self.synchronize_child_to_target()
+        self.write(self.child, "inherited/modify.txt", "child drift\n")
+        (self.child / "inherited/add.txt").unlink()
+        (self.child / "inherited/current.txt").chmod(0o755)
+        self.write(self.child, "inherited/stale.txt", "removed upstream\n")
+
+        result = inheritance.fleet_report(
+            [("acme/child-template", self.child, self.parent)]
+        )
+
+        repository = result["repositories"][0]
+        self.assertEqual(result["status"], "attention")
+        self.assertEqual(repository["parent"]["locked_commit"], self.target_commit)
+        self.assertEqual(repository["parent"]["target_commit"], self.target_commit)
+        self.assertIsNone(repository["parent"]["candidate_commit"])
+        self.assertEqual(repository["audited_inherited_files"], 6)
+        self.assertEqual(
+            repository["pending_sync"],
+            ["inherited/add.txt", "inherited/current.txt", "inherited/modify.txt"],
+        )
+        self.assertEqual(
+            repository["deletion_review"],
+            [{"path": "inherited/stale.txt", "reason": "deletion-review-required"}],
+        )
+        self.assertEqual(result["summary"]["audited_inherited_files"], 6)
+
+    def test_fleet_report_proves_complete_steady_state(self):
+        self.synchronize_child_to_target()
+
+        result = inheritance.fleet_report(
+            [("acme/child-template", self.child, self.parent)]
+        )
+
+        repository = result["repositories"][0]
+        self.assertEqual(result["status"], "ready")
+        self.assertEqual(repository["audited_inherited_files"], 5)
+        self.assertEqual(repository["synchronized"], ["inherited/later.txt"])
+        self.assertEqual(
+            repository["manually_ported"], [".github/workflows/shared.yml"]
+        )
+
+    def test_fleet_audit_loads_fixed_worktree_relationships(self):
+        self.synchronize_child_to_target()
+        config_path = Path(self.temporary_directory.name) / "fleet.json"
+        config_path.write_text(
+            json.dumps(
+                {
+                    "schema_version": 1,
+                    "retired_repositories": ["acme/retired"],
+                    "repositories": [
+                        {
+                            "repository": "acme/child-template",
+                            "directory": "child",
+                            "parent_repository": PARENT_REPOSITORY,
+                            "parent_directory": "parent",
+                        }
+                    ],
+                }
+            ),
+            encoding="utf-8",
+        )
+
+        result = inheritance.fleet_audit(
+            config_path, Path(self.temporary_directory.name)
+        )
+
+        self.assertEqual(result["status"], "ready")
+        self.assertEqual(
+            result["repositories"][0]["repository_source"], "fixed-fleet-config"
+        )
+
+    def test_fleet_audit_rejects_retired_repository_reintroduction(self):
+        config_path = Path(self.temporary_directory.name) / "fleet.json"
+        config_path.write_text(
+            json.dumps(
+                {
+                    "schema_version": 1,
+                    "retired_repositories": ["acme/child-template"],
+                    "repositories": [
+                        {
+                            "repository": "acme/child-template",
+                            "directory": "child",
+                            "parent_repository": PARENT_REPOSITORY,
+                            "parent_directory": "parent",
+                        }
+                    ],
+                }
+            ),
+            encoding="utf-8",
+        )
+
+        with self.assertRaisesRegex(inheritance.InheritanceError, "retired"):
+            inheritance.fleet_audit(config_path, Path(self.temporary_directory.name))
 
     def test_fleet_report_rejects_duplicate_children_and_pair_limit(self):
         with self.assertRaisesRegex(inheritance.InheritanceError, "duplicate child"):

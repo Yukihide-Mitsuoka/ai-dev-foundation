@@ -111,7 +111,7 @@ class LocalWorkflowActionsTest(unittest.TestCase):
             )
             self.assertIn("github.event.pull_request.number", workflow)
 
-    def test_scorecard_caller_keeps_security_permissions(self):
+    def test_scorecard_caller_keeps_security_permissions_and_verified_steps(self):
         workflow = (
             REPOSITORY_ROOT / ".github" / "workflows" / "scorecard.yml"
         ).read_text(encoding="utf-8")
@@ -119,6 +119,17 @@ class LocalWorkflowActionsTest(unittest.TestCase):
         self.assertIn("security-events: write", workflow)
         self.assertIn("id-token: write", workflow)
         self.assertIn("persist-credentials: false", workflow)
+        self.assertNotIn("uses: ./scripts/actions/scorecard", workflow)
+        self.assertIn(
+            "ossf/scorecard-action@"
+            "4eaacf0543bb3f2c246792bd56e8cdeffafb205a",
+            workflow,
+        )
+        self.assertIn(
+            "github/codeql-action/upload-sarif@"
+            "4187e74d05793876e9989daffde9c3e66b4acd07",
+            workflow,
+        )
 
     def test_release_callers_keep_boundaries_and_delegate_implementations(self):
         workflow = (

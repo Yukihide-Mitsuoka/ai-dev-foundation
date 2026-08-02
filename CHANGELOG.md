@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.5.3](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/compare/v1.5.2...v1.5.3) (2026-08-02)
+
+
+### Bug Fixes
+
+* **release:** attach SBOM to created release ([#155](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/issues/155)) ([d229c43](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/commit/d229c43872098b64719bcf43be2fcfeeaf112416)), closes [#154](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/issues/154)
+
 ## [1.5.2](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/compare/v1.5.1...v1.5.2) (2026-08-02)
 
 

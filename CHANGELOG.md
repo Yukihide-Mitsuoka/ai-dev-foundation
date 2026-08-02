@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.5.2](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/compare/v1.5.1...v1.5.2) (2026-08-02)
+
+
+### Bug Fixes
+
+* **inheritance:** keep fleet artifacts inside inherited roots ([#149](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/issues/149)) ([919508c](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/commit/919508cd851068b2baea5ebdf2abb287226a373c))
+* **scorecard:** call verified actions directly ([#152](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/issues/152)) ([ef70594](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/commit/ef705940bd92ad059f07a7077e80b80620ae6413))
+
 ## [1.5.1](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/compare/v1.5.0...v1.5.1) (2026-08-01)
 
 

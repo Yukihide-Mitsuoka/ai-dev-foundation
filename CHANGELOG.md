@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.6.0](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/compare/v1.5.4...v1.6.0) (2026-08-08)
+
+
+### Features
+
+* **inheritance:** apply single-PR finalization ([#162](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/issues/162)) ([17a7b01](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/commit/17a7b0135f78ac912f43c16a47b61882f6213693))
+* **inheritance:** plan exact-source finalization ([#161](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/issues/161)) ([f8a61b1](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/commit/f8a61b12a3866996c388dcfef57eb0adbc5dafaa))
+
 ## [1.5.4](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/compare/v1.5.3...v1.5.4) (2026-08-08)
 
 

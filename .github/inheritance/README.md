@@ -164,9 +164,38 @@ python3 scripts/template_inheritance.py bootstrap-child \
 
 The read-only plan verifies both GitHub origins, source ancestry, the published ownership
 contract, agent input order, and byte-for-byte inherited template content. It emits the
-desired manifest, lock, agent profile, and Template Sync exclusions. README ownership,
-the project overlay, and the protected Template Sync caller remain explicit manual
-boundaries until the idempotent write phase is implemented.
+desired manifest, lock, agent profile, and Template Sync exclusions.
+
+Prepare reviewed project-owned payloads outside the child worktree:
+
+```text
+payload/
+├── README.md
+├── .ai/project/agent-overlay.md
+├── .github/workflows/template-sync.yml
+└── docs/inheritance/readmes/<parent-owner>/<parent-repository>.md
+```
+
+The root README must name the child ownership marker. The archive must retain the parent
+marker and exact `source-repository` and `source-commit` frontmatter. The project overlay
+must identify the child without placeholders. The workflow must retain the opt-in guard
+and name the direct parent in both `source_repo_path` and `SOURCE_REPOSITORY`. Apply only
+after reviewing those protected files:
+
+```bash
+python3 scripts/template_inheritance.py bootstrap-child \
+  --root /path/to/child --parent-root /path/to/direct-parent \
+  --source-commit <40-character-template-source> --repository owner/child \
+  --apply --payload-root /path/to/payload \
+  --confirm-repository owner/child \
+  --confirm-source <40-character-template-source>
+```
+
+Apply accepts only exact parent-copy or already-desired targets, refuses a differing
+archive or unrelated managed edit, writes no deletion, and validates the complete
+inheritance contract afterward. Commit the result before repeating; the same confirmed
+operation then returns `already_bootstrapped` without changing files. Enabling the
+repository variable remains a separate authenticated step after review and merge.
 
 ## Report fleet propagation boundaries
 

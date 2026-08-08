@@ -48,6 +48,7 @@ BOOTSTRAP_MANUAL_BOUNDARIES = {
     ".github/workflows/template-sync.yml",
     "README.md",
 }
+README_OWNER_MARKER = re.compile(r"<!--\s*repository-readme-owner:\s*([^\s]+)\s*-->")
 
 
 class InheritanceError(ValueError):
@@ -745,7 +746,9 @@ def _validate_bootstrap_export(export_path, export, parent_repository):
     _reject_overlaps(inherited + protected, "inheritance export")
     missing = sorted(
         path
-        for path in REQUIRED_PROTECTED_PATHS | BOOTSTRAP_MANUAL_BOUNDARIES
+        for path in REQUIRED_PROTECTED_PATHS
+        | BOOTSTRAP_MANUAL_BOUNDARIES
+        | {"docs/inheritance/readmes/"}
         if not _owned_by(path, protected)
     )
     if missing:
@@ -871,6 +874,171 @@ def plan_bootstrap(root, parent_root, source_commit, repository):
         },
         "desired": desired,
         "manual_boundaries": sorted(BOOTSTRAP_MANUAL_BOUNDARIES),
+    }
+
+
+def _bootstrap_payload_root(payload_root, child_root):
+    if payload_root is None:
+        raise InheritanceError("bootstrap --apply requires --payload-root")
+    candidate = Path(payload_root)
+    if not candidate.is_absolute():
+        candidate = Path.cwd() / candidate
+    try:
+        resolved = candidate.resolve(strict=True)
+    except OSError as error:
+        raise InheritanceError("bootstrap payload root must exist") from error
+    if (
+        candidate.is_symlink()
+        or not resolved.is_dir()
+        or resolved == child_root
+        or resolved.is_relative_to(child_root)
+    ):
+        raise InheritanceError("bootstrap payload root must be an external non-symlink directory")
+    return resolved
+
+
+def _bootstrap_payload_file(payload_root, path):
+    _repository_file_path(path, "bootstrap payload path")
+    candidate = payload_root / path
+    try:
+        resolved = candidate.resolve(strict=True)
+    except OSError as error:
+        raise InheritanceError(f"bootstrap payload must provide {path}") from error
+    if resolved != candidate or not resolved.is_relative_to(payload_root) or not resolved.is_file():
+        raise InheritanceError(f"bootstrap payload must provide a non-symlink file: {path}")
+    try:
+        if resolved.stat().st_size > MAX_CONTRACT_BYTES:
+            raise InheritanceError(f"bootstrap payload exceeds {MAX_CONTRACT_BYTES} bytes: {path}")
+        return resolved.read_bytes()
+    except OSError as error:
+        raise InheritanceError(f"bootstrap payload could not be read: {path}") from error
+
+
+def _bootstrap_text(payload, path):
+    try:
+        return payload.decode("utf-8")
+    except UnicodeError as error:
+        raise InheritanceError(f"bootstrap payload must be UTF-8: {path}") from error
+
+
+def _validate_bootstrap_manual_payloads(payloads, repository, parent_repository, source_commit):
+    readme = _bootstrap_text(payloads["README.md"], "README.md")
+    if README_OWNER_MARKER.findall(readme) != [repository]:
+        raise InheritanceError("bootstrap README must contain exactly the child ownership marker")
+    overlay_path = ".ai/project/agent-overlay.md"
+    overlay = _bootstrap_text(payloads[overlay_path], overlay_path)
+    if repository not in overlay or "{{" in overlay:
+        raise InheritanceError("bootstrap project overlay must identify the child without placeholders")
+    workflow_path = ".github/workflows/template-sync.yml"
+    workflow = _bootstrap_text(payloads[workflow_path], workflow_path)
+    quoted_parent = re.escape(parent_repository)
+    required = (
+        r"(?m)^\s*source_repo_path:\s*[\"']" + quoted_parent + r"[\"']\s*$",
+        r"(?m)^\s*SOURCE_REPOSITORY:\s*[\"']" + quoted_parent + r"[\"']\s*$",
+        r"vars\.TEMPLATE_SYNC_ENABLED\s*==\s*[\"']true[\"']",
+    )
+    if "{{" in workflow or any(not re.search(pattern, workflow) for pattern in required):
+        raise InheritanceError("bootstrap Template Sync workflow has invalid direct-parent settings")
+    owner, parent = parent_repository.casefold().split("/", 1)
+    archive_path = f"docs/inheritance/readmes/{owner}/{parent}.md"
+    archive = _bootstrap_text(payloads[archive_path], archive_path)
+    expected_frontmatter = (
+        f"---\nsource-repository: {parent_repository}\n"
+        f"source-commit: {source_commit}\n---\n"
+    )
+    if not archive.startswith(expected_frontmatter) or README_OWNER_MARKER.findall(archive) != [parent_repository]:
+        raise InheritanceError("bootstrap README archive has invalid source provenance")
+
+
+def _bootstrap_payloads(plan, child_root, payload_root):
+    parent_repository = plan["parent"]["repository"]
+    owner, parent = parent_repository.casefold().split("/", 1)
+    archive_path = f"docs/inheritance/readmes/{owner}/{parent}.md"
+    paths = [*sorted(BOOTSTRAP_MANUAL_BOUNDARIES), archive_path]
+    payload_root = _bootstrap_payload_root(payload_root, child_root)
+    payloads = {path: _bootstrap_payload_file(payload_root, path) for path in paths}
+    _validate_bootstrap_manual_payloads(
+        payloads, plan["repository"], parent_repository, plan["parent"]["commit"]
+    )
+    desired = plan["desired"]
+    payloads.update(
+        {
+            MANIFEST_PATH: (json.dumps(desired["manifest"], indent=2) + "\n").encode(),
+            ".github/inheritance/lock.json": (
+                json.dumps(desired["lock"], indent=2) + "\n"
+            ).encode(),
+            AGENT_PROFILE_PATH: (
+                json.dumps(desired["agent_profile"], indent=2) + "\n"
+            ).encode(),
+            TEMPLATE_SYNC_IGNORE_PATH: (
+                "# Generated from the exact direct-parent inheritance export.\n"
+                + "\n".join(desired["template_sync_ignore"])
+                + "\n"
+            ).encode(),
+        }
+    )
+    return payloads
+
+
+def _bootstrap_path_change(child_root, parent_root, source_commit, path, desired):
+    child_entry = _child_entry(child_root, parent_root, path)
+    if child_entry is not None:
+        try:
+            if (child_root / path).read_bytes() == desired:
+                return child_entry[1]
+        except OSError as error:
+            raise InheritanceError(f"bootstrap target could not be read: {path}") from error
+    parent_entry = _parent_entry(parent_root, source_commit, path)
+    if child_entry is None:
+        if parent_entry is None:
+            return True
+    elif parent_entry is not None and child_entry == parent_entry:
+        return True
+    raise InheritanceError(f"bootstrap target differs from both parent and desired content: {path}")
+
+
+def _write_bootstrap_payload(child_root, path, payload):
+    destination = child_root / path
+    temporary = destination.with_name(f".{destination.name}.bootstrap-tmp")
+    if temporary.exists() or temporary.is_symlink():
+        raise InheritanceError(f"bootstrap temporary path already exists: {path}")
+    try:
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        temporary.write_bytes(payload)
+        temporary.chmod(0o644)
+        temporary.replace(destination)
+    except OSError as error:
+        try:
+            temporary.unlink(missing_ok=True)
+        except OSError:
+            pass
+        raise InheritanceError(f"bootstrap write failed: {path}") from error
+
+
+def apply_bootstrap(
+    root, parent_root, source_commit, repository, *,
+    confirm_repository, confirm_source, payload_root,
+):
+    """Write a confirmed child bootstrap payload and converge safely on retries."""
+    if confirm_repository != repository or confirm_source != source_commit:
+        raise InheritanceError("repository and source confirmation must match exactly")
+    plan = plan_bootstrap(root, parent_root, source_commit, repository)
+    child_root = Path(root).resolve(strict=True)
+    parent_root = _parent_root(parent_root)
+    payloads = _bootstrap_payloads(plan, child_root, payload_root)
+    changed = [
+        path for path, payload in sorted(payloads.items())
+        if _bootstrap_path_change(child_root, parent_root, source_commit, path, payload)
+    ]
+    for path in changed:
+        _write_bootstrap_payload(child_root, path, payloads[path])
+    validate_inheritance(child_root)
+    return {
+        "schema_version": SCHEMA_VERSION,
+        "status": "bootstrapped" if changed else "already_bootstrapped",
+        "repository": repository,
+        "parent": plan["parent"],
+        "changed_paths": changed,
     }
 
 
@@ -1670,6 +1838,10 @@ def main(argv=None):
     bootstrap.add_argument("--parent-root", type=Path, required=True, help="parent worktree")
     bootstrap.add_argument("--source-commit", required=True)
     bootstrap.add_argument("--repository", required=True, help="child OWNER/REPOSITORY")
+    bootstrap.add_argument("--apply", action="store_true", help="write confirmed payload")
+    bootstrap.add_argument("--payload-root", type=Path)
+    bootstrap.add_argument("--confirm-repository")
+    bootstrap.add_argument("--confirm-source")
     finalize = commands.add_parser(
         "finalize-sync",
         help="plan or apply exact-source manual ports on an existing sync branch",
@@ -1730,9 +1902,19 @@ def main(argv=None):
         elif args.command == "plan":
             report = plan_inheritance(args.root, args.parent_root)
         elif args.command == "bootstrap-child":
-            report = plan_bootstrap(
-                args.root, args.parent_root, args.source_commit, args.repository
-            )
+            if args.apply:
+                report = apply_bootstrap(
+                    args.root, args.parent_root, args.source_commit, args.repository,
+                    confirm_repository=args.confirm_repository,
+                    confirm_source=args.confirm_source,
+                    payload_root=args.payload_root,
+                )
+            else:
+                if args.payload_root or args.confirm_repository or args.confirm_source:
+                    raise InheritanceError("bootstrap payload and confirmations require --apply")
+                report = plan_bootstrap(
+                    args.root, args.parent_root, args.source_commit, args.repository
+                )
         elif args.command == "finalize-sync":
             if args.apply:
                 report = apply_finalization(

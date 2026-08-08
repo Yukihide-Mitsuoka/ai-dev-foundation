@@ -1070,6 +1070,7 @@ class TemplateInheritanceBootstrapTest(unittest.TestCase):
                 ".github/inheritance/agent-profile.json",
                 ".github/workflows/",
                 "README.md",
+                "docs/inheritance/readmes/",
             }
         )
         export = {
@@ -1088,6 +1089,21 @@ class TemplateInheritanceBootstrapTest(unittest.TestCase):
         }
         export_path = ".ai/contracts/foundation/inheritance-export.json"
         self.write(self.parent, export_path, json.dumps(export))
+        self.write(self.parent, ".ai/project/agent-overlay.md", "parent project\n")
+        self.write(self.parent, ".github/workflows/template-sync.yml", "name: parent sync\n")
+        self.write(
+            self.parent,
+            "README.md",
+            f"<!-- repository-readme-owner: {PARENT_REPOSITORY} -->\n# Parent\n",
+        )
+        for path in (
+            ".github/inheritance/manifest.json",
+            ".github/inheritance/lock.json",
+            ".templatesyncignore",
+        ):
+            self.write(
+                self.parent, path, (self.child / path).read_text(encoding="utf-8")
+            )
         self.bootstrap_source = self.commit(self.parent, "export child contract")
         self.git(
             self.parent,
@@ -1099,14 +1115,33 @@ class TemplateInheritanceBootstrapTest(unittest.TestCase):
             self.write(
                 self.child, path, (self.parent / path).read_text(encoding="utf-8")
             )
-        self.write(self.child, ".ai/project/agent-overlay.md", "project\n")
-        self.write(self.child, ".github/workflows/template-sync.yml", "name: sync\n")
+        for path in (".ai/project/agent-overlay.md", ".github/workflows/template-sync.yml", "README.md"):
+            self.write(self.child, path, (self.parent / path).read_text(encoding="utf-8"))
+        self.commit(self.child, "copy bootstrap inputs")
+        self.payload = Path(self.temporary_directory.name) / "payload"
+        self.payload.mkdir()
         self.write(
-            self.child,
-            "README.md",
+            self.payload, "README.md",
+            "<!-- repository-readme-owner: acme/child-template -->\n# Child Template\n",
+        )
+        self.write(
+            self.payload, ".ai/project/agent-overlay.md",
+            "# Project Agent Overlay\n\nRepository: acme/child-template\n",
+        )
+        self.write(
+            self.payload, ".github/workflows/template-sync.yml",
+            "name: Template Sync\non: workflow_dispatch\njobs:\n  sync:\n"
+            "    if: vars.TEMPLATE_SYNC_ENABLED == 'true'\n    steps:\n"
+            f"      - uses: acme/template-sync@sha\n        with:\n"
+            f"          source_repo_path: \"{PARENT_REPOSITORY}\"\n"
+            f"        env:\n          SOURCE_REPOSITORY: \"{PARENT_REPOSITORY}\"\n",
+        )
+        archive = "docs/inheritance/readmes/acme/parent-template.md"
+        self.write(
+            self.payload, archive,
+            f"---\nsource-repository: {PARENT_REPOSITORY}\nsource-commit: {self.bootstrap_source}\n---\n\n"
             f"<!-- repository-readme-owner: {PARENT_REPOSITORY} -->\n# Parent\n",
         )
-        self.commit(self.child, "copy bootstrap inputs")
 
     def plan_bootstrap(self):
         return inheritance.plan_bootstrap(
@@ -1114,6 +1149,18 @@ class TemplateInheritanceBootstrapTest(unittest.TestCase):
             self.parent,
             self.bootstrap_source,
             "acme/child-template",
+        )
+
+    def apply_bootstrap(self, **overrides):
+        arguments = {
+            "confirm_repository": "acme/child-template",
+            "confirm_source": self.bootstrap_source,
+            "payload_root": self.payload,
+        }
+        arguments.update(overrides)
+        return inheritance.apply_bootstrap(
+            self.child, self.parent, self.bootstrap_source,
+            "acme/child-template", **arguments,
         )
 
     def test_bootstrap_plan_builds_direct_parent_metadata_without_writes(self):
@@ -1178,3 +1225,38 @@ class TemplateInheritanceBootstrapTest(unittest.TestCase):
         self.assertEqual(
             json.loads(stdout.getvalue())["status"], "ready_to_bootstrap"
         )
+
+    def test_bootstrap_apply_writes_valid_metadata_and_is_idempotent(self):
+        result = self.apply_bootstrap()
+
+        self.assertEqual(result["status"], "bootstrapped")
+        self.assertEqual(
+            inheritance.validate_inheritance(self.child)["schema_version"], 2
+        )
+        self.commit(self.child, "bootstrap child")
+        repeated = self.apply_bootstrap()
+        self.assertEqual(repeated["status"], "already_bootstrapped")
+        self.assertEqual(self.git(self.child, "status", "--porcelain=v1"), "")
+
+    def test_bootstrap_apply_normalizes_desired_file_mode(self):
+        self.apply_bootstrap()
+        readme = self.child / "README.md"
+        readme.chmod(0o755)
+        self.commit(self.child, "make desired README executable")
+
+        result = self.apply_bootstrap()
+
+        self.assertIn("README.md", result["changed_paths"])
+        self.assertEqual(readme.stat().st_mode & 0o111, 0)
+
+    def test_bootstrap_apply_refuses_wrong_confirmation_and_existing_archive(self):
+        with self.assertRaisesRegex(inheritance.InheritanceError, "confirmation"):
+            self.apply_bootstrap(confirm_repository="acme/other")
+        with self.assertRaisesRegex(inheritance.InheritanceError, "payload-root"):
+            self.apply_bootstrap(payload_root=None)
+        self.write(
+            self.child, "docs/inheritance/readmes/acme/parent-template.md", "different\n"
+        )
+        self.commit(self.child, "conflicting archive")
+        with self.assertRaisesRegex(inheritance.InheritanceError, "differs"):
+            self.apply_bootstrap()

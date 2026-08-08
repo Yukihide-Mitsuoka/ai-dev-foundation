@@ -23,7 +23,7 @@
     ".skills/release.skill.md", ".skills/review.skill.md", ".skills/security.skill.md", ".skills/test.skill.md",
     ".templatesyncignore", "CHANGELOG.md", "CLAUDE.md", "Makefile",
     "README.md", "profiles/", "src/", "tests/",
-    "docs/README.md", "docs/adr/", "docs/handoff.md"
+    "docs/README.md", "docs/adr/", "docs/handoff.md", "docs/inheritance/readmes/"
   ],
   "agent_inputs": [{
     "layer": "foundation",

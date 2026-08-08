@@ -772,3 +772,107 @@ class TemplateInheritanceFinalizeTest(unittest.TestCase):
                 self.parent,
                 self.source_commit,
             )
+
+    def apply(self, *, source=None, repository="acme/child-template"):
+        source = source or self.source_commit
+        return inheritance.apply_finalization(
+            self.child,
+            self.parent,
+            source,
+            confirm_repository=repository,
+            confirm_source=source,
+        )
+
+    def test_finalization_apply_ports_workflow_updates_lock_and_is_idempotent(self):
+        stdout = io.StringIO()
+        with contextlib.redirect_stdout(stdout):
+            exit_code = inheritance.main(
+                [
+                    "finalize-sync",
+                    "--root",
+                    str(self.child),
+                    "--parent-root",
+                    str(self.parent),
+                    "--source-commit",
+                    self.source_commit,
+                    "--apply",
+                    "--confirm-repository",
+                    "acme/child-template",
+                    "--confirm-source",
+                    self.source_commit,
+                ]
+            )
+
+        result = json.loads(stdout.getvalue())
+        self.assertEqual(exit_code, 0)
+        self.assertEqual(result["status"], "finalized")
+        self.assertEqual(
+            result["changes"]["manual_ported"],
+            [".github/workflows/shared.yml"],
+        )
+        self.assertTrue(result["changes"]["lock_updated"])
+        self.assertEqual(
+            (self.child / ".github/workflows/shared.yml").read_text(encoding="utf-8"),
+            "new\n",
+        )
+        self.assertEqual(
+            json.loads(
+                (self.child / ".github/inheritance/lock.json").read_text(
+                    encoding="utf-8"
+                )
+            )["parent"]["commit"],
+            self.source_commit,
+        )
+
+        self.commit(self.child, "finalize")
+        repeated = self.apply()
+        self.assertEqual(repeated["status"], "already_finalized")
+        self.assertEqual(self.git(self.child, "status", "--porcelain"), "")
+
+    def test_finalization_apply_refuses_pending_sync_before_writing(self):
+        self.write(self.child, "inherited/ordinary.txt", "old\n")
+        self.commit(self.child, "stale ordinary content")
+
+        with self.assertRaisesRegex(inheritance.InheritanceError, "pending sync"):
+            self.apply()
+
+        self.assertEqual(
+            (self.child / ".github/workflows/shared.yml").read_text(encoding="utf-8"),
+            "old\n",
+        )
+        self.assertEqual(
+            json.loads(
+                (self.child / ".github/inheritance/lock.json").read_text(
+                    encoding="utf-8"
+                )
+            )["parent"]["commit"],
+            self.locked_commit,
+        )
+
+    def test_finalization_apply_refuses_protected_review_and_deletion(self):
+        self.write(self.parent, ".gitignore", "parent-only\n")
+        protected_source = self.commit(self.parent, "protected change")
+        self.git(
+            self.parent,
+            "update-ref",
+            "refs/remotes/origin/main",
+            protected_source,
+        )
+        with self.assertRaisesRegex(inheritance.InheritanceError, "protected review"):
+            self.apply(source=protected_source)
+
+        (self.parent / ".gitignore").unlink()
+        (self.parent / "inherited/ordinary.txt").unlink()
+        deletion_source = self.commit(self.parent, "delete inherited file")
+        self.git(
+            self.parent,
+            "update-ref",
+            "refs/remotes/origin/main",
+            deletion_source,
+        )
+        with self.assertRaisesRegex(inheritance.InheritanceError, "deletion review"):
+            self.apply(source=deletion_source)
+
+    def test_finalization_apply_requires_exact_confirmation(self):
+        with self.assertRaisesRegex(inheritance.InheritanceError, "confirmation"):
+            self.apply(repository="acme/other")

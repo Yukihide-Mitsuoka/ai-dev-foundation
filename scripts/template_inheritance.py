@@ -438,6 +438,21 @@ def _git(root, arguments, operation):
     return result.stdout
 
 
+def _git_blob(root, object_id, path):
+    try:
+        result = subprocess.run(
+            ["git", "-C", str(root), "cat-file", "blob", object_id],
+            capture_output=True,
+            check=False,
+            timeout=30,
+        )
+    except (OSError, subprocess.SubprocessError) as error:
+        raise InheritanceError(f"parent Git blob read could not run: {path}") from error
+    if result.returncode != 0 or len(result.stdout) > MAX_CONTRACT_BYTES:
+        raise InheritanceError(f"parent workflow blob is unavailable or too large: {path}")
+    return result.stdout
+
+
 def _github_repository(remote_url):
     for prefix in ("https://github.com/", "git@github.com:", "ssh://git@github.com/"):
         if remote_url.startswith(prefix):
@@ -825,6 +840,111 @@ def plan_finalization(root, parent_root, source_commit):
     return _finalization_report(contract, repository, branch, source_commit, review)
 
 
+def _raise_finalization_blocker(review):
+    for category, message in (
+        ("pending_sync", "pending sync content must be accepted first"),
+        ("protected_review", "protected review is required"),
+        ("ownership_review", "ownership review is required"),
+        ("deletion_review", "deletion review is required"),
+    ):
+        if review[category]:
+            raise InheritanceError(f"{message}: {review[category]}")
+    unsupported = [
+        item
+        for item in review["pending_manual_port"]
+        if item["reason"] != "workflow-security-boundary"
+    ]
+    if unsupported:
+        raise InheritanceError(f"unsupported manual port is required: {unsupported}")
+
+
+def _manual_port_payload(parent_root, source_commit, path):
+    entry = _parent_entry(parent_root, source_commit, path)
+    if entry is None:
+        raise InheritanceError(f"manual-port source file is missing: {path}")
+    return path, _git_blob(parent_root, entry[0], path), entry[1]
+
+
+def _write_manual_port(child_root, payload):
+    path, content, is_executable = payload
+    destination = child_root / path
+    parent = destination.parent
+    if (
+        parent.is_symlink()
+        or not parent.is_dir()
+        or destination.is_symlink()
+        or (destination.exists() and not destination.is_file())
+    ):
+        raise InheritanceError(f"manual-port destination is unsafe: {path}")
+    destination.write_bytes(content)
+    destination.chmod(0o755 if is_executable else 0o644)
+
+
+def _write_lock_commit(child_root, contract, source_commit):
+    lock_path = child_root / contract["lock_file"]
+    temporary = lock_path.with_name(f".{lock_path.name}.finalize.tmp")
+    if temporary.exists() or temporary.is_symlink():
+        raise InheritanceError("temporary lock path must be absent before finalization")
+    lock = _read_json(child_root, contract["lock_file"])
+    lock["parent"]["commit"] = source_commit
+    try:
+        temporary.write_text(json.dumps(lock, indent=2) + "\n", encoding="utf-8")
+        temporary.replace(lock_path)
+    except OSError as error:
+        try:
+            temporary.unlink(missing_ok=True)
+        except OSError as cleanup_error:
+            raise InheritanceError(
+                "inheritance lock update and temporary cleanup failed"
+            ) from cleanup_error
+        raise InheritanceError("inheritance lock update failed before acceptance") from error
+
+
+def apply_finalization(
+    root,
+    parent_root,
+    source_commit,
+    *,
+    confirm_repository,
+    confirm_source,
+):
+    """Materialize supported manual ports and atomically advance the accepted lock."""
+    child_root, parent_root, contract, repository, branch = _finalization_context(
+        root, parent_root, source_commit
+    )
+    if confirm_repository != repository or confirm_source != source_commit:
+        raise InheritanceError("repository and source confirmation must match exactly")
+    review = _finalization_review(child_root, parent_root, contract, source_commit)
+    _raise_finalization_blocker(review)
+    manual_paths = [item["path"] for item in review["pending_manual_port"]]
+    payloads = [
+        _manual_port_payload(parent_root, source_commit, path)
+        for path in manual_paths
+    ]
+    for payload in payloads:
+        _write_manual_port(child_root, payload)
+
+    completed = _finalization_review(child_root, parent_root, contract, source_commit)
+    _raise_finalization_blocker(completed)
+    if completed["pending_manual_port"]:
+        raise InheritanceError("manual-port finalization did not converge")
+    lock_updated = contract["parent"]["commit"] != source_commit
+    if lock_updated:
+        _write_lock_commit(child_root, contract, source_commit)
+    return {
+        "schema_version": SCHEMA_VERSION,
+        "status": "finalized" if manual_paths or lock_updated else "already_finalized",
+        "repository": repository,
+        "branch": branch,
+        "parent": {
+            "repository": contract["parent"]["repository"],
+            "source_commit": source_commit,
+        },
+        "changes": {"manual_ported": manual_paths, "lock_updated": lock_updated},
+        "review": completed,
+    }
+
+
 def _fleet_repository(repository, child_root, parent_root):
     child_root = Path(child_root).resolve(strict=True)
     parent_root = _parent_root(parent_root)
@@ -1156,6 +1276,9 @@ def main(argv=None):
         "--parent-root", type=Path, required=True, help="local parent Git worktree"
     )
     finalize.add_argument("--source-commit", required=True, help="exact Template Sync source")
+    finalize.add_argument("--apply", action="store_true", help="write manual ports and lock")
+    finalize.add_argument("--confirm-repository", help="exact child OWNER/REPOSITORY")
+    finalize.add_argument("--confirm-source", help="repeat the exact source commit")
     fleet = commands.add_parser("fleet-report", help="report local propagation boundaries")
     fleet.add_argument(
         "--repository",
@@ -1185,9 +1308,22 @@ def main(argv=None):
         elif args.command == "plan":
             report = plan_inheritance(args.root, args.parent_root)
         elif args.command == "finalize-sync":
-            report = plan_finalization(
-                args.root, args.parent_root, args.source_commit
-            )
+            if args.apply:
+                report = apply_finalization(
+                    args.root,
+                    args.parent_root,
+                    args.source_commit,
+                    confirm_repository=args.confirm_repository,
+                    confirm_source=args.confirm_source,
+                )
+            else:
+                if args.confirm_repository or args.confirm_source:
+                    raise InheritanceError(
+                        "confirmation arguments are accepted only with --apply"
+                    )
+                report = plan_finalization(
+                    args.root, args.parent_root, args.source_commit
+                )
         elif args.command == "fleet-report":
             report = fleet_report(args.repository)
         else:

@@ -815,10 +815,15 @@ def _bootstrap_desired(child_root, repository, parent_repository, source_commit,
     _validate_agent_input_ownership(
         inputs, export["inherited_paths"], export["protected_paths"]
     )
-    ignore = [
+    ignore = {"docs/**"}
+    ignore.update(
         f"{path}**" if path.endswith("/") else path
         for path in export["protected_paths"]
-    ]
+    )
+    if _owned_by("docs/foundation/", export["inherited_paths"]):
+        ignore.update(
+            {"docs/**", ":!docs/foundation/", ":!docs/foundation/**"}
+        )
     return {
         "manifest": {
             "schema_version": 2,

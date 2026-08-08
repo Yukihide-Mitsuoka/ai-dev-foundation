@@ -1077,7 +1077,11 @@ class TemplateInheritanceBootstrapTest(unittest.TestCase):
             "schema_version": 1,
             "repository": PARENT_REPOSITORY,
             "branch": "main",
-            "inherited_paths": [".ai/contracts/foundation/", "inherited/"],
+            "inherited_paths": [
+                ".ai/contracts/foundation/",
+                "docs/foundation/",
+                "inherited/",
+            ],
             "protected_paths": protected,
             "agent_inputs": [
                 {
@@ -1089,6 +1093,7 @@ class TemplateInheritanceBootstrapTest(unittest.TestCase):
         }
         export_path = ".ai/contracts/foundation/inheritance-export.json"
         self.write(self.parent, export_path, json.dumps(export))
+        self.write(self.parent, "docs/foundation/guide.md", "foundation guide\n")
         self.write(self.parent, ".ai/project/agent-overlay.md", "parent project\n")
         self.write(self.parent, ".github/workflows/template-sync.yml", "name: parent sync\n")
         self.write(
@@ -1111,7 +1116,11 @@ class TemplateInheritanceBootstrapTest(unittest.TestCase):
             "refs/remotes/origin/main",
             self.bootstrap_source,
         )
-        for path in (".ai/contracts/foundation/agent-entry.md", export_path):
+        for path in (
+            ".ai/contracts/foundation/agent-entry.md",
+            "docs/foundation/guide.md",
+            export_path,
+        ):
             self.write(
                 self.child, path, (self.parent / path).read_text(encoding="utf-8")
             )
@@ -1180,6 +1189,11 @@ class TemplateInheritanceBootstrapTest(unittest.TestCase):
                 ".github/workflows/template-sync.yml",
                 "README.md",
             ],
+        )
+        self.assertIn("docs/**", result["desired"]["template_sync_ignore"])
+        self.assertIn(":!docs/foundation/", result["desired"]["template_sync_ignore"])
+        self.assertIn(
+            ":!docs/foundation/**", result["desired"]["template_sync_ignore"]
         )
         self.assertEqual(self.git(self.child, "status", "--porcelain=v1"), "")
 

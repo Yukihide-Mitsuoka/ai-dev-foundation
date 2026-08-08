@@ -148,6 +148,26 @@ Exit `0` prints the deterministic plan, including candidate and branch-head comm
 Exit `2` reports invalid metadata, parent identity/history, Git state, or child path.
 See [template inheritance troubleshooting](../../docs/foundation/troubleshooting/template-inheritance.md).
 
+## Plan direct-child bootstrap
+
+A parent publishes its child contract as `inheritance-export.json` under its
+owner-qualified agent contract. Before writing initialization metadata, preview the exact
+template source from a clean non-default child branch:
+
+```bash
+python3 scripts/template_inheritance.py bootstrap-child \
+  --root /path/to/child \
+  --parent-root /path/to/direct-parent \
+  --source-commit <40-character-template-source> \
+  --repository owner/child
+```
+
+The read-only plan verifies both GitHub origins, source ancestry, the published ownership
+contract, agent input order, and byte-for-byte inherited template content. It emits the
+desired manifest, lock, agent profile, and Template Sync exclusions. README ownership,
+the project overlay, and the protected Template Sync caller remain explicit manual
+boundaries until the idempotent write phase is implemented.
+
 ## Report fleet propagation boundaries
 
 Run `fleet-report` against explicit local child/parent worktree pairs. Repeat

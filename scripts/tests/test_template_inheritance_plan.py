@@ -574,6 +574,20 @@ class TemplateInheritancePlanTest(unittest.TestCase):
         self.assertEqual(inheritance.DEFAULT_FLEET_CONFIG_PATH, expected)
         self.assertTrue((REPOSITORY_ROOT / expected).is_file())
 
+    def test_canonical_foundation_publishes_a_valid_bootstrap_export(self):
+        path = ".ai/contracts/foundation/inheritance-export.json"
+        export = inheritance._validate_bootstrap_export(
+            path,
+            inheritance._read_json(REPOSITORY_ROOT, path),
+            "Yukihide-Mitsuoka/ai-dev-foundation",
+        )
+
+        self.assertEqual(
+            export["path"],
+            ".ai/contracts/foundation/inheritance-export.json",
+        )
+        self.assertIn("docs/foundation/", export["inherited_paths"])
+
     def test_canonical_fleet_contains_every_active_relationship_once(self):
         config = json.loads(
             (REPOSITORY_ROOT / inheritance.DEFAULT_FLEET_CONFIG_PATH).read_text(
@@ -1035,3 +1049,132 @@ class TemplateInheritanceFinalizeTest(unittest.TestCase):
     def test_finalization_apply_requires_exact_confirmation(self):
         with self.assertRaisesRegex(inheritance.InheritanceError, "confirmation"):
             self.apply(repository="acme/other")
+
+
+class TemplateInheritanceBootstrapTest(unittest.TestCase):
+    git = TemplateInheritanceFinalizeTest.git
+    configure_git = TemplateInheritanceFinalizeTest.configure_git
+    commit = TemplateInheritanceFinalizeTest.commit
+    write = TemplateInheritanceFinalizeTest.write
+    write_contract = TemplateInheritanceFinalizeTest.write_contract
+
+    def setUp(self):
+        TemplateInheritanceFinalizeTest.setUp(self)
+        self.write(
+            self.parent, ".ai/contracts/foundation/agent-entry.md", "foundation\n"
+        )
+        protected = sorted(
+            (set(PROTECTED_PATHS) - {".github/workflows/template-sync.yml"})
+            | {
+                ".ai/project/",
+                ".github/inheritance/agent-profile.json",
+                ".github/workflows/",
+                "README.md",
+            }
+        )
+        export = {
+            "schema_version": 1,
+            "repository": PARENT_REPOSITORY,
+            "branch": "main",
+            "inherited_paths": [".ai/contracts/foundation/", "inherited/"],
+            "protected_paths": protected,
+            "agent_inputs": [
+                {
+                    "layer": "foundation",
+                    "repository": PARENT_REPOSITORY,
+                    "path": ".ai/contracts/foundation/agent-entry.md",
+                }
+            ],
+        }
+        export_path = ".ai/contracts/foundation/inheritance-export.json"
+        self.write(self.parent, export_path, json.dumps(export))
+        self.bootstrap_source = self.commit(self.parent, "export child contract")
+        self.git(
+            self.parent,
+            "update-ref",
+            "refs/remotes/origin/main",
+            self.bootstrap_source,
+        )
+        for path in (".ai/contracts/foundation/agent-entry.md", export_path):
+            self.write(
+                self.child, path, (self.parent / path).read_text(encoding="utf-8")
+            )
+        self.write(self.child, ".ai/project/agent-overlay.md", "project\n")
+        self.write(self.child, ".github/workflows/template-sync.yml", "name: sync\n")
+        self.write(
+            self.child,
+            "README.md",
+            f"<!-- repository-readme-owner: {PARENT_REPOSITORY} -->\n# Parent\n",
+        )
+        self.commit(self.child, "copy bootstrap inputs")
+
+    def plan_bootstrap(self):
+        return inheritance.plan_bootstrap(
+            self.child,
+            self.parent,
+            self.bootstrap_source,
+            "acme/child-template",
+        )
+
+    def test_bootstrap_plan_builds_direct_parent_metadata_without_writes(self):
+        self.write(self.parent, ".ai/contracts/foundation/inheritance-export.json", "{}")
+        result = self.plan_bootstrap()
+
+        self.assertEqual(result["status"], "ready_to_bootstrap")
+        self.assertEqual(result["parent"]["repository"], PARENT_REPOSITORY)
+        self.assertEqual(
+            result["desired"]["agent_profile"]["inputs"][-1]["repository"],
+            "acme/child-template",
+        )
+        self.assertEqual(
+            result["manual_boundaries"],
+            [
+                ".ai/project/agent-overlay.md",
+                ".github/workflows/template-sync.yml",
+                "README.md",
+            ],
+        )
+        self.assertEqual(self.git(self.child, "status", "--porcelain=v1"), "")
+
+    def test_bootstrap_plan_rejects_inherited_drift(self):
+        self.write(self.child, "inherited/ordinary.txt", "drift\n")
+        self.commit(self.child, "drift")
+
+        with self.assertRaisesRegex(inheritance.InheritanceError, "template copy"):
+            self.plan_bootstrap()
+
+    def test_bootstrap_plan_rejects_non_first_parent_source(self):
+        self.git(self.parent, "switch", "-c", "side", self.bootstrap_source)
+        self.write(self.parent, "side.txt", "side\n")
+        side_commit = self.commit(self.parent, "side")
+        self.git(self.parent, "switch", "main")
+        self.write(self.parent, "main.txt", "main\n")
+        self.commit(self.parent, "main")
+        self.git(self.parent, "merge", "--no-ff", "side", "-m", "merge side")
+        self.git(
+            self.parent, "update-ref", "refs/remotes/origin/main",
+            self.git(self.parent, "rev-parse", "HEAD"),
+        )
+
+        with self.assertRaisesRegex(inheritance.InheritanceError, "first-parent"):
+            inheritance.plan_bootstrap(
+                self.child, self.parent, side_commit, "acme/child-template"
+            )
+
+    def test_bootstrap_cli_prints_deterministic_json(self):
+        stdout = io.StringIO()
+        with contextlib.redirect_stdout(stdout):
+            exit_code = inheritance.main(
+                [
+                    "bootstrap-child",
+                    "--root", str(self.child),
+                    "--parent-root", str(self.parent),
+                    "--source-commit", self.bootstrap_source,
+                    "--repository", "acme/child-template",
+                ]
+            )
+
+        self.assertEqual(exit_code, 0)
+        self.assertEqual(
+            json.loads(stdout.getvalue())["status"], "ready_to_bootstrap"
+        )

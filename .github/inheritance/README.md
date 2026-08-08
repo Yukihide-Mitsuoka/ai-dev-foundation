@@ -212,12 +212,12 @@ current remote state is required.
 ## Audit the fixed fleet
 
 [`docs/foundation/inheritance-fleet.json`](../../docs/foundation/inheritance-fleet.json)
-is the canonical, machine-readable list of active direct-parent relationships and
-retired repositories. Its location is already inherited by every maintained direct
+is the canonical, machine-readable list of direct-parent relationships and their
+`active`, `paused`, or `retired` lifecycle. Its location is already inherited by every maintained direct
 child, so adding the config does not require a child-specific ownership migration. It
 stores repository identities and workspace-relative directory names, never absolute
-paths or credentials. The checked-in regression test pins all five active relationships
-and rejects reintroduction of the retired `Yukihide-Mitsuoka/chat-chart` repository.
+paths or credentials. Every entry includes a concise reason. The checked-in regression
+test pins the complete fleet, including retired `Yukihide-Mitsuoka/chat-chart`.
 
 Place the configured repositories as sibling Git worktrees under one directory, refresh
 their remote refs explicitly, then run from the `ai-dev-foundation` worktree:
@@ -229,13 +229,14 @@ make fleet-audit FLEET_WORKSPACE_ROOT=/path/to/worktrees
 Descendant Makefiles are protected repository-owned files and do not receive this target.
 Use the Foundation worktree as the fleet-wide audit entry point.
 
-The target audits every configured relationship exactly once and labels repository
-identity as `repository_source: fixed-fleet-config`. It validates each child's declared
+The target audits every active relationship exactly once and labels repository identity
+as `repository_source: fixed-fleet-config`. It validates each active child's declared
 parent against the configuration and the parent's credential-free GitHub origin. A
-missing worktree, mismatched parent, retired repository, symlink, invalid contract, or
-content drift fails closed or produces `status: attention`. The target is read-only and
-does not create synchronization PRs, so adding audit coverage does not add another
-inheritance path or another human approval queue.
+missing active worktree, mismatched parent, symlink, invalid contract, or content drift
+fails closed or produces `status: attention`. Paused and retired worktrees are not
+required. Paused entries keep the overall result at `attention`; retired entries remain
+visible without claiming convergence. The target is read-only and creates no approval
+queue.
 
 ## Plan single-PR finalization
 

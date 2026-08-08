@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.8.0](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/compare/v1.7.0...v1.8.0) (2026-08-08)
+
+
+### Features
+
+* **inheritance:** apply confirmed child bootstrap ([#170](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/issues/170)) ([a678c5a](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/commit/a678c5ad91a5af68d08a4543a843f8a4bbd37d2f)), closes [#159](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/issues/159)
+* **inheritance:** plan direct-child bootstrap ([#168](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/issues/168)) ([ecf50e4](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/commit/ecf50e49dae5d9fc03c857e1f46167558bab0e22))
+
 ## [1.7.0](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/compare/v1.6.0...v1.7.0) (2026-08-08)
 
 

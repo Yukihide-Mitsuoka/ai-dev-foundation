@@ -150,7 +150,8 @@ class TemplateInheritancePlanTest(unittest.TestCase):
         directory="child",
         parent_repository=PARENT_REPOSITORY,
         parent_directory="parent",
-        retired_repositories=None,
+        lifecycle="active",
+        reason="maintained",
         repositories=None,
     ):
         config_path = Path(self.temporary_directory.name) / "fleet.json"
@@ -159,12 +160,13 @@ class TemplateInheritancePlanTest(unittest.TestCase):
             "directory": directory,
             "parent_repository": parent_repository,
             "parent_directory": parent_directory,
+            "lifecycle": lifecycle,
+            "reason": reason,
         }
         config_path.write_text(
             json.dumps(
                 {
-                    "schema_version": 1,
-                    "retired_repositories": retired_repositories or ["acme/retired"],
+                    "schema_version": 2,
                     "repositories": repositories or [entry],
                 }
             ),
@@ -417,13 +419,50 @@ class TemplateInheritancePlanTest(unittest.TestCase):
             result["repositories"][0]["repository_source"], "fixed-fleet-config"
         )
 
-    def test_fleet_audit_rejects_retired_repository_reintroduction(self):
-        config_path = self.write_fleet_config(
-            retired_repositories=["acme/child-template"]
+    def test_fleet_audit_reports_paused_and_retired_without_worktrees(self):
+        self.synchronize_child_to_target()
+        active = {
+            "repository": "acme/child-template",
+            "directory": "child",
+            "parent_repository": PARENT_REPOSITORY,
+            "parent_directory": "parent",
+            "lifecycle": "active",
+            "reason": "maintained",
+        }
+        paused = {
+            "repository": "acme/paused",
+            "directory": "missing-paused",
+            "parent_repository": PARENT_REPOSITORY,
+            "parent_directory": "parent",
+            "lifecycle": "paused",
+            "reason": "owner access is unavailable",
+        }
+        retired = {
+            "repository": "acme/retired",
+            "directory": "missing-retired",
+            "parent_repository": PARENT_REPOSITORY,
+            "parent_directory": "parent",
+            "lifecycle": "retired",
+            "reason": "replaced by acme/child-template",
+        }
+        config_path = self.write_fleet_config(repositories=[active, paused, retired])
+
+        result = inheritance.fleet_audit(
+            config_path, Path(self.temporary_directory.name)
         )
 
-        with self.assertRaisesRegex(inheritance.InheritanceError, "retired"):
-            inheritance.fleet_audit(config_path, Path(self.temporary_directory.name))
+        self.assertEqual(result["status"], "attention")
+        self.assertEqual(
+            [(item["repository"], item["lifecycle"]) for item in result["repositories"]],
+            [
+                ("acme/child-template", "active"),
+                ("acme/paused", "paused"),
+                ("acme/retired", "retired"),
+            ],
+        )
+        self.assertEqual(result["summary"]["active"], 1)
+        self.assertEqual(result["summary"]["paused"], 1)
+        self.assertEqual(result["summary"]["retired"], 1)
 
     def test_fleet_audit_rejects_parent_mismatch_and_missing_worktree(self):
         mismatch = self.write_fleet_config(parent_repository="acme/other-parent")
@@ -440,6 +479,8 @@ class TemplateInheritancePlanTest(unittest.TestCase):
             "directory": "child",
             "parent_repository": PARENT_REPOSITORY,
             "parent_directory": "parent",
+            "lifecycle": "active",
+            "reason": "maintained",
         }
         config_path = self.write_fleet_config(repositories=[entry, dict(entry)])
 
@@ -459,10 +500,7 @@ class TemplateInheritancePlanTest(unittest.TestCase):
             )
         )
 
-        self.assertEqual(config["schema_version"], 1)
-        self.assertEqual(
-            config["retired_repositories"], ["Yukihide-Mitsuoka/chat-chart"]
-        )
+        self.assertEqual(config["schema_version"], 2)
         self.assertEqual(
             {
                 (
@@ -470,6 +508,7 @@ class TemplateInheritancePlanTest(unittest.TestCase):
                     item["directory"],
                     item["parent_repository"],
                     item["parent_directory"],
+                    item["lifecycle"],
                 )
                 for item in config["repositories"]
             },
@@ -479,34 +518,47 @@ class TemplateInheritancePlanTest(unittest.TestCase):
                     "terraform-gcp-template",
                     "Yukihide-Mitsuoka/ai-dev-foundation",
                     "ai-dev-foundation",
+                    "active",
                 ),
                 (
                     "Yukihide-Mitsuoka/nextjs-saas-template",
                     "nextjs-saas-template",
                     "Yukihide-Mitsuoka/ai-dev-foundation",
                     "ai-dev-foundation",
+                    "active",
                 ),
                 (
                     "Yukihide-Mitsuoka/repchat",
                     "repchat",
                     "Yukihide-Mitsuoka/ai-dev-foundation",
                     "ai-dev-foundation",
+                    "active",
                 ),
                 (
                     "Yukihide-Mitsuoka/secure-ga4-bq-template",
                     "secure-ga4-bq-template",
                     "Yukihide-Mitsuoka/terraform-gcp-template",
                     "terraform-gcp-template",
+                    "active",
                 ),
                 (
                     "ea-Mitsuoka/secure-ai-controls",
                     "secure-ai-controls",
                     "Yukihide-Mitsuoka/terraform-gcp-template",
                     "terraform-gcp-template",
+                    "paused",
+                ),
+                (
+                    "Yukihide-Mitsuoka/chat-chart",
+                    "chat-chart",
+                    "Yukihide-Mitsuoka/ai-dev-foundation",
+                    "ai-dev-foundation",
+                    "retired",
                 ),
             },
         )
-        self.assertEqual(len(config["repositories"]), 5)
+        self.assertTrue(all(item["reason"] for item in config["repositories"]))
+        self.assertEqual(len(config["repositories"]), 6)
 
     def test_fleet_report_rejects_duplicate_children_and_pair_limit(self):
         with self.assertRaisesRegex(inheritance.InheritanceError, "duplicate child"):

@@ -10,6 +10,7 @@ from pathlib import Path
 
 
 SCHEMA_VERSION = 1
+FLEET_SCHEMA_VERSION = 2
 SUPPORTED_MANIFEST_SCHEMA_VERSIONS = {1, 2}
 AGENT_PROFILE_SCHEMA_VERSION = 1
 MANIFEST_PATH = ".github/inheritance/manifest.json"
@@ -24,6 +25,7 @@ MAX_AUDITED_INHERITED_FILES = 10_000
 HASH_BATCH_SIZE = 256
 MAX_FIRST_PARENT_COMMITS = 100_000
 MAX_CHANGED_PATHS = 1_000
+FLEET_LIFECYCLES = {"active", "paused", "retired"}
 REPOSITORY_TARGET = re.compile(r"^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$")
 COMMIT_ID = re.compile(r"^[0-9a-f]{40}$")
 REQUIRED_PROTECTED_PATHS = {
@@ -1178,21 +1180,16 @@ def _read_fleet_config(config_path):
 
     _object(
         config,
-        {"schema_version", "retired_repositories", "repositories"},
+        {"schema_version", "repositories"},
         "fleet config",
     )
-    if type(config["schema_version"]) is not int or config["schema_version"] != SCHEMA_VERSION:
-        raise InheritanceError(f"fleet config.schema_version must be {SCHEMA_VERSION}")
-    retired = config["retired_repositories"]
-    if type(retired) is not list or len(retired) > MAX_FLEET_REPOSITORIES:
-        raise InheritanceError("fleet config.retired_repositories must be a bounded list")
-    retired_repositories = [
-        _repository(value, f"fleet config.retired_repositories[{index}]")
-        for index, value in enumerate(retired)
-    ]
-    retired_keys = {repository.casefold() for repository in retired_repositories}
-    if len(retired_keys) != len(retired_repositories):
-        raise InheritanceError("fleet config.retired_repositories must be unique")
+    if (
+        type(config["schema_version"]) is not int
+        or config["schema_version"] != FLEET_SCHEMA_VERSION
+    ):
+        raise InheritanceError(
+            f"fleet config.schema_version must be {FLEET_SCHEMA_VERSION}"
+        )
 
     repositories = config["repositories"]
     if type(repositories) is not list or not 1 <= len(repositories) <= MAX_FLEET_REPOSITORIES:
@@ -1206,7 +1203,14 @@ def _read_fleet_config(config_path):
         label = f"fleet config.repositories[{index}]"
         _object(
             entry,
-            {"repository", "directory", "parent_repository", "parent_directory"},
+            {
+                "repository",
+                "directory",
+                "parent_repository",
+                "parent_directory",
+                "lifecycle",
+                "reason",
+            },
             label,
         )
         repository = _repository(entry["repository"], f"{label}.repository")
@@ -1217,9 +1221,20 @@ def _read_fleet_config(config_path):
         parent_directory = _fleet_directory(
             entry["parent_directory"], f"{label}.parent_directory"
         )
+        lifecycle = entry["lifecycle"]
+        if type(lifecycle) is not str or lifecycle not in FLEET_LIFECYCLES:
+            raise InheritanceError(
+                f"{label}.lifecycle must be active, paused, or retired"
+            )
+        reason = entry["reason"]
+        if (
+            type(reason) is not str
+            or not reason.strip()
+            or reason != reason.strip()
+            or len(reason) > 512
+        ):
+            raise InheritanceError(f"{label}.reason must be a concise non-empty string")
         repository_key = repository.casefold()
-        if repository_key in retired_keys or parent_repository.casefold() in retired_keys:
-            raise InheritanceError("fleet config reintroduces a retired repository")
         if repository_key == parent_repository.casefold() or directory == parent_directory:
             raise InheritanceError("fleet config child and parent must be distinct")
         if repository_key in repository_keys or directory in directories:
@@ -1232,22 +1247,43 @@ def _read_fleet_config(config_path):
                 "directory": directory,
                 "parent_repository": parent_repository,
                 "parent_directory": parent_directory,
+                "lifecycle": lifecycle,
+                "reason": reason,
             }
         )
+    lifecycle_by_repository = {
+        item["repository"].casefold(): item["lifecycle"] for item in validated
+    }
+    for item in validated:
+        parent_lifecycle = lifecycle_by_repository.get(
+            item["parent_repository"].casefold()
+        )
+        if item["lifecycle"] == "active" and parent_lifecycle in {"paused", "retired"}:
+            raise InheritanceError(
+                "fleet config active repository cannot inherit from a paused or retired parent"
+            )
     return sorted(validated, key=lambda item: item["repository"].casefold())
 
 
-def fleet_audit(config_path, workspace_root):
-    """Audit every fixed local fleet relationship without modifying a worktree."""
+def _fleet_workspace_root(workspace_root):
     try:
         workspace_root = Path(workspace_root).resolve(strict=True)
     except OSError as error:
         raise InheritanceError("fleet workspace root must exist") from error
     if not workspace_root.is_dir():
         raise InheritanceError("fleet workspace root must be a directory")
+    return workspace_root
+
+
+def fleet_audit(config_path, workspace_root):
+    """Audit active relationships and report every fixed fleet lifecycle."""
+    workspace_root = _fleet_workspace_root(workspace_root)
 
     repositories = []
-    for index, entry in enumerate(_read_fleet_config(config_path)):
+    entries = _read_fleet_config(config_path)
+    for index, entry in enumerate(entries):
+        if entry["lifecycle"] != "active":
+            continue
         child_root = _fleet_worktree(
             workspace_root, entry["directory"], f"fleet repository[{index}].directory"
         )
@@ -1265,9 +1301,39 @@ def fleet_audit(config_path, workspace_root):
             )
         repositories.append((entry["repository"], child_root, parent_root))
 
-    report = fleet_report(repositories)
+    report = fleet_report(repositories) if repositories else {
+        "schema_version": SCHEMA_VERSION,
+        "status": "ready",
+        "repositories": [],
+        "summary": _fleet_summary([]),
+    }
+    entry_by_repository = {
+        entry["repository"].casefold(): entry for entry in entries
+    }
     for repository in report["repositories"]:
+        entry = entry_by_repository[repository["repository"].casefold()]
         repository["repository_source"] = "fixed-fleet-config"
+        repository["lifecycle"] = "active"
+        repository["reason"] = entry["reason"]
+    report["repositories"].extend(
+        {
+            "repository": entry["repository"],
+            "repository_source": "fixed-fleet-config",
+            "lifecycle": entry["lifecycle"],
+            "reason": entry["reason"],
+        }
+        for entry in entries
+        if entry["lifecycle"] != "active"
+    )
+    report["repositories"].sort(key=lambda item: item["repository"].casefold())
+    for lifecycle in sorted(FLEET_LIFECYCLES):
+        report["summary"][lifecycle] = sum(
+            item["lifecycle"] == lifecycle for item in report["repositories"]
+        )
+    report["summary"]["repositories"] = len(report["repositories"])
+    report["schema_version"] = FLEET_SCHEMA_VERSION
+    if report["summary"]["paused"]:
+        report["status"] = "attention"
     return report
 
 

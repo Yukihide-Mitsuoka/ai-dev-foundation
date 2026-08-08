@@ -487,6 +487,87 @@ class TemplateInheritancePlanTest(unittest.TestCase):
         with self.assertRaisesRegex(inheritance.InheritanceError, "duplicate child"):
             inheritance.fleet_audit(config_path, Path(self.temporary_directory.name))
 
+    def test_propagation_impact_classifies_each_active_child_boundary(self):
+        paused = {
+            "repository": "acme/paused",
+            "directory": "missing-paused",
+            "parent_repository": PARENT_REPOSITORY,
+            "parent_directory": "parent",
+            "lifecycle": "paused",
+            "reason": "owner access is unavailable",
+        }
+        active = {
+            "repository": "acme/child-template",
+            "directory": "child",
+            "parent_repository": PARENT_REPOSITORY,
+            "parent_directory": "parent",
+            "lifecycle": "active",
+            "reason": "maintained",
+        }
+        config_path = self.write_fleet_config(repositories=[paused, active])
+
+        result = inheritance.propagation_impact(
+            config_path,
+            Path(self.temporary_directory.name),
+            PARENT_REPOSITORY,
+            self.locked_commit,
+            self.candidate_commit,
+        )
+
+        self.assertEqual(result["status"], "child-migration-required")
+        self.assertEqual(result["parent_repository"], PARENT_REPOSITORY)
+        self.assertEqual(result["base_commit"], self.locked_commit)
+        self.assertEqual(result["head_commit"], self.candidate_commit)
+        self.assertEqual(result["children"], ["acme/child-template"])
+        impacts = {item["path"]: item["impact"] for item in result["changes"]}
+        self.assertEqual(impacts["inherited/add.txt"], "schedule-only")
+        self.assertEqual(impacts["inherited/delete.txt"], "schedule-only")
+        self.assertEqual(
+            impacts[".github/workflows/shared.yml"], "manual-boundary"
+        )
+        self.assertEqual(
+            impacts[".github/workflows/template-sync.yml"], "manual-boundary"
+        )
+        self.assertEqual(impacts[".gitignore"], "foundation-only")
+        self.assertEqual(impacts["unowned.txt"], "child-migration-required")
+
+    def test_propagation_impact_rejects_reverse_history(self):
+        config_path = self.write_fleet_config()
+
+        with self.assertRaisesRegex(inheritance.InheritanceError, "ancestry"):
+            inheritance.propagation_impact(
+                config_path,
+                Path(self.temporary_directory.name),
+                PARENT_REPOSITORY,
+                self.candidate_commit,
+                self.locked_commit,
+            )
+
+    def test_propagation_impact_cli_prints_deterministic_json(self):
+        config_path = self.write_fleet_config()
+        stdout = io.StringIO()
+        with contextlib.redirect_stdout(stdout):
+            exit_code = inheritance.main(
+                [
+                    "propagation-impact",
+                    "--config",
+                    str(config_path),
+                    "--workspace-root",
+                    self.temporary_directory.name,
+                    "--parent-repository",
+                    PARENT_REPOSITORY,
+                    "--base-commit",
+                    self.locked_commit,
+                    "--head-commit",
+                    self.candidate_commit,
+                ]
+            )
+
+        self.assertEqual(exit_code, 0)
+        self.assertEqual(
+            json.loads(stdout.getvalue())["status"], "child-migration-required"
+        )
+
     def test_canonical_fleet_config_uses_the_common_foundation_docs_root(self):
         expected = Path("docs/foundation/inheritance-fleet.json")
 

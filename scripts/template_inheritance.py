@@ -26,6 +26,12 @@ HASH_BATCH_SIZE = 256
 MAX_FIRST_PARENT_COMMITS = 100_000
 MAX_CHANGED_PATHS = 1_000
 FLEET_LIFECYCLES = {"active", "paused", "retired"}
+IMPACT_PRIORITY = {
+    "foundation-only": 0,
+    "schedule-only": 1,
+    "manual-boundary": 2,
+    "child-migration-required": 3,
+}
 REPOSITORY_TARGET = re.compile(r"^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$")
 COMMIT_ID = re.compile(r"^[0-9a-f]{40}$")
 REQUIRED_PROTECTED_PATHS = {
@@ -1337,6 +1343,128 @@ def fleet_audit(config_path, workspace_root):
     return report
 
 
+def _impact_for_path(path, contract, excluded, exceptions):
+    owner = _path_owner(path, contract["ownership"])
+    if owner == "inherited":
+        if _template_sync_excludes(path, excluded, exceptions):
+            return "manual-boundary", _manual_transport_reason(path)
+        return "schedule-only", "template-sync-owned"
+    if owner == "unowned":
+        return "child-migration-required", "ownership-decision-required"
+    reason = _manual_boundary_reason(path)
+    if reason == "workflow-security-boundary":
+        return "manual-boundary", reason
+    if reason in {"agent-project-boundary", "inheritance-ownership-boundary"}:
+        return "child-migration-required", reason
+    return "foundation-only", reason
+
+
+def _propagation_context(config_path, workspace_root, parent_repository):
+    parent_repository = _repository(parent_repository, "parent repository")
+    workspace_root = _fleet_workspace_root(workspace_root)
+    entries = [
+        entry
+        for entry in _read_fleet_config(config_path)
+        if entry["lifecycle"] == "active"
+        and entry["parent_repository"].casefold() == parent_repository.casefold()
+    ]
+    if not entries:
+        raise InheritanceError("parent repository has no active direct child in fleet config")
+    parent_directories = {entry["parent_directory"] for entry in entries}
+    if len(parent_directories) != 1:
+        raise InheritanceError("active direct children disagree on the parent worktree")
+    parent_root = _fleet_worktree(
+        workspace_root, parent_directories.pop(), "propagation parent directory"
+    )
+    parent_root = _parent_root(parent_root)
+    remote = _git(parent_root, ["remote", "get-url", "origin"], "origin discovery").strip()
+    if _github_repository(remote).casefold() != parent_repository.casefold():
+        raise InheritanceError("parent origin does not match requested repository")
+    return workspace_root, parent_repository, parent_root, entries
+
+
+def _propagation_paths(parent_root, base_commit, head_commit):
+    for revision, label in ((base_commit, "base"), (head_commit, "head")):
+        if type(revision) is not str or not COMMIT_ID.fullmatch(revision):
+            raise InheritanceError(f"{label} commit must be a full lowercase commit ID")
+        resolved = _git(
+            parent_root,
+            ["rev-parse", "--verify", f"{revision}^{{commit}}"],
+            f"{label} commit resolution",
+        ).strip()
+        if resolved != revision:
+            raise InheritanceError(f"{label} commit did not resolve exactly")
+    _git(
+        parent_root,
+        ["merge-base", "--is-ancestor", base_commit, head_commit],
+        "commit ancestry validation",
+    )
+    return _changed_paths(parent_root, base_commit, head_commit)
+
+
+def _propagation_changes(entries, workspace_root, parent_repository, changed_paths):
+    changes = []
+    for index, entry in enumerate(entries):
+        child_root = _fleet_worktree(
+            workspace_root,
+            entry["directory"],
+            f"propagation child[{index}].directory",
+        )
+        contract = validate_inheritance(child_root)
+        if contract["parent"]["repository"].casefold() != parent_repository.casefold():
+            raise InheritanceError(
+                f"fleet repository parent does not match child manifest: {entry['repository']}"
+            )
+        excluded, exceptions = _read_template_sync_ignore(child_root)
+        for path in changed_paths:
+            impact, reason = _impact_for_path(path, contract, excluded, exceptions)
+            changes.append(
+                {
+                    "repository": entry["repository"],
+                    "path": path,
+                    "impact": impact,
+                    "reason": reason,
+                }
+            )
+    changes.sort(key=lambda item: (item["repository"].casefold(), item["path"]))
+    return changes
+
+
+def propagation_impact(
+    config_path,
+    workspace_root,
+    parent_repository,
+    base_commit,
+    head_commit,
+):
+    """Classify a parent diff against every active direct-child ownership contract."""
+    workspace_root, parent_repository, parent_root, entries = _propagation_context(
+        config_path, workspace_root, parent_repository
+    )
+    changed_paths = _propagation_paths(parent_root, base_commit, head_commit)
+    changes = _propagation_changes(
+        entries, workspace_root, parent_repository, changed_paths
+    )
+    status = max(
+        (item["impact"] for item in changes),
+        key=lambda impact: IMPACT_PRIORITY[impact],
+        default="foundation-only",
+    )
+    return {
+        "schema_version": FLEET_SCHEMA_VERSION,
+        "status": status,
+        "parent_repository": parent_repository,
+        "base_commit": base_commit,
+        "head_commit": head_commit,
+        "children": sorted(entry["repository"] for entry in entries),
+        "changes": changes,
+        "summary": {
+            impact: sum(item["impact"] == impact for item in changes)
+            for impact in IMPACT_PRIORITY
+        },
+    }
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     commands = parser.add_subparsers(dest="command", required=True)
@@ -1379,6 +1507,25 @@ def main(argv=None):
         default=Path(".."),
         help="directory containing every configured Git worktree",
     )
+    impact = commands.add_parser(
+        "propagation-impact",
+        help="classify a parent diff against active direct-child ownership",
+    )
+    impact.add_argument(
+        "--config",
+        type=Path,
+        default=DEFAULT_FLEET_CONFIG_PATH,
+        help="machine-readable fleet configuration",
+    )
+    impact.add_argument(
+        "--workspace-root",
+        type=Path,
+        default=Path(".."),
+        help="directory containing configured Git worktrees",
+    )
+    impact.add_argument("--parent-repository", required=True)
+    impact.add_argument("--base-commit", required=True)
+    impact.add_argument("--head-commit", required=True)
     args = parser.parse_args(argv)
     try:
         if args.command == "validate":
@@ -1404,8 +1551,16 @@ def main(argv=None):
                 )
         elif args.command == "fleet-report":
             report = fleet_report(args.repository)
-        else:
+        elif args.command == "fleet-audit":
             report = fleet_audit(args.config, args.workspace_root)
+        else:
+            report = propagation_impact(
+                args.config,
+                args.workspace_root,
+                args.parent_repository,
+                args.base_commit,
+                args.head_commit,
+            )
     except InheritanceError as error:
         print(f"inheritance error: {error}", file=sys.stderr)
         return 2

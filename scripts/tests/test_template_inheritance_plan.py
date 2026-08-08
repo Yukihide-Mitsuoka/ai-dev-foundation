@@ -1251,6 +1251,20 @@ class TemplateInheritanceBootstrapTest(unittest.TestCase):
 
         self.assertEqual(result["status"], "bootstrapped")
 
+    def test_bootstrap_apply_rejects_unresolved_workflow_placeholders(self):
+        workflow_path = ".github/workflows/template-sync.yml"
+        workflow = (self.payload / workflow_path).read_text(encoding="utf-8")
+        workflow = workflow.replace(
+            "        env:\n",
+            "        env:\n          CHILD_REPOSITORY: {{ repository }}\n",
+        )
+        self.write(self.payload, workflow_path, workflow)
+
+        with self.assertRaisesRegex(
+            inheritance.InheritanceError, "invalid direct-parent settings"
+        ):
+            self.apply_bootstrap()
+
     def test_bootstrap_apply_normalizes_desired_file_mode(self):
         self.apply_bootstrap()
         readme = self.child / "README.md"

@@ -937,7 +937,9 @@ def _validate_bootstrap_manual_payloads(payloads, repository, parent_repository,
         r"(?m)^\s*SOURCE_REPOSITORY:\s*[\"']" + quoted_parent + r"[\"']\s*$",
         r"vars\.TEMPLATE_SYNC_ENABLED\s*==\s*[\"']true[\"']",
     )
-    if "{{" in workflow or any(not re.search(pattern, workflow) for pattern in required):
+    if re.search(r"(?<!\$)\{\{", workflow) or any(
+        not re.search(pattern, workflow) for pattern in required
+    ):
         raise InheritanceError("bootstrap Template Sync workflow has invalid direct-parent settings")
     owner, parent = parent_repository.casefold().split("/", 1)
     archive_path = f"docs/inheritance/readmes/{owner}/{parent}.md"

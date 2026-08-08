@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.5.4](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/compare/v1.5.3...v1.5.4) (2026-08-08)
+
+
+### Bug Fixes
+
+* **release:** upgrade release-please to Node 24 ([#157](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/issues/157)) ([3caa730](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/commit/3caa730c9f7a24e63b042a39c7c8c7af6cf30d4d))
+
 ## [1.5.3](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/compare/v1.5.2...v1.5.3) (2026-08-02)
 
 

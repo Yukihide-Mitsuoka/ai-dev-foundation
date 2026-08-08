@@ -16,6 +16,7 @@ AGENT_PROFILE_SCHEMA_VERSION = 1
 MANIFEST_PATH = ".github/inheritance/manifest.json"
 AGENT_PROFILE_PATH = ".github/inheritance/agent-profile.json"
 TEMPLATE_SYNC_IGNORE_PATH = ".templatesyncignore"
+FOUNDATION_BOOTSTRAP_EXPORT_PATH = ".ai/contracts/foundation/inheritance-export.json"
 DEFAULT_FLEET_CONFIG_PATH = Path("docs/foundation/inheritance-fleet.json")
 MAX_CONTRACT_BYTES = 1_000_000
 MAX_OWNERSHIP_ROOTS = 1_000
@@ -42,6 +43,11 @@ REQUIRED_PROTECTED_PATHS = {
     ".templatesyncignore",
 }
 REQUIRED_TEMPLATE_SYNC_IGNORES = {".github/workflows/"}
+BOOTSTRAP_MANUAL_BOUNDARIES = {
+    ".ai/project/agent-overlay.md",
+    ".github/workflows/template-sync.yml",
+    "README.md",
+}
 
 
 class InheritanceError(ValueError):
@@ -681,6 +687,190 @@ def plan_inheritance(root, parent_root):
         "changes": changes,
         "skipped": skipped,
         "summary": {**counts, "total": sum(counts.values())},
+    }
+
+
+def _bootstrap_export_path(parent_repository, parent_root, source_commit):
+    owner, repository = parent_repository.casefold().split("/", 1)
+    candidates = [
+        f".ai/contracts/templates/{owner}/{repository}/inheritance-export.json",
+        FOUNDATION_BOOTSTRAP_EXPORT_PATH,
+    ]
+    for path in candidates:
+        entry = _parent_entry(parent_root, source_commit, path)
+        if entry:
+            try:
+                export = json.loads(
+                    _git_blob(parent_root, entry[0], path).decode("utf-8"),
+                    object_pairs_hook=_unique_object,
+                )
+            except (UnicodeError, json.JSONDecodeError) as error:
+                raise InheritanceError(
+                    f"parent inheritance export must contain valid UTF-8 JSON: {path}"
+                ) from error
+            if (
+                type(export) is dict
+                and type(export.get("repository")) is str
+                and export["repository"].casefold() == parent_repository.casefold()
+            ):
+                return path, export
+    raise InheritanceError("direct parent does not publish a matching inheritance export")
+
+
+def _validate_bootstrap_export(export_path, export, parent_repository):
+    _object(
+        export,
+        {
+            "schema_version",
+            "repository",
+            "branch",
+            "inherited_paths",
+            "protected_paths",
+            "agent_inputs",
+        },
+        "inheritance export",
+    )
+    if type(export["schema_version"]) is not int or export["schema_version"] != 1:
+        raise InheritanceError("inheritance export.schema_version must be 1")
+    repository = _repository(export["repository"], "inheritance export.repository")
+    if repository.casefold() != parent_repository.casefold():
+        raise InheritanceError("inheritance export repository does not match parent origin")
+    branch = _branch(export["branch"], "inheritance export.branch")
+    inherited = _ownership_roots(
+        export["inherited_paths"], "inheritance export.inherited_paths"
+    )
+    protected = _ownership_roots(
+        export["protected_paths"], "inheritance export.protected_paths"
+    )
+    _reject_overlaps(inherited + protected, "inheritance export")
+    missing = sorted(
+        path
+        for path in REQUIRED_PROTECTED_PATHS | BOOTSTRAP_MANUAL_BOUNDARIES
+        if not _owned_by(path, protected)
+    )
+    if missing:
+        raise InheritanceError(f"inheritance export is missing protected paths: {missing}")
+    if not _owned_by(export_path, inherited):
+        raise InheritanceError("inheritance export must inherit its own export file")
+    return {
+        "path": export_path,
+        "repository": repository,
+        "branch": branch,
+        "inherited_paths": inherited,
+        "protected_paths": protected,
+        "agent_inputs": export["agent_inputs"],
+    }
+
+
+def _bootstrap_export(parent_root, parent_repository, source_commit):
+    export_path, export = _bootstrap_export_path(
+        parent_repository, parent_root, source_commit
+    )
+    return _validate_bootstrap_export(export_path, export, parent_repository)
+
+
+def _bootstrap_parent(parent_root, source_commit):
+    parent_root = _parent_root(parent_root)
+    remote = _git(parent_root, ["remote", "get-url", "origin"], "origin discovery").strip()
+    parent_repository = _github_repository(remote)
+    if type(source_commit) is not str or not COMMIT_ID.fullmatch(source_commit):
+        raise InheritanceError("source commit must be a full lowercase commit ID")
+    resolved = _git(
+        parent_root,
+        ["rev-parse", "--verify", f"{source_commit}^{{commit}}"],
+        "source commit resolution",
+    ).strip()
+    if resolved != source_commit:
+        raise InheritanceError("source commit did not resolve exactly")
+    export = _bootstrap_export(parent_root, parent_repository, source_commit)
+    target = _git(
+        parent_root,
+        ["rev-parse", "--verify", f"refs/remotes/origin/{export['branch']}^{{commit}}"],
+        "remote branch resolution",
+    ).strip()
+    history = _git(
+        parent_root,
+        ["rev-list", "--first-parent", f"--max-count={MAX_FIRST_PARENT_COMMITS + 1}", target],
+        "source first-parent history read",
+    ).splitlines()
+    if source_commit not in history:
+        raise InheritanceError("source commit is not on the parent branch first-parent history")
+    return parent_root, parent_repository, export
+
+
+def _bootstrap_desired(child_root, repository, parent_repository, source_commit, export):
+    inputs = [
+        *export["agent_inputs"],
+        {
+            "layer": "project",
+            "repository": repository,
+            "path": ".ai/project/agent-overlay.md",
+        },
+    ]
+    inputs = _agent_profile_inputs(child_root, inputs)
+    _validate_agent_input_order(inputs, parent_repository)
+    _validate_agent_input_ownership(
+        inputs, export["inherited_paths"], export["protected_paths"]
+    )
+    ignore = [
+        f"{path}**" if path.endswith("/") else path
+        for path in export["protected_paths"]
+    ]
+    return {
+        "manifest": {
+            "schema_version": 2,
+            "parent": {"repository": parent_repository, "branch": export["branch"]},
+            "lock_file": ".github/inheritance/lock.json",
+            "inherited_paths": export["inherited_paths"],
+            "protected_paths": export["protected_paths"],
+        },
+        "lock": {
+            "schema_version": 1,
+            "parent": {"repository": parent_repository, "commit": source_commit},
+        },
+        "agent_profile": {
+            "schema_version": 1,
+            "authority_policy": "strengthen-only",
+            "inputs": inputs,
+        },
+        "template_sync_ignore": sorted(ignore),
+    }
+
+
+def plan_bootstrap(root, parent_root, source_commit, repository):
+    """Plan direct-child metadata from an explicit parent export without writing."""
+    child_root, child_repository, branch = _child_finalization_worktree(root)
+    repository = _repository(repository, "child repository")
+    if child_repository.casefold() != repository.casefold():
+        raise InheritanceError("child origin does not match requested repository")
+    for path in BOOTSTRAP_MANUAL_BOUNDARIES:
+        _require_regular_file(child_root, path, f"bootstrap manual boundary {path}")
+    parent_root, parent_repository, export = _bootstrap_parent(
+        parent_root, source_commit
+    )
+    parent_entries = _parent_inherited_entries(
+        parent_root, source_commit, export["inherited_paths"]
+    )
+    child_entries = _child_inherited_entries(
+        child_root, parent_root, export["inherited_paths"]
+    )
+    if child_entries != parent_entries:
+        raise InheritanceError("child inherited template copy does not match exact parent commit")
+    desired = _bootstrap_desired(
+        child_root, repository, parent_repository, source_commit, export
+    )
+    return {
+        "schema_version": SCHEMA_VERSION,
+        "status": "ready_to_bootstrap",
+        "repository": repository,
+        "branch": branch,
+        "parent": {
+            "repository": parent_repository,
+            "commit": source_commit,
+            "export": export["path"],
+        },
+        "desired": desired,
+        "manual_boundaries": sorted(BOOTSTRAP_MANUAL_BOUNDARIES),
     }
 
 
@@ -1473,6 +1663,13 @@ def main(argv=None):
     plan = commands.add_parser("plan", help="plan the next parent commit")
     plan.add_argument("--root", type=Path, default=Path("."), help="child repository root")
     plan.add_argument("--parent-root", type=Path, required=True, help="local parent Git worktree")
+    bootstrap = commands.add_parser(
+        "bootstrap-child", help="plan metadata for a direct child repository"
+    )
+    bootstrap.add_argument("--root", type=Path, default=Path("."), help="child repository root")
+    bootstrap.add_argument("--parent-root", type=Path, required=True, help="parent worktree")
+    bootstrap.add_argument("--source-commit", required=True)
+    bootstrap.add_argument("--repository", required=True, help="child OWNER/REPOSITORY")
     finalize = commands.add_parser(
         "finalize-sync",
         help="plan or apply exact-source manual ports on an existing sync branch",
@@ -1532,6 +1729,10 @@ def main(argv=None):
             report = validate_inheritance(args.root)
         elif args.command == "plan":
             report = plan_inheritance(args.root, args.parent_root)
+        elif args.command == "bootstrap-child":
+            report = plan_bootstrap(
+                args.root, args.parent_root, args.source_commit, args.repository
+            )
         elif args.command == "finalize-sync":
             if args.apply:
                 report = apply_finalization(

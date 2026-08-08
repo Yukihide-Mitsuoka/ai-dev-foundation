@@ -257,8 +257,28 @@ python3 scripts/template_inheritance.py finalize-sync \
 supported `workflow-security-boundary` manual port or lock advance remains.
 `already_finalized` means the inherited tree and lock are current. `blocked` reports
 the exact pending sync, protected review, ownership review, unsupported manual port, or
-deletion review that must be resolved before any write phase. The command never fetches,
-writes, commits, pushes, calls GitHub, or changes repository governance.
+deletion review that must be resolved before applying. Without `--apply`, the command
+never writes.
+
+After a `ready_to_finalize` plan is reviewed, repeat the exact child identity and source
+commit to materialize supported workflow ports and atomically advance the lock:
+
+```bash
+python3 scripts/template_inheritance.py finalize-sync \
+  --root /path/to/child-sync-worktree \
+  --parent-root /path/to/direct-parent \
+  --source-commit <40-character-source-commit> \
+  --apply \
+  --confirm-repository OWNER/CHILD \
+  --confirm-source <same-40-character-source-commit>
+```
+
+Apply refuses ordinary pending sync, protected or ownership review, deletion, unsupported
+manual reasons, dirty worktrees, default branches, and mismatched confirmations before
+writing. It preloads the exact parent workflow blobs, verifies convergence before
+atomically replacing the lock, and is idempotent after its result is committed. It never
+fetches, commits, pushes, creates or merges a PR, calls GitHub, or changes repository
+governance.
 
 ## Future transport review trigger
 

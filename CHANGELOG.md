@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.8.1](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/compare/v1.8.0...v1.8.1) (2026-08-08)
+
+
+### Bug Fixes
+
+* **inheritance:** allow GitHub workflow expressions ([#171](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/issues/171)) ([c518f1a](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/commit/c518f1a4c73b85e4319a38a86bc78d35aef7604d)), closes [#159](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/issues/159)
+* **inheritance:** protect bootstrapped project docs ([#174](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/issues/174)) ([b658e39](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/commit/b658e39a192bee47e8264974ea048f3ffbe4edc9)), closes [#173](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/issues/173)
+
 ## [1.8.0](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/compare/v1.7.0...v1.8.0) (2026-08-08)
 
 

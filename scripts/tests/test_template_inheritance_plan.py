@@ -561,3 +561,214 @@ class TemplateInheritancePlanTest(unittest.TestCase):
             json.loads(stdout.getvalue())["repositories"][0]["repository"],
             "acme/child-template",
         )
+
+
+class TemplateInheritanceFinalizeTest(unittest.TestCase):
+    def setUp(self):
+        self.temporary_directory = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temporary_directory.cleanup)
+        temporary_root = Path(self.temporary_directory.name)
+        self.parent = temporary_root / "parent"
+        self.child = temporary_root / "child"
+        self.parent.mkdir()
+        self.child.mkdir()
+
+        self.git(self.parent, "init", "-b", "main")
+        self.configure_git(self.parent)
+        self.git(
+            self.parent,
+            "remote",
+            "add",
+            "origin",
+            f"https://github.com/{PARENT_REPOSITORY}.git",
+        )
+        self.write(self.parent, "inherited/ordinary.txt", "old\n")
+        self.write(self.parent, ".github/workflows/shared.yml", "old\n")
+        self.locked_commit = self.commit(self.parent, "base")
+
+        self.write(self.parent, "inherited/ordinary.txt", "new\n")
+        self.write(self.parent, ".github/workflows/shared.yml", "new\n")
+        self.source_commit = self.commit(self.parent, "source")
+        self.git(
+            self.parent,
+            "update-ref",
+            "refs/remotes/origin/main",
+            self.source_commit,
+        )
+
+        self.write(self.child, "inherited/ordinary.txt", "new\n")
+        self.write(self.child, ".github/workflows/shared.yml", "old\n")
+        self.write_contract(self.locked_commit)
+        self.git(self.child, "init", "-b", "main")
+        self.configure_git(self.child)
+        self.git(
+            self.child,
+            "remote",
+            "add",
+            "origin",
+            "https://github.com/acme/child-template.git",
+        )
+        child_main = self.commit(self.child, "template sync result")
+        self.git(self.child, "update-ref", "refs/remotes/origin/main", child_main)
+        self.git(
+            self.child,
+            "symbolic-ref",
+            "refs/remotes/origin/HEAD",
+            "refs/remotes/origin/main",
+        )
+        self.git(self.child, "switch", "-c", "chore/template_sync_source")
+
+    def git(self, root, *arguments):
+        result = subprocess.run(
+            ["git", "-C", str(root), *arguments],
+            capture_output=True,
+            check=False,
+            text=True,
+            timeout=5,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        return result.stdout.strip()
+
+    def configure_git(self, root):
+        self.git(root, "config", "user.name", "Test User")
+        self.git(root, "config", "user.email", "test@example.invalid")
+
+    def commit(self, root, message):
+        self.git(root, "add", "-A")
+        self.git(root, "commit", "-m", message)
+        return self.git(root, "rev-parse", "HEAD")
+
+    def write(self, root, relative_path, content):
+        path = root / relative_path
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(content, encoding="utf-8")
+
+    def write_contract(self, commit):
+        manifest = {
+            "schema_version": 1,
+            "parent": {"repository": PARENT_REPOSITORY, "branch": "main"},
+            "lock_file": ".github/inheritance/lock.json",
+            "inherited_paths": ["inherited/", ".github/workflows/shared.yml"],
+            "protected_paths": PROTECTED_PATHS,
+        }
+        lock = {
+            "schema_version": 1,
+            "parent": {"repository": PARENT_REPOSITORY, "commit": commit},
+        }
+        self.write(
+            self.child,
+            ".github/inheritance/manifest.json",
+            json.dumps(manifest),
+        )
+        self.write(
+            self.child,
+            ".github/inheritance/lock.json",
+            json.dumps(lock),
+        )
+        self.write(
+            self.child,
+            ".templatesyncignore",
+            "\n".join(PROTECTED_PATHS + [".github/workflows/**"]) + "\n",
+        )
+
+    def test_finalization_plan_reports_exact_source_manual_port_read_only(self):
+        plan = inheritance.plan_finalization(
+            self.child,
+            self.parent,
+            self.source_commit,
+        )
+
+        self.assertEqual(plan["status"], "ready_to_finalize")
+        self.assertEqual(plan["pending_sync"], [])
+        self.assertEqual(
+            plan["pending_manual_port"],
+            [
+                {
+                    "path": ".github/workflows/shared.yml",
+                    "reason": "workflow-security-boundary",
+                }
+            ],
+        )
+        self.assertEqual(self.git(self.child, "status", "--porcelain"), "")
+
+    def test_finalization_plan_blocks_pending_template_sync_content(self):
+        self.write(self.child, "inherited/ordinary.txt", "old\n")
+        self.commit(self.child, "stale ordinary content")
+
+        plan = inheritance.plan_finalization(
+            self.child,
+            self.parent,
+            self.source_commit,
+        )
+
+        self.assertEqual(plan["status"], "blocked")
+        self.assertEqual(plan["pending_sync"], ["inherited/ordinary.txt"])
+
+    def test_finalization_plan_reports_protected_review_and_deletion(self):
+        self.write(self.parent, ".gitignore", "parent-only\n")
+        protected_source = self.commit(self.parent, "protected change")
+        self.git(
+            self.parent,
+            "update-ref",
+            "refs/remotes/origin/main",
+            protected_source,
+        )
+
+        protected = inheritance.plan_finalization(
+            self.child,
+            self.parent,
+            protected_source,
+        )
+        self.assertEqual(protected["protected_review"], [".gitignore"])
+
+        (self.parent / ".gitignore").unlink()
+        (self.parent / "inherited/ordinary.txt").unlink()
+        deletion_source = self.commit(self.parent, "delete inherited file")
+        self.git(
+            self.parent,
+            "update-ref",
+            "refs/remotes/origin/main",
+            deletion_source,
+        )
+
+        deletion = inheritance.plan_finalization(
+            self.child,
+            self.parent,
+            deletion_source,
+        )
+        self.assertEqual(deletion["deletion_review"], ["inherited/ordinary.txt"])
+
+    def test_finalization_plan_accepts_recorded_checkpoint_before_current_head(self):
+        self.write(self.parent, "inherited/later.txt", "later\n")
+        later_commit = self.commit(self.parent, "later")
+        self.git(
+            self.parent,
+            "update-ref",
+            "refs/remotes/origin/main",
+            later_commit,
+        )
+
+        plan = inheritance.plan_finalization(
+            self.child,
+            self.parent,
+            self.source_commit,
+        )
+
+        self.assertEqual(plan["parent"]["source_commit"], self.source_commit)
+        self.assertNotIn("inherited/later.txt", json.dumps(plan))
+
+    def test_finalization_plan_requires_accepted_source_and_non_default_branch(self):
+        with self.assertRaisesRegex(inheritance.InheritanceError, "source commit"):
+            inheritance.plan_finalization(
+                self.child,
+                self.parent,
+                "b" * 40,
+            )
+
+        self.git(self.child, "switch", "main")
+        with self.assertRaisesRegex(inheritance.InheritanceError, "default branch"):
+            inheritance.plan_finalization(
+                self.child,
+                self.parent,
+                self.source_commit,
+            )

@@ -238,6 +238,28 @@ content drift fails closed or produces `status: attention`. The target is read-o
 does not create synchronization PRs, so adding audit coverage does not add another
 inheritance path or another human approval queue.
 
+## Plan single-PR finalization
+
+ADR-0015 consolidates an accepted parent checkpoint into the existing Template Sync PR.
+The expand-phase command is read-only and verifies the clean non-default child branch,
+credential-free child and parent origins, an exact source commit on the refreshed parent
+first-parent range, complete
+inherited tree, executable modes, and protected or unowned changes:
+
+```bash
+python3 scripts/template_inheritance.py finalize-sync \
+  --root /path/to/child-sync-worktree \
+  --parent-root /path/to/direct-parent \
+  --source-commit <40-character-source-commit>
+```
+
+`ready_to_finalize` means every ordinary inherited path already matches and only a
+supported `workflow-security-boundary` manual port or lock advance remains.
+`already_finalized` means the inherited tree and lock are current. `blocked` reports
+the exact pending sync, protected review, ownership review, unsupported manual port, or
+deletion review that must be resolved before any write phase. The command never fetches,
+writes, commits, pushes, calls GitHub, or changes repository governance.
+
 ## Future transport review trigger
 
 Reviewed Template Sync remains the sole write and PR transport. Do not add a second

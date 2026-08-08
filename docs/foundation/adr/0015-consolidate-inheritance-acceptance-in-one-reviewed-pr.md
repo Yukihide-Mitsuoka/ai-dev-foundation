@@ -1,7 +1,7 @@
 ---
 id: adr-0015
 title: ADR-0015 — Consolidate inheritance acceptance in one reviewed PR
-status: proposed
+status: accepted
 updated: 2026-08-08
 ---
 
@@ -9,7 +9,7 @@ updated: 2026-08-08
 
 | Field | Value |
 |-------|-------|
-| Status | proposed |
+| Status | accepted |
 | Date | 2026-08-08 |
 | Deciders | repository owner |
 | Author | Codex (AI agent) |

@@ -22,10 +22,9 @@ class TemplateSyncIgnorePortabilityTest(unittest.TestCase):
                 ".ai/project/**\n"
                 ".github/inheritance/agent-profile.json\n"
                 ".github/workflows/**\n"
-                "docs/README.md\n"
-                "docs/adr/**\n"
-                "docs/handoff.md\n"
-                "docs/inheritance/readmes/**\n",
+                "docs/**\n"
+                ":!docs/foundation/\n"
+                ":!docs/foundation/**\n",
                 encoding="utf-8",
             )
             (child / ".github/workflows/template-sync.yml").write_text(

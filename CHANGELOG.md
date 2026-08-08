@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.7.0](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/compare/v1.6.0...v1.7.0) (2026-08-08)
+
+
+### Features
+
+* **inheritance:** classify propagation impact ([#167](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/issues/167)) ([82ba5bb](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/commit/82ba5bb1125db69522e261eb69d90b60bdac651d))
+* **inheritance:** model fleet lifecycle states ([#166](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/issues/166)) ([bc2d61c](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/commit/bc2d61c7cfbf4dd40de922f02c5f39e12b7ca7d2))
+
+
+### Bug Fixes
+
+* **inheritance:** validate protected drift against child base ([#164](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/issues/164)) ([001a3ed](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/commit/001a3ed10eaaf14a9d209827479acd8f4a4e1ce5))
+
 ## [1.6.0](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/compare/v1.5.4...v1.6.0) (2026-08-08)
 
 

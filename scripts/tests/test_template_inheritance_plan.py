@@ -704,7 +704,7 @@ class TemplateInheritanceFinalizeTest(unittest.TestCase):
         self.assertEqual(plan["status"], "blocked")
         self.assertEqual(plan["pending_sync"], ["inherited/ordinary.txt"])
 
-    def test_finalization_plan_reports_protected_review_and_deletion(self):
+    def test_finalization_plan_ignores_unchanged_repository_owned_protected_path(self):
         self.write(self.parent, ".gitignore", "parent-only\n")
         protected_source = self.commit(self.parent, "protected change")
         self.git(
@@ -719,7 +719,38 @@ class TemplateInheritanceFinalizeTest(unittest.TestCase):
             self.parent,
             protected_source,
         )
+        self.assertEqual(protected["protected_review"], [])
+        self.assertEqual(protected["status"], "ready_to_finalize")
+
+    def test_finalization_plan_blocks_protected_path_changed_on_sync_branch(self):
+        self.write(self.child, ".gitignore", "transport overwrite\n")
+        self.commit(self.child, "modify protected child path")
+
+        protected = inheritance.plan_finalization(
+            self.child,
+            self.parent,
+            self.source_commit,
+        )
+
         self.assertEqual(protected["protected_review"], [".gitignore"])
+        self.assertEqual(protected["status"], "blocked")
+
+    def test_finalization_plan_blocks_unowned_path_changed_on_sync_branch(self):
+        self.write(self.child, "unexpected.txt", "transport injection\n")
+        self.commit(self.child, "add unowned child path")
+
+        review = inheritance.plan_finalization(
+            self.child,
+            self.parent,
+            self.source_commit,
+        )
+
+        self.assertEqual(review["ownership_review"], ["unexpected.txt"])
+        self.assertEqual(review["status"], "blocked")
+
+    def test_finalization_plan_reports_inherited_deletion(self):
+        self.write(self.parent, ".gitignore", "parent-only\n")
+        self.commit(self.parent, "protected change")
 
         (self.parent / ".gitignore").unlink()
         (self.parent / "inherited/ordinary.txt").unlink()
@@ -849,19 +880,14 @@ class TemplateInheritanceFinalizeTest(unittest.TestCase):
             self.locked_commit,
         )
 
-    def test_finalization_apply_refuses_protected_review_and_deletion(self):
-        self.write(self.parent, ".gitignore", "parent-only\n")
-        protected_source = self.commit(self.parent, "protected change")
-        self.git(
-            self.parent,
-            "update-ref",
-            "refs/remotes/origin/main",
-            protected_source,
-        )
-        with self.assertRaisesRegex(inheritance.InheritanceError, "protected review"):
-            self.apply(source=protected_source)
+    def test_finalization_apply_refuses_protected_branch_change(self):
+        self.write(self.child, ".gitignore", "transport overwrite\n")
+        self.commit(self.child, "modify protected child path")
 
-        (self.parent / ".gitignore").unlink()
+        with self.assertRaisesRegex(inheritance.InheritanceError, "protected review"):
+            self.apply()
+
+    def test_finalization_apply_refuses_deletion(self):
         (self.parent / "inherited/ordinary.txt").unlink()
         deletion_source = self.commit(self.parent, "delete inherited file")
         self.git(

@@ -238,6 +238,31 @@ required. Paused entries keep the overall result at `attention`; retired entries
 visible without claiming convergence. The target is read-only and creates no approval
 queue.
 
+## Classify propagation impact before merging a parent change
+
+Use `propagation-impact` with two existing commits in a configured parent worktree:
+
+```bash
+python3 scripts/template_inheritance.py propagation-impact \
+  --workspace-root /path/to/worktrees \
+  --parent-repository acme/foundation \
+  --base-commit <40-character-base-commit> \
+  --head-commit <40-character-head-commit>
+```
+
+The read-only command evaluates every changed path against each active direct child's
+manifest and `.templatesyncignore`. It does not evaluate paused or retired children.
+
+| Impact | Required handling |
+|--------|-------------------|
+| `foundation-only` | The path is repository-owned in the child; no propagation action |
+| `schedule-only` | Reviewed Template Sync can carry the inherited path |
+| `manual-boundary` | A workflow or legacy transport exclusion requires an authenticated reviewed port |
+| `child-migration-required` | The path is unowned or changes a child-owned inheritance/project boundary |
+
+The result status is the strongest observed impact. This classification predicts the
+review path; `fleet-audit` remains the post-merge convergence proof.
+
 ## Plan single-PR finalization
 
 ADR-0015 consolidates an accepted parent checkpoint into the existing Template Sync PR.

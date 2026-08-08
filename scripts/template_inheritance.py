@@ -708,15 +708,19 @@ def _child_finalization_worktree(root):
     branch = _git(
         child_root, ["symbolic-ref", "--quiet", "--short", "HEAD"], "child branch read"
     ).strip()
-    default_ref = _git(
-        child_root,
-        ["symbolic-ref", "--quiet", "--short", "refs/remotes/origin/HEAD"],
-        "child default branch read",
-    ).strip()
+    default_ref = _child_default_ref(child_root)
     if branch == default_ref.removeprefix("origin/"):
         raise InheritanceError("finalization must not run on the default branch")
     remote = _git(child_root, ["remote", "get-url", "origin"], "child origin read").strip()
     return child_root, _github_repository(remote), branch
+
+
+def _child_default_ref(child_root):
+    return _git(
+        child_root,
+        ["symbolic-ref", "--quiet", "--short", "refs/remotes/origin/HEAD"],
+        "child default branch read",
+    ).strip()
 
 
 def _finalization_context(root, parent_root, source_commit):
@@ -777,20 +781,28 @@ def _finalization_review(child_root, parent_root, contract, source_commit):
             parent_root, contract["parent"]["commit"], source_commit
         ):
             owner = _path_owner(path, contract["ownership"])
-            if owner == "inherited":
+            if owner in {"inherited", "protected"}:
                 continue
             parent_entry = _parent_entry(parent_root, source_commit, path)
             child_entry = _child_entry(child_root, parent_root, path)
-            if owner == "protected":
-                if child_entry == parent_entry:
-                    review["manually_ported"].append(path)
-                else:
-                    review["protected_review"].append(path)
-            elif parent_entry is not None or child_entry is not None:
+            if parent_entry is not None or child_entry is not None:
                 review["ownership_review"].append(path)
+
+    default_ref = _child_default_ref(child_root)
+    for path in _changed_paths(child_root, default_ref, "HEAD"):
+        owner = _path_owner(path, contract["ownership"])
+        if owner == "protected" and path != contract["lock_file"]:
+            review["protected_review"].append(path)
+        elif owner == "unowned":
+            review["ownership_review"].append(path)
     for name in review:
+        unique = (
+            {item["path"]: item for item in review[name]}.values()
+            if name == "pending_manual_port"
+            else set(review[name])
+        )
         review[name] = sorted(
-            review[name],
+            unique,
             key=(lambda item: item["path"]) if name == "pending_manual_port" else None,
         )
     return review

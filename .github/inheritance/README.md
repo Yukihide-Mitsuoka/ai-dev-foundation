@@ -116,9 +116,8 @@ separate review and must not auto-merge.
 |------|-------------------|
 | 1. Update a direct child | Template Sync PR names the direct parent and the exact 40-character source commit |
 | 2. Review inherited files | Accepted lock-to-source range reviewed; no protected path changed by transport |
-| 3. Port workflows | Separate maintainer-authenticated PR verified against the same direct-parent source commit |
-| 4. Advance the lock | Lock changes only in a reviewed PR after the complete parent delta is accepted |
-| 5. Merge and continue | Only the merged child commit becomes the source for its direct children |
+| 3. Finalize the same PR | `finalize-sync --apply` materializes supported manual ports and advances the lock only after complete convergence |
+| 4. Merge and continue | Only the merged child commit becomes the source for its direct children |
 
 Template Sync must never auto-merge or apply repository governance. If validation fails,
 disable `TEMPLATE_SYNC_ENABLED` until the manifest and local ignore contract agree.
@@ -186,10 +185,10 @@ its `OWNER/REPOSITORY` shape but does not call GitHub to verify it.
 
 An inherited path excluded by `.templatesyncignore` is reported as `pending_manual_port`
 instead of `pending_sync`; an exact child copy is reported as `manually_ported`.
-`workflow-security-boundary` means maintainer authentication and a separate reviewed PR
-are required. Manual boundaries are intentional. Protected workflow callers retain local events,
-permissions, secrets, and environment selection. Project overlays and profiles retain
-repository identity and semantics. Manifests, locks, and ignore files retain accepted
+`workflow-security-boundary` means maintainer authentication is required on the existing
+Template Sync PR branch. Manual boundaries are intentional. Protected workflow callers
+retain local events, permissions, secrets, and environment selection. Project overlays
+and profiles retain repository identity and semantics. Manifests, locks, and ignore files retain accepted
 provenance and ownership. Other protected paths remain repository-owned unless a
 reviewed contract change moves their ownership. Unowned paths present in the current
 parent target or child require a reviewed ownership decision before synchronization. A
@@ -259,6 +258,11 @@ supported `workflow-security-boundary` manual port or lock advance remains.
 the exact pending sync, protected review, ownership review, unsupported manual port, or
 deletion review that must be resolved before applying. Without `--apply`, the command
 never writes.
+
+Protected ownership is evaluated against the child's remote default branch, not against
+the parent's file at the source commit. A parent-only change to a child-owned protected
+path therefore remains outside synchronization. Any protected path changed on the sync
+branch still blocks finalization, except for the lock update owned by the finalizer.
 
 After a `ready_to_finalize` plan is reviewed, repeat the exact child identity and source
 commit to materialize supported workflow ports and atomically advance the lock:

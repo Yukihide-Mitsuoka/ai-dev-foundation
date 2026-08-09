@@ -1,7 +1,7 @@
 ---
 id: adr-0016
 title: ADR-0016 — Gate private fleet automation on split credentials
-status: proposed
+status: accepted
 updated: 2026-08-09
 ---
 
@@ -9,7 +9,7 @@ updated: 2026-08-09
 
 | Field | Value |
 |-------|-------|
-| Status | proposed |
+| Status | accepted |
 | Date | 2026-08-09 |
 | Deciders | repository owner |
 | Author | Codex (AI agent) |

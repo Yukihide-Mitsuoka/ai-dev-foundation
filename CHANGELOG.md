@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.8.3](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/compare/v1.8.2...v1.8.3) (2026-08-09)
+
+
+### Bug Fixes
+
+* **inheritance:** harden synchronization preflight ([#182](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/issues/182)) ([51678bf](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/commit/51678bf53017466f6ee202611ee6937cc1539193))
+
 ## [1.8.2](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/compare/v1.8.1...v1.8.2) (2026-08-09)
 
 

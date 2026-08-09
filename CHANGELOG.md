@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.8.2](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/compare/v1.8.1...v1.8.2) (2026-08-09)
+
+
+### Bug Fixes
+
+* **ci:** upgrade CodeQL Action to v4 ([#176](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/issues/176)) ([98cd5ed](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/commit/98cd5ed7b4c53728ca1ab34dfb79ca6efb0fd8e7))
+
 ## [1.8.1](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/compare/v1.8.0...v1.8.1) (2026-08-08)
 
 

@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.8.4](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/compare/v1.8.3...v1.8.4) (2026-08-14)
+
+
+### Bug Fixes
+
+* **dependencies:** remove invalid empty Dependabot config ([#188](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/issues/188)) ([784f175](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/commit/784f175060c05759bbc7ee60998d435d26125b0e)), closes [#187](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/issues/187)
+
 ## [1.8.3](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/compare/v1.8.2...v1.8.3) (2026-08-09)
 
 

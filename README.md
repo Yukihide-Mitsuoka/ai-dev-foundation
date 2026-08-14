@@ -23,7 +23,7 @@ direct, decide, and review.
 | Stack profiles | [`profiles/`](profiles/) | Reference Makefile implementations per stack + the canonical target contract |
 | Decisions | [`docs/foundation/adr/`](docs/foundation/adr/) | Synchronized foundation ADRs + decision log |
 | Knowledge | [`docs/`](docs/) | Architecture, domain, API, deployment, operations, runbook, troubleshooting, roadmap, glossary |
-| GitHub scaffolding | [`.github/`](.github/) | Issue forms, PR template, CODEOWNERS, labels-as-code, Dependabot; plus `renovate.json` |
+| GitHub scaffolding | [`.github/`](.github/) | Issue forms, PR template, CODEOWNERS, labels-as-code, and Dependabot security settings; version updates use `renovate.json` exclusively |
 | GitHub governance | [`.github/governance/`](.github/governance/) + [`scripts/github_governance.py`](scripts/github_governance.py) | Layered policy with `plan`/`audit` and explicitly confirmed administrator `apply` |
 | Update distribution | [`template-sync.yml`](.github/workflows/template-sync.yml) + [`.templatesyncignore`](.templatesyncignore) | Foundation updates reach downstream repos as PRs |
 

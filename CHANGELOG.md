@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.9.0](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/compare/v1.8.4...v1.9.0) (2026-08-28)
+
+
+### Features
+
+* **ai:** add inherited presentation skill ([#196](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/issues/196)) ([7f6609f](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/commit/7f6609f5be3de61b98a1902141adbd43c160f187))
+
 ## [1.8.4](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/compare/v1.8.3...v1.8.4) (2026-08-14)
 
 

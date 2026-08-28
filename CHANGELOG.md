@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.9.1](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/compare/v1.9.0...v1.9.1) (2026-08-28)
+
+
+### Bug Fixes
+
+* **doctor:** support descendant suite selection ([#199](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/issues/199)) ([4cf3225](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/commit/4cf3225360a54d17f98b404eaa257f735ea4f860))
+
 ## [1.9.0](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/compare/v1.8.4...v1.9.0) (2026-08-28)
 
 

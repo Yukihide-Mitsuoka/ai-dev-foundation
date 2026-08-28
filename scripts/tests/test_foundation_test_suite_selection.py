@@ -52,14 +52,16 @@ class FoundationTestSuiteSelectionTest(unittest.TestCase):
             result.stdout.splitlines(),
         )
 
-    def test_fast_selection_uses_the_repository_owned_runner(self):
-        result = self.run_selector("fast")
+    def test_bounded_selection_uses_the_repository_owned_runner(self):
+        for suite in ("fast", "slow"):
+            with self.subTest(suite=suite):
+                result = self.run_selector(suite)
 
-        self.assertEqual(0, result.returncode, result.stderr)
-        self.assertEqual(
-            ["scripts/foundation_test_runner.py", "--suite", "fast"],
-            result.stdout.splitlines(),
-        )
+                self.assertEqual(0, result.returncode, result.stderr)
+                self.assertEqual(
+                    ["scripts/foundation_test_runner.py", "--suite", suite],
+                    result.stdout.splitlines(),
+                )
 
     def test_non_default_selection_requires_the_local_runner(self):
         result = self.run_selector("fast", runner_exists=False)
@@ -73,6 +75,14 @@ class FoundationTestSuiteSelectionTest(unittest.TestCase):
         self.assertEqual(2, result.returncode)
         self.assertEqual("", result.stdout)
         self.assertIn("expected all, fast, or slow", result.stderr)
+
+    def test_doctor_delegates_to_the_bounded_selector(self):
+        template_check = (REPOSITORY_ROOT / "scripts/template-check.sh").read_text(
+            encoding="utf-8"
+        )
+
+        self.assertIn("bash scripts/run-foundation-tests.sh", template_check)
+        self.assertNotIn("FOUNDATION_TEST_SUITE:-", template_check)
 
 
 if __name__ == "__main__":

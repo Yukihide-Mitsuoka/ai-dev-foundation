@@ -12,7 +12,7 @@ foundation, template, and project profile.
 
 ## Authority order (conflict resolution)
 
-Lower numbers win. Apply the higher-authority rule and report every conflict.
+Lower numbers win; apply them and report conflicts.
 
 | Authority | Document | Scope |
 |-----------|----------|-------|
@@ -24,7 +24,7 @@ Lower numbers win. Apply the higher-authority rule and report every conflict.
 
 ## Rule and file inventory
 
-Normative rules have stable prefixes; cite their IDs in commits, PRs, and reviews.
+Cite stable normative rule IDs in commits, PRs, and reviews.
 
 | File | Rule prefix | Content |
 |------|-------------|---------|
@@ -72,7 +72,7 @@ normative source with a generated summary.
 
 ## Reading protocol by task type
 
-Read only the task route; do not load every file by default.
+Read only the matching task route.
 
 | Task | Read (in order) | Skill |
 |------|-----------------|-------|
@@ -85,5 +85,6 @@ Read only the task route; do not load every file by default.
 | Security work | security.md, `SECURITY.md` | `.skills/security.skill.md` |
 | Writing tests | testing.md | `.skills/test.skill.md` |
 | Documentation | documentation.md, foundation guide index, then the relevant guide through bounded discovery | `.skills/documentation.skill.md` |
+| Presentation or slide deck | documentation.md | `.ai/contracts/foundation/skills/presentation/SKILL.md` |
 | Code review | MNT contract, review-checklist.md | `.skills/review.skill.md` |
 | Release | release.md, security.md | `.skills/release.skill.md` |

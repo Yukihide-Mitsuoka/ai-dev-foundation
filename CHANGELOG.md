@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.9.2](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/compare/v1.9.1...v1.9.2) (2026-08-29)
+
+
+### Bug Fixes
+
+* **ci:** skip plan-limited jobs in private repos ([#202](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/issues/202)) ([610ec97](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/commit/610ec97b7cc7966184c5e0e1350b38db5c14498f))
+
 ## [1.9.1](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/compare/v1.9.0...v1.9.1) (2026-08-28)
 
 

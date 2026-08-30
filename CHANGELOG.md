@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.10.0](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/compare/v1.9.2...v1.10.0) (2026-08-30)
+
+
+### Features
+
+* **inheritance:** add private source authentication ([#204](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/issues/204)) ([1ff40c4](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/commit/1ff40c4ccb4073790c1cc2eed5ea9d4197d6465c))
+
 ## [1.9.2](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/compare/v1.9.1...v1.9.2) (2026-08-29)
 
 

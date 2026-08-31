@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.11.0](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/compare/v1.10.0...v1.11.0) (2026-08-31)
+
+
+### Features
+
+* add universal trust and maintainability checkpoints ([#209](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/issues/209)) ([8983dab](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/commit/8983dab19c086599f3a9d5d6f62e9d32778eaaed))
+
 ## [1.10.0](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/compare/v1.9.2...v1.10.0) (2026-08-30)
 
 

@@ -64,7 +64,3 @@ SOLID · Twelve-Factor · GitHub Flow · Conventional Commits · SemVer.
 
 Why it's built this way: [foundation ADRs](docs/foundation/adr/). How agents behave here:
 [.ai/README.md](.ai/README.md).
-
-## License
-
-<!-- TEMPLATE: choose a license and add LICENSE file. -->

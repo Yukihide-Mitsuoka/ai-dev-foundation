@@ -52,7 +52,7 @@ def _workflow_jobs(workflow: str) -> tuple[list[str], list[tuple[str, list[str]]
 class PrivateRepositoryWorkflowTest(unittest.TestCase):
     def test_repository_reading_jobs_have_effective_contents_access(self) -> None:
         failures = []
-        for path in sorted(WORKFLOW_ROOT.glob("*.yml")):
+        for path in sorted(WORKFLOW_ROOT.glob("*.y*ml")):
             workflow = path.read_text(encoding="utf-8")
             workflow_lines, jobs = _workflow_jobs(workflow)
             _, workflow_contents = _permissions(workflow_lines, "")

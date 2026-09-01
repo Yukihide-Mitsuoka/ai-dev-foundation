@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.11.1](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/compare/v1.11.0...v1.11.1) (2026-09-01)
+
+
+### Bug Fixes
+
+* **ci:** preserve contents access in workflow jobs ([#214](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/issues/214)) ([dca6352](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/commit/dca6352a91fa1ea36b00e891ba893b0db6cab723))
+
 ## [1.11.0](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/compare/v1.10.0...v1.11.0) (2026-08-31)
 
 

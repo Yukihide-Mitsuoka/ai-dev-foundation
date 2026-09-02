@@ -45,6 +45,6 @@ broaden the search under ADR-0012 when relevance is uncertain.
 | [0017](0017-bound-implementation-complexity-with-meaningful-decomposition.md) | Bound implementation complexity with meaningful decomposition | code quality, maintainability, complexity, AI implementation | accepted | 2026-08-29 |
 | [0018](0018-integrate-a-lightweight-inherited-presentation-skill.md) | Integrate a lightweight inherited presentation skill | presentation authoring, AI context, template inheritance | accepted | 2026-08-29 |
 | [0019](0019-adopt-foundation-into-existing-repositories.md) | Adopt the foundation into existing repositories | existing repositories, onboarding, template inheritance | proposed | 2026-09-02 |
-| [0020](0020-enforce-japanese-pull-request-prose.md) | Enforce Japanese pull request prose | pull requests, language policy, CI, template inheritance | proposed | 2026-09-02 |
+| [0020](0020-enforce-japanese-pull-request-prose.md) | Enforce Japanese pull request prose | pull requests, language policy, CI, template inheritance | accepted | 2026-09-02 |
 
 <!-- Append new ADRs to this table (newest last). -->

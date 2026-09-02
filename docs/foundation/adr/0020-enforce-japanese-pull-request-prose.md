@@ -1,7 +1,7 @@
 ---
 id: adr-0020
 title: ADR-0020 — Enforce Japanese pull request prose
-status: proposed
+status: accepted
 updated: 2026-09-02
 ---
 
@@ -9,7 +9,7 @@ updated: 2026-09-02
 
 | Field | Value |
 |-------|-------|
-| Status | proposed |
+| Status | accepted |
 | Date | 2026-09-02 |
 | Deciders | repository owner |
 | Author | Codex (AI agent) |

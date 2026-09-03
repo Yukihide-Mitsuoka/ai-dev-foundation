@@ -72,6 +72,8 @@ because GitHub renders the trailer and thereby discloses AI involvement in histo
   ADR-0020 (`dependabot[bot]`, `github-actions[bot]`). A non-automated exception requires the
   `language-exception-approved` label and a visible reason under a `## 言語例外` or
   `## Language exception` heading; repeated exceptions require a repository ADR.
+- Check failures and protected-caller ports: see the on-demand
+  [PR language guide](../docs/foundation/guides/pull-request-language.md).
 - CI green before requesting review. Never merge with failing or skipped checks (GR-012).
 - Merge strategy: squash. Delete branch after merge.
 

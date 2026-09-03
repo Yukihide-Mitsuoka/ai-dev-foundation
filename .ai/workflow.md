@@ -60,14 +60,16 @@ because GitHub renders the trailer and thereby discloses AI involvement in histo
 ## WF-030: Pull request rules
 
 - Size: within GR-020 limits.
-- Title: Conventional Commit format (squash-merge uses it); human- and AI-authored
-  summaries after the type and optional scope MUST be Japanese.
-- Body: human- and AI-authored explanatory prose MUST be Japanese. Technical
+- Title: Conventional Commit format (squash-merge uses it). Human- and AI-authored
+  summaries and body prose MUST follow ADR-0021: English for Foundation and inheritable
+  template producers, Japanese for consumer leaves. Role comes from validated local
+  inheritance evidence, not repository variables or name patterns.
+- Body: fill the single English `.github/PULL_REQUEST_TEMPLATE.md` in that role's
+  language; fixed headings and controls need no translation. Technical
   identifiers, code, commands, URLs, product names, and quoted evidence MAY retain
-  their original language. Fill every section of `.github/PULL_REQUEST_TEMPLATE.md`,
-  including AI disclosure and dependency justification when applicable.
+  their original language. Include AI disclosure and dependency justification when applicable.
 - Trusted automation actors are exempt only through the exact identity allowlist in
-  `scripts/pr_language_policy.py`. A non-automated exception requires the
+  ADR-0020 (`dependabot[bot]`, `github-actions[bot]`). A non-automated exception requires the
   `language-exception-approved` label and a visible reason under a `## 言語例外` or
   `## Language exception` heading; repeated exceptions require a repository ADR.
 - CI green before requesting review. Never merge with failing or skipped checks (GR-012).

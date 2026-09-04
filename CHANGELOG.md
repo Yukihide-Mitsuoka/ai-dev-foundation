@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.12.0](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/compare/v1.11.1...v1.12.0) (2026-09-03)
+
+
+### Features
+
+* **pr:** activate role-aware prose checks ([#223](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/issues/223)) ([3bf9191](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/commit/3bf91915ca75e6faf0e1314958daa0fb3fe3a50d))
+* **pr:** resolve repository roles and restore language scope ([#221](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/issues/221)) ([0ffb7f6](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/commit/0ffb7f62e1cc8fb1990bdc0c835e863511dab948))
+
 ## [1.11.1](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/compare/v1.11.0...v1.11.1) (2026-09-01)
 
 

@@ -161,6 +161,10 @@ class PullRequestLanguageTest(unittest.TestCase):
         )
         for required in required_fragments:
             self.assertIn(required, workflow)
+        validation_step = workflow.split(
+            "- name: Validate PR prose language (ADR-0020/0021)", 1
+        )[1]
+        self.assertIn("working-directory: .pr-language-base", validation_step)
         self.assertNotIn("pull_request_target:", workflow)
         for line in workflow.splitlines():
             if any(

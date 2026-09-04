@@ -35,10 +35,10 @@ base branch. Then port the three language steps in the Foundation
 the child's protected `pr-quality` job. Preserve child-specific checks and permissions.
 Do not add a fallback when the accepted base lacks role evidence or the resolver.
 
-The caller checks out `pull_request.base.sha` separately and runs role resolution
-there. It passes that result and event metadata (`PR_ROLE`, `PR_TITLE`, `PR_BODY`,
-`PR_AUTHOR`, `PR_LABELS_JSON`) to `python3 -m scripts.pr_language_policy` via environment
-variables. Roles cannot be changed by editing only PR-head exports or manifests.
+The caller checks out `pull_request.base.sha` separately and runs both role resolution
+and `python3 -m scripts.pr_language_policy` there. It passes the role and event metadata
+(`PR_ROLE`, `PR_TITLE`, `PR_BODY`, `PR_AUTHOR`, `PR_LABELS_JSON`) via environment
+variables. PR-head changes cannot modify their own role or policy implementation.
 This is not tamper-proof CI: validator/workflow changes still require code review.
 
 Title/body/label edits rerun CI, including existing tests; they do not convert failing

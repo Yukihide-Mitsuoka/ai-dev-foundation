@@ -102,6 +102,7 @@ jobs:
         run: |
           python3 -c 'import os; from pathlib import Path; from scripts.pr_repository_role import resolve_role; print("role=" + resolve_role(Path("."), os.environ["GITHUB_REPOSITORY"]))' >> "$GITHUB_OUTPUT"
       - name: Validate PR prose language (ADR-0020/0021)
+        working-directory: .pr-language-base
         env:
           PR_ROLE: ${{ steps.pr-role.outputs.role }}
           PR_TITLE: ${{ github.event.pull_request.title }}

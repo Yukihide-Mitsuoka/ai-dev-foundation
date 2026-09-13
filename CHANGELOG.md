@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.13.0](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/compare/v1.12.0...v1.13.0) (2026-09-13)
+
+
+### Features
+
+* **agent:** implement documented discovery and conditional TDD ([#228](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/issues/228)) ([5e3c4dc](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/commit/5e3c4dc9e263f12bb3d3a04d1fe241337585cf58))
+
 ## [1.12.0](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/compare/v1.11.1...v1.12.0) (2026-09-03)
 
 

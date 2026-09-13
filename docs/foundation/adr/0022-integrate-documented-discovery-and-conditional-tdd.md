@@ -1,7 +1,7 @@
 ---
 id: adr-0022
 title: ADR-0022 — Integrate documented discovery and conditional TDD into existing task routes
-status: proposed
+status: accepted
 updated: 2026-09-13
 ---
 
@@ -9,7 +9,7 @@ updated: 2026-09-13
 
 | Field | Value |
 |-------|-------|
-| Status | proposed |
+| Status | accepted |
 | Date | 2026-09-13 |
 | Deciders | repository owner |
 | Author | Codex (AI agent) |

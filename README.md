@@ -20,7 +20,7 @@ direct, decide, and review.
 | Enforcement L2 | [`.pre-commit-config.yaml`](.pre-commit-config.yaml) | Any committer: secret scan, branch guard, lint, unit tests |
 | Enforcement L3 | [`.github/workflows/`](.github/workflows/) | CI, CodeQL, secrets/deps/license scan, container, IaC, DAST, Scorecard, release+SBOM |
 | Stable command interface | [`Makefile`](Makefile) | `make test` etc. — the only entry points automation uses |
-| Stack profiles | [`profiles/`](profiles/) | Reference Makefile implementations per stack + the canonical target contract |
+| Stack profiles | [`profiles/`](profiles/) | Optional reference Makefiles; binding semantics are in the [inherited Make target contract](.ai/contracts/foundation/make-targets.md) |
 | Decisions | [`docs/foundation/adr/`](docs/foundation/adr/) | Synchronized foundation ADRs + decision log |
 | Knowledge | [`docs/`](docs/) | Architecture, domain, API, deployment, operations, runbook, troubleshooting, roadmap, glossary |
 | GitHub scaffolding | [`.github/`](.github/) | Issue forms, PR template, CODEOWNERS, labels-as-code, and Dependabot security settings; version updates use `renovate.json` exclusively |

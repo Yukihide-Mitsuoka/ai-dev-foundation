@@ -1,7 +1,7 @@
 ---
 id: adr-0023
 title: ADR-0023 — Minimize the consumer root while keeping a versioned Foundation
-status: proposed
+status: accepted
 updated: 2026-09-23
 ---
 
@@ -9,9 +9,9 @@ updated: 2026-09-23
 
 | Field | Value |
 |-------|-------|
-| Status | proposed |
+| Status | accepted |
 | Date | 2026-09-23 |
-| Deciders | repository owner |
+| Deciders | repository owner (approved by merging PR #232 on 2026-09-23) |
 | Author | Codex (AI agent) |
 | Supersedes / Superseded by | Extends ADR-0004, ADR-0007, ADR-0014, and ADR-0015; supersedes none |
 

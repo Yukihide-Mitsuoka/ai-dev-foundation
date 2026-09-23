@@ -289,16 +289,19 @@ class FoundationAgentEntryTest(unittest.TestCase):
             with self.subTest(required_semantic=required_semantic):
                 self.assertIn(required_semantic, content)
 
-        examples = (root / "profiles/README.md").read_text(encoding="utf-8")
-        self.assertIn(MAKE_TARGET_CONTRACT_PATH, examples)
-        self.assertNotIn("The canonical target contract (binding)", examples)
-
 
 @unittest.skipUnless(
     is_canonical_foundation_root(REPOSITORY_ROOT),
     "canonical ai-dev-foundation root assertions",
 )
 class FoundationRootAgentAdapterTest(unittest.TestCase):
+    def test_optional_profile_examples_point_to_the_inherited_authority(self):
+        examples = (REPOSITORY_ROOT / "profiles/README.md").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn(MAKE_TARGET_CONTRACT_PATH, examples)
+        self.assertNotIn("The canonical target contract (binding)", examples)
+
     def test_profile_orders_foundation_then_project(self):
         profile_path = REPOSITORY_ROOT / PROFILE_PATH
         self.assertTrue(profile_path.is_file(), f"missing {PROFILE_PATH}")

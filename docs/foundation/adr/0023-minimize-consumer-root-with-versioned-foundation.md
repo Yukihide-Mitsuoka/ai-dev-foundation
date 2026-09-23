@@ -150,7 +150,8 @@ the Foundation `CLAUDE.md`, the agent entry, and every inherited guide that link
 protected `profiles/README.md`, `src/README.md`, or `tests/README.md`. Review commands
 that assume `profiles/*` exists:
 onboarding-only copy instructions must say so and must not be an ongoing child
-requirement. Keep the original copies during this expansion. After a direct child and
+requirement. Add a regression check for inherited links to removable protected paths.
+Keep the original copies during this expansion. After a direct child and
 a multi-level child accept the new contract through reviewed parent hops, each child
 MAY separately remove unused protected copies and repair its own `CLAUDE.md`, Makefile,
 project documents, and historical links. Run the offline link check and doctor before

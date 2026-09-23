@@ -36,6 +36,13 @@ contract, existing security controls, and reproducible CI. A clone may be placed
 any directory or run by another agent, so no required rule may depend on an ancestor
 `CLAUDE.md`, a user's home directory, or a mutable remote download.
 
+The inheritance manifest protects `profiles/`, `src/`, and `tests/` in descendants.
+Their copied reference Makefiles and catalog example are optional child-owned material,
+not synchronized contracts. Moving those examples into inherited `docs/foundation/`
+would make them mandatory in every descendant. Conversely, inherited guidance currently
+links to child-owned `profiles/README.md`, `src/README.md`, and `tests/README.md`.
+Removing optional copies in a child can therefore break its required link check.
+
 ## Options considered
 
 ### Option 1: Keep the current layout
@@ -60,9 +67,10 @@ storage and would add another delivery path beside Template Sync.
 ### Option 4: Keep reviewed local inheritance and reduce its root surface
 
 Keep repository-local, versioned contracts. Retain root paths only for a consumer's
-own files or verified tool discovery requirements. Place movable Foundation-only
-content under declared Foundation-owned paths, and make task and product capabilities
-explicit. This requires a staged path migration and a small residual root surface.
+own files or verified tool discovery requirements. Move binding Foundation content
+into inherited contract paths, while leaving removable examples outside inherited
+paths. Make task and product capabilities explicit. This requires a staged contract
+migration and repository-owned cleanup, with a small residual root surface.
 
 ## Decision
 
@@ -71,11 +79,12 @@ paths and migrations:
 
 1. A consumer root path MUST be either repository-owned or required at that location
    by a documented tool contract. Thin `CLAUDE.md` and `AGENTS.md` entry adapters,
-   project `README.md`, and tool-discovered configuration may remain. Foundation-only
-   bodies and examples SHOULD use existing owned namespaces, including
-   `.ai/contracts/foundation/` and `docs/foundation/`, or an explicit owned subpath
-   when moving them there would misstate their purpose. Avoid a second generic
-   `.foundation/` tree with duplicate authorities.
+   project `README.md`, and tool-discovered configuration may remain. Binding
+   Foundation-only bodies SHOULD use inherited owned namespaces such as
+   `.ai/contracts/foundation/`; descriptive guidance MAY use `docs/foundation/`.
+   Optional examples MUST NOT move into an inherited path merely to clear the root:
+   that would change a child-removable copy into a required synchronized payload.
+   Avoid a second generic `.foundation/` tree with duplicate authorities.
 2. Each root entry MUST be inventoried before migration with its owner, discovery
    constraint, direct-parent inheritance class, and activation condition. The inventory
    MUST distinguish protected project paths from synchronized Foundation paths.
@@ -99,6 +108,16 @@ paths and migrations:
    runtime fetch becomes a required source. Root-path moves MUST be staged with
    updated references, tests, ownership metadata, and rollback before an old path is
    removed. Propagation proceeds one merged parent hop at a time.
+6. An inherited contract or guide MUST NOT require a file in a protected, removable
+   child-owned path. Extract the binding Make target semantics and profile rules from
+   `profiles/README.md` into `.ai/contracts/foundation/make-targets.md`; keep
+   `profiles/README.md` as a non-normative reference to that contract and retain the
+   reference Makefiles under protected `profiles/`. Update inherited references to
+   the new authority. Treat `src/README.md` and `tests/README.md` as optional local
+   copies: where a guide needs their binding layout rule, link to the inherited
+   `.ai/architecture.md` or `.ai/testing.md`; otherwise mention the optional path
+   without a local-file link. Do not move the catalog example or profile Makefiles
+   into `docs/foundation/`.
 
 The first inventory will classify paths by these concrete examples; it will not move
 them merely because they appear here:
@@ -108,6 +127,7 @@ them merely because they appear here:
 | Fixed tool entry | `CLAUDE.md`, `AGENTS.md`, `.github/` | Keep the required path; minimize its Foundation-owned body where safe. |
 | Consumer-owned | `README.md`, `Makefile`, `src/`, project `tests/` | Keep at the consumer's normal location and protect from parent overwrite. |
 | Foundation-owned | `.ai/contracts/foundation/`, `docs/foundation/`, inherited `scripts/` | Group internal implementation under declared owned paths when callers and inheritance metadata can migrate together. |
+| Optional copied examples | `profiles/*/Makefile`, `src/modules/catalog/`, `tests/modules/catalog/` | Keep outside inherited roots; a child may remove them after reviewing local references. |
 | Conditional candidate | `.skills/`, `.devcontainer/`, capability-specific workflows | Audit actual triggers and security dependencies before declaring any part optional. |
 
 ## Consequences
@@ -115,20 +135,29 @@ them merely because they appear here:
 **Positive:** consumers can identify their own root files, optional features have an
 explicit activation boundary, and teams can inspect a versioned policy without relying
 on a developer's directory layout. Existing review and security boundaries remain.
+Children can remove unused copied examples without losing the inherited Make contract.
 
-**Negative:** tool-required root files cannot disappear. Path migration changes many
-references and may require protected child ports. Capability classification adds a
-small onboarding decision. Real organization-policy conflicts still require human
+**Negative:** tool-required root files cannot disappear. The Foundation source keeps
+some reference examples at its root so newly instantiated repositories can copy them;
+the parent and mature children need not have identical trees. Contract migration
+changes references and requires protected child ports. Capability classification adds
+a small onboarding decision. Real organization-policy conflicts still require human
 review; they cannot be resolved by a path move or text validator.
 
-Migration is expand, verify, then contract. First publish a complete root ownership and
-activation inventory. Move one Foundation-only path family at a time, retaining a
-working compatibility entry point where required; update manifests, ignore contracts,
-documentation links, and tests in the same reviewed slice. Verify one direct child and
-one multi-level child before changing the default for new consumers. Remove obsolete
-paths only in separately reviewable, explicitly scoped changes. Rollback restores the
-previous path mapping through a normal PR; the accepted parent lock remains the source
-of provenance.
+Migration is expand, verify, then contract. First publish the root ownership and
+activation inventory. Add the inherited Make contract and update its contract tests,
+the Foundation `CLAUDE.md`, the agent entry, and every inherited guide that links to
+protected `profiles/README.md`, `src/README.md`, or `tests/README.md`. Review commands
+that assume `profiles/*` exists:
+onboarding-only copy instructions must say so and must not be an ongoing child
+requirement. Add a regression check for inherited links to removable protected paths.
+Keep the original copies during this expansion. After a direct child and
+a multi-level child accept the new contract through reviewed parent hops, each child
+MAY separately remove unused protected copies and repair its own `CLAUDE.md`, Makefile,
+project documents, and historical links. Run the offline link check and doctor before
+each deletion; leave product code untouched. Remove obsolete paths only in separately
+reviewable, explicitly scoped changes. Rollback retains or restores the protected copy
+through a normal child PR; the accepted parent lock remains the source of provenance.
 
 **Follow-ups:** Track implementation and fleet evidence in
 [Issue #230](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/issues/230).

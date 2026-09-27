@@ -6,6 +6,9 @@ from unittest.mock import patch
 
 
 ROOT = Path(__file__).parents[2]
+FOUNDATION_README_MARKER = (
+    "<!-- repository-readme-owner: Yukihide-Mitsuoka/ai-dev-foundation -->"
+)
 
 
 class TaskCiTest(unittest.TestCase):
@@ -22,6 +25,11 @@ class TaskCiTest(unittest.TestCase):
                     TaskCiTest().test_foundation_quality_jobs_install_task_before_use()
 
     def test_foundation_quality_jobs_install_task_before_use(self):
+        readme = ROOT / "README.md"
+        if not readme.is_file() or FOUNDATION_README_MARKER not in readme.read_text(
+            encoding="utf-8"
+        ):
+            self.skipTest("protected child CI remains repository-owned during migration")
         workflow = (ROOT / ".github/workflows/ci.yml").read_text(encoding="utf-8")
         self.assertEqual(workflow.count("uses: ./scripts/actions/setup-task"), 4)
         for command in ("setup", "lint", "coverage", "build", "test", "doctor"):

@@ -19,7 +19,7 @@ direct, decide, and review.
 | Enforcement L1 | [`.claude/`](.claude/) | Claude Code hooks (command guard + auto format/lint), a read-only command allow-list, native skill wrappers, and a read-only `code-reviewer` subagent |
 | Enforcement L2 | [`.pre-commit-config.yaml`](.pre-commit-config.yaml) | Any committer: secret scan, branch guard, lint, unit tests |
 | Enforcement L3 | [`.github/workflows/`](.github/workflows/) | CI, CodeQL, secrets/deps/license scan, container, IaC, DAST, Scorecard, release+SBOM |
-| Stable command interface | [`Makefile`](Makefile) | `make test` etc. — the only entry points automation uses |
+| Stable command interface | [`Makefile`](Makefile), [`Taskfile.yml`](Taskfile.yml) | `make` remains the automation entry during the [Task migration](docs/foundation/adr/0024-adopt-taskfile-as-the-canonical-task-runner.md); equivalent `task` commands are being verified |
 | Stack profiles | [`profiles/`](profiles/) | Optional reference Makefiles; binding semantics are in the [inherited Make target contract](.ai/contracts/foundation/make-targets.md) |
 | Decisions | [`docs/foundation/adr/`](docs/foundation/adr/) | Synchronized foundation ADRs + decision log |
 | Knowledge | [`docs/`](docs/) | Architecture, domain, API, deployment, operations, runbook, troubleshooting, roadmap, glossary |
@@ -55,6 +55,12 @@ direct, decide, and review.
 
 Full walkthrough (new machine, different account, gotchas):
 [foundation usage guide](docs/foundation/guides/usage.md).
+
+During the Task migration, install Task separately using the
+[official installation guide](https://taskfile.dev/docs/installation) before running
+`task test` or `task doctor`. `task setup` cannot install the runner needed to invoke
+it. The current `make` commands remain supported until protected callers and active
+descendants have moved through reviewed PRs.
 
 ## Design principles
 

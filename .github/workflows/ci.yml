@@ -52,6 +52,19 @@ jobs:
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
       - run: make doctor
+      - name: Install pinned Task binary for migration verification
+        run: |
+          curl -fsSL https://github.com/go-task/task/releases/download/v3.53.1/task_linux_amd64.tar.gz -o "$RUNNER_TEMP/task.tar.gz"
+          echo 'a54a408f6861ff921f6e87774180db31bacd8c1e7c944ca696db9fea49a82fc7  '"$RUNNER_TEMP/task.tar.gz" | sha256sum -c -
+          mkdir -p "$RUNNER_TEMP/task-bin"
+          tar -xzf "$RUNNER_TEMP/task.tar.gz" -C "$RUNNER_TEMP/task-bin" task
+          echo "$RUNNER_TEMP/task-bin" >> "$GITHUB_PATH"
+      - name: Verify Taskfile equivalents
+        run: |
+          task --version
+          task --list-all
+          task test
+          task doctor
 
   link-check:
     # Broken relative links in docs are a real defect (docs are the product here).

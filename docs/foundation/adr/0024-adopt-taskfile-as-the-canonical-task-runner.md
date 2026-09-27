@@ -1,7 +1,7 @@
 ---
 id: adr-0024
 title: ADR-0024 — Adopt Taskfile as the canonical task runner
-status: proposed
+status: accepted
 updated: 2026-09-27
 ---
 
@@ -9,7 +9,7 @@ updated: 2026-09-27
 
 | Field | Value |
 |-------|-------|
-| Status | proposed |
+| Status | accepted |
 | Date | 2026-09-27 |
 | Deciders | repository owner |
 | Author | Codex (AI agent) |

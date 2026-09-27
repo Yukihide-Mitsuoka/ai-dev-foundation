@@ -19,7 +19,7 @@ direct, decide, and review.
 | Enforcement L1 | [`.claude/`](.claude/) | Claude Code hooks (command guard + auto format/lint), a read-only command allow-list, native skill wrappers, and a read-only `code-reviewer` subagent |
 | Enforcement L2 | [`.pre-commit-config.yaml`](.pre-commit-config.yaml) | Any committer: secret scan, branch guard, lint, unit tests |
 | Enforcement L3 | [`.github/workflows/`](.github/workflows/) | CI, CodeQL, secrets/deps/license scan, container, IaC, DAST, Scorecard, release+SBOM |
-| Stable command interface | [`Makefile`](Makefile), [`Taskfile.yml`](Taskfile.yml) | `make` remains the automation entry during the [Task migration](docs/foundation/adr/0024-adopt-taskfile-as-the-canonical-task-runner.md); equivalent `task` commands are being verified |
+| Stable command interface | [`Taskfile.yml`](Taskfile.yml), [`Makefile`](Makefile) | Foundation CI uses `task`; local hooks and descendants remain on `make` during the reviewed [Task migration](docs/foundation/adr/0024-adopt-taskfile-as-the-canonical-task-runner.md) |
 | Stack profiles | [`profiles/`](profiles/) | Optional reference Makefiles; binding semantics are in the [inherited Make target contract](.ai/contracts/foundation/make-targets.md) |
 | Decisions | [`docs/foundation/adr/`](docs/foundation/adr/) | Synchronized foundation ADRs + decision log |
 | Knowledge | [`docs/`](docs/) | Architecture, domain, API, deployment, operations, runbook, troubleshooting, roadmap, glossary |

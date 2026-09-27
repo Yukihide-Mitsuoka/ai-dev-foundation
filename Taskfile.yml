@@ -1,0 +1,113 @@
+version: '3'
+silent: true
+
+tasks:
+  default:
+    cmds:
+      - task: help
+
+  help:
+    desc: List available tasks
+    cmds:
+      - task --list-all
+
+  setup:
+    desc: Install toolchain and dependencies
+    cmds:
+      - 'echo "[template] setup: not wired yet — add your install commands here"'
+
+  format:
+    desc: Auto-format code (all, or FILE=<path>)
+    cmds:
+      - 'echo "[template] format: not wired yet (e.g. ruff format / prettier --write / gofmt)"'
+
+  lint:
+    desc: Lint code, zero warnings allowed (all, or FILE=<path>)
+    cmds:
+      - 'echo "[template] lint: not wired yet (e.g. ruff check / eslint / golangci-lint)"'
+
+  test:
+    desc: Full test suite (unit + integration)
+    cmds:
+      - task: test-unit
+      - task: test-integration
+      - bash .claude/hooks/tests/guard-bash.test.sh
+
+  test-unit:
+    desc: Fast unit suite only
+    cmds:
+      - python3 -m unittest discover -s scripts/tests -p 'test_*.py'
+
+  test-integration:
+    desc: Integration suite (not applicable to the Foundation)
+    cmds:
+      - 'echo "[foundation] test-integration: not applicable — no external integration surface"'
+
+  coverage:
+    desc: Test with coverage report
+    cmds:
+      - rm -rf coverage
+      - >-
+        python3 -m trace --count --missing --summary
+        --ignore-dir '/usr:/opt:/Library' --coverdir coverage
+        --module unittest discover -s scripts/tests -p 'test_*.py'
+      - bash .claude/hooks/tests/guard-bash.test.sh
+
+  build:
+    desc: Produce deployable artifact
+    cmds:
+      - 'echo "[template] build: not wired yet"'
+
+  run:
+    desc: Run the application locally
+    cmds:
+      - 'echo "[template] run: not wired yet"'
+
+  security-scan:
+    desc: Local security sweep (secrets, dependencies, configuration)
+    cmds:
+      - >-
+        if command -v gitleaks >/dev/null 2>&1; then
+          gitleaks detect --no-banner;
+        else
+          echo "[template] gitleaks not installed — CI still enforces SEC-002";
+        fi
+      - >-
+        if command -v trivy >/dev/null 2>&1; then
+          trivy fs --scanners vuln,misconfig,secret --exit-code 1 .;
+        else
+          echo "[template] trivy not installed — CI still enforces SEC-030";
+        fi
+
+  sbom:
+    desc: Generate SBOM into dist/
+    cmds:
+      - mkdir -p dist
+      - >-
+        if command -v syft >/dev/null 2>&1; then
+          syft . -o spdx-json=dist/sbom.spdx.json
+          -o cyclonedx-json=dist/sbom.cdx.json && echo "SBOM written to dist/";
+        else
+          echo "[template] syft not installed — release workflow generates the authoritative SBOM";
+        fi
+
+  clean:
+    desc: Remove build artifacts inside the workspace
+    cmds:
+      - rm -rf dist coverage
+
+  doctor:
+    desc: Self-check Foundation metadata and guard-hook tests
+    cmds:
+      - bash scripts/template-check.sh
+      - bash .claude/hooks/tests/guard-bash.test.sh
+
+  fleet-audit:
+    desc: Audit every configured local inheritance relationship without writes
+    env:
+      FLEET_WORKSPACE_ROOT: '{{.FLEET_WORKSPACE_ROOT | default ".."}}'
+    cmds:
+      - >-
+        python3 scripts/template_inheritance.py fleet-audit
+        --config docs/foundation/inheritance-fleet.json
+        --workspace-root "$FLEET_WORKSPACE_ROOT"

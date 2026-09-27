@@ -21,7 +21,7 @@ jobs:
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
       # TEMPLATE: add your runtime setup action here (setup-node / setup-python / setup-go)
-      - uses: ./.github/actions/setup-task
+      - uses: ./scripts/actions/setup-task
       - run: task setup
       - run: task lint
 
@@ -29,7 +29,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
-      - uses: ./.github/actions/setup-task
+      - uses: ./scripts/actions/setup-task
       - run: task setup
       - run: task coverage
       - name: Upload coverage artifact
@@ -43,7 +43,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
-      - uses: ./.github/actions/setup-task
+      - uses: ./scripts/actions/setup-task
       - run: task setup
       - run: task build
 
@@ -54,7 +54,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
-      - uses: ./.github/actions/setup-task
+      - uses: ./scripts/actions/setup-task
       - name: Verify canonical Taskfile
         run: |
           task --version

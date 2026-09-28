@@ -3,17 +3,15 @@ id: profiles
 title: Makefile Reference Implementations
 ---
 
-# profiles/ — Makefile Reference Implementations
+# profiles/ — Legacy Makefile Reference Implementations
 
-The root [Makefile](../Makefile) ships as no-op placeholders. A **profile** is a
-reference implementation for a concrete stack: copy the profile's Makefile to the repo
-root, adjust paths, delete the placeholders — hooks, pre-commit, and CI start working
-unchanged.
+These optional Makefiles show stack-specific commands from before the Task migration.
+They are not active task definitions and must not be copied over a repository's root
+`Taskfile.yml`. Implement the required tasks in that repository-owned file instead.
 
-The binding target semantics and profile rules live in the inherited
-[Make target contract](../.ai/contracts/foundation/make-targets.md). This page only
-lists optional examples copied with a new repository. A child may remove these
-examples after selecting its own root Makefile; doing so does not remove the contract.
+The binding semantics live in the inherited
+[Task target contract](../.ai/contracts/foundation/task-targets.md). A child may
+remove these examples without removing that contract.
 
 ## Available profiles
 
@@ -23,10 +21,10 @@ examples after selecting its own root Makefile; doing so does not remove the con
 | [typescript-node/](typescript-node/) | Node.js + pnpm + Prettier + ESLint + tsc + Vitest | authored 2026-07-02 |
 | [python-uv/](python-uv/) | Python + uv + Ruff + mypy + pytest | authored 2026-07-02 |
 
-## Creating a new profile
+## Using a reference in a new project
 
-1. Copy the closest existing profile directory.
-2. Reimplement the canonical targets for the stack; keep the inherited contract.
-3. Keep project-specific targets in the clearly marked "extensions" section.
-4. Verify: `make lint` on dirty code fails; `make format` fixes it; `make nonexistent`
-   fails; `make test-unit` finishes in seconds.
+1. Read the closest example for stack-specific commands; do not copy its Makefile.
+2. Implement those commands as tasks in the root `Taskfile.yml` under the inherited
+   Task contract. Keep project-specific tasks separate.
+3. Verify: `task lint` on dirty code fails; `task format` fixes it;
+   `task nonexistent` fails; `task test-unit` finishes in seconds.

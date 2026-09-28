@@ -19,7 +19,7 @@ direct, decide, and review.
 | Enforcement L1 | [`.claude/`](.claude/) | Claude Code hooks (command guard + auto format/lint), a read-only command allow-list, native skill wrappers, and a read-only `code-reviewer` subagent |
 | Enforcement L2 | [`.pre-commit-config.yaml`](.pre-commit-config.yaml) | Any committer: secret scan, branch guard, lint, unit tests |
 | Enforcement L3 | [`.github/workflows/`](.github/workflows/) | CI, CodeQL, secrets/deps/license scan, container, IaC, DAST, Scorecard, release+SBOM |
-| Stable command interface | [`Taskfile.yml`](Taskfile.yml), [`Makefile`](Makefile) | Foundation CI uses `task`; local hooks and descendants remain on `make` during the reviewed [Task migration](docs/foundation/adr/0024-adopt-taskfile-as-the-canonical-task-runner.md) |
+| Stable command interface | [`Taskfile.yml`](Taskfile.yml), [`Makefile`](Makefile) | Foundation CI and local hooks use `task`; agent instructions and compatibility callers are moving in reviewed stages under [ADR-0024](docs/foundation/adr/0024-adopt-taskfile-as-the-canonical-task-runner.md) |
 | Stack profiles | [`profiles/`](profiles/) | Optional reference Makefiles; binding semantics are in the [inherited Make target contract](.ai/contracts/foundation/make-targets.md) |
 | Decisions | [`docs/foundation/adr/`](docs/foundation/adr/) | Synchronized foundation ADRs + decision log |
 | Knowledge | [`docs/`](docs/) | Architecture, domain, API, deployment, operations, runbook, troubleshooting, roadmap, glossary |
@@ -35,16 +35,17 @@ direct, decide, and review.
    identity and stack. In the [agent profile](.github/inheritance/agent-profile.json),
    keep the foundation input and change the final project input's `repository` value to
    the new `OWNER/REPOSITORY`.
-3. **Wire the Makefile**: copy the closest [`profiles/`](profiles/) Makefile to the
-   root (or implement `setup/format/lint/test/build` yourself) — everything else
-   (hooks, CI) starts working automatically.
+3. **Wire the Taskfile**: implement the required tasks in the root
+   [`Taskfile.yml`](Taskfile.yml) for your stack before relying on hooks or CI.
+   The [`profiles/`](profiles/) Makefiles are legacy reference examples, not active
+   task definitions.
 4. **Inspect GitHub governance**: run `python3 scripts/github_governance.py plan --root .
    --repo OWNER/REPOSITORY` after `gh auth login`. It reports policy drift without
    changing settings. Use `audit` for a CI-suitable nonzero drift result. After reviewing
    the plan, run `apply` with an exact `--confirm-repo OWNER/REPOSITORY`. The existing
    [`scripts/setup-github.sh`](scripts/setup-github.sh) is a compatibility wrapper for
    the same policy-driven `plan` and explicitly confirmed `apply` paths.
-5. **Install local gates**: `make setup && pre-commit install --hook-type pre-commit
+5. **Install local gates**: `task setup && pre-commit install --hook-type pre-commit
    --hook-type pre-push`.
 6. **Point your agent at it**: open the repo with Claude Code (reads the thin
    `CLAUDE.md` adapter automatically) or tell any other agent to read `AGENTS.md`.

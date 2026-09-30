@@ -1,5 +1,26 @@
 # Changelog
 
+## [2.0.0](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/compare/v1.12.0...v2.0.0) (2026-09-30)
+
+
+### ⚠ BREAKING CHANGES
+
+* **task:** retire the Foundation Make compatibility layer ([#254](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/issues/254))
+
+### Features
+
+* **agent:** implement documented discovery and conditional TDD ([#228](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/issues/228)) ([5e3c4dc](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/commit/5e3c4dc9e263f12bb3d3a04d1fe241337585cf58))
+
+
+### Bug Fixes
+
+* **task:** scope CI shape assertion to Foundation owner ([#243](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/issues/243)) ([90ca984](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/commit/90ca984eb3c5b27c33087557316c05268ef867db))
+
+
+### Code Refactoring
+
+* **task:** retire the Foundation Make compatibility layer ([#254](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/issues/254)) ([c0dcd0d](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/commit/c0dcd0d2360bc1bc476f0bb05ec589759657d54c))
+
 ## [1.12.0](https://github.com/Yukihide-Mitsuoka/ai-dev-foundation/compare/v1.11.1...v1.12.0) (2026-09-03)
 
 

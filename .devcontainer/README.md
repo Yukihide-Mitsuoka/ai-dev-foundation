@@ -8,7 +8,7 @@ exfiltrate them even if instructed to.
 ## What you get
 
 - Ubuntu 24.04 base, `vscode` unprivileged user.
-- Node LTS + GitHub CLI (Node is only there to install Claude Code).
+- Node LTS + GitHub CLI (Node installs Claude Code and Task).
 - Claude Code and pinned Task 3.53.1 installed on create via npm.
 - `task doctor` runs on create to verify the template's guard hooks and invariants.
 
@@ -16,8 +16,8 @@ exfiltrate them even if instructed to.
 
 This is stack-agnostic on purpose. Before real work:
 
-1. Add your profile's toolchain to `features` in `devcontainer.json` — see
-   [profiles/](../profiles/) (`python-uv`, `typescript-node`, `terraform-gcp`).
+1. Add your stack's toolchain to `features` in `devcontainer.json` and implement
+   the root `Taskfile.yml` under the [Task contract](../.ai/contracts/foundation/task-targets.md).
 2. Drop features you do not need.
 3. Do **not** add SSH-agent forwarding or cloud-credential mounts. Keeping host secrets
    out of the container is the reason this file exists.

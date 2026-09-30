@@ -262,7 +262,7 @@ CLAUDE.md / AGENTS.md > その他の .ai/*.md > docs/**`。矛盾は黙って解
 - **利用しないシーン**：特定スタックの具体コマンドそのもの（各 Taskfile 実装を見る）。
 - **利用例**：`lint` は「チェック専用・自動修正しない」という契約を確認し、lint に fmt を混ぜない。
 
-`profiles/README.md`と各プロファイルは子が削除できる参考例であり、契約の正本ではありません。
+Task定義は各リポジトリのルート`Taskfile.yml`が所有し、基盤は別の実行可能コピーを配布しません。
 
 ---
 
@@ -337,7 +337,7 @@ Claude Code は起動時に**親ディレクトリを遡って** `CLAUDE.md` を
 
 | グループ | ファイル | 除外理由 |
 |----------|----------|----------|
-| ツール/自動化 | `Taskfile.yml`, 暫定`Makefile`, `profiles/*/Makefile`, `.pre-commit-config.yaml`, `.github/workflows/*`, `scripts/*.sh`, `renovate.json` | 実行インターフェースや強制機構であって挙動の"指示文"ではない（正準ターゲット契約は §7 の `task-targets.md` に収録） |
+| ツール/自動化 | `Taskfile.yml`, `.pre-commit-config.yaml`, `.github/workflows/*`, `scripts/*.sh`, `renovate.json` | 実行インターフェースや強制機構であって挙動の"指示文"ではない（正準ターゲット契約は §7 の `task-targets.md` に収録） |
 | 設定 | `.gitignore`, `.gitattributes`, `.editorconfig`, `.env.example`, `.mdformat.toml`, `.templatesyncignore` | 環境・整形・同期の設定 |
 | ガバナンス metadata | `.github/CODEOWNERS`, `labels.yml`, `discussion-categories.md` | レビュー経路・ラベル・カテゴリ定義。AIは使うが指示ではない |
 | 人間向け | `README.md`, `SECURITY.md`, `docs/foundation/guides/usage.md`, `usage.ja.md` | 人間向け。特に `README.md` はAIを「CLAUDE.mdへ」と誘導する側。AI向けセキュリティは `.ai/security.md`（§3収録）が担う |

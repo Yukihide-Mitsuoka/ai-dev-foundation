@@ -9,8 +9,8 @@ exfiltrate them even if instructed to.
 
 - Ubuntu 24.04 base, `vscode` unprivileged user.
 - Node LTS + GitHub CLI (Node is only there to install Claude Code).
-- Claude Code installed on create (`npm install -g @anthropic-ai/claude-code`).
-- `make doctor` runs on create to verify the template's guard hooks and invariants.
+- Claude Code and pinned Task 3.53.1 installed on create via npm.
+- `task doctor` runs on create to verify the template's guard hooks and invariants.
 
 ## Customize per stack
 

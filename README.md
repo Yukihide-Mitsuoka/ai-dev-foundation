@@ -19,7 +19,7 @@ direct, decide, and review.
 | Enforcement L1 | [`.claude/`](.claude/) | Claude Code hooks (command guard + auto format/lint), a read-only command allow-list, native skill wrappers, and a read-only `code-reviewer` subagent |
 | Enforcement L2 | [`.pre-commit-config.yaml`](.pre-commit-config.yaml) | Any committer: secret scan, branch guard, lint, unit tests |
 | Enforcement L3 | [`.github/workflows/`](.github/workflows/) | CI, CodeQL, secrets/deps/license scan, container, IaC, DAST, Scorecard, release+SBOM |
-| Stable command interface | [`Taskfile.yml`](Taskfile.yml) | Foundation CI, local hooks, and agent instructions use `task`; [`Makefile`](Makefile) only forwards to Task during [ADR-0024](docs/foundation/adr/0024-adopt-taskfile-as-the-canonical-task-runner.md) migration |
+| Stable command interface | [`Taskfile.yml`](Taskfile.yml) | Foundation CI, local hooks, and agent instructions use `task` exclusively ([ADR-0024](docs/foundation/adr/0024-adopt-taskfile-as-the-canonical-task-runner.md)) |
 | Stack profiles | [`profiles/`](profiles/) | Optional historical Makefile examples; binding semantics are in the [inherited Task target contract](.ai/contracts/foundation/task-targets.md) |
 | Decisions | [`docs/foundation/adr/`](docs/foundation/adr/) | Synchronized foundation ADRs + decision log |
 | Knowledge | [`docs/`](docs/) | Architecture, domain, API, deployment, operations, runbook, troubleshooting, roadmap, glossary |
@@ -60,8 +60,7 @@ Full walkthrough (new machine, different account, gotchas):
 During the Task migration, install Task separately using the
 [official installation guide](https://taskfile.dev/docs/installation) before running
 `task test` or `task doctor`. `task setup` cannot install the runner needed to invoke
-it. The current `make` commands remain transitional compatibility, not an alternative
-standard. Use `task` for new instructions and callers.
+it. Make compatibility is removed; use `task` for every repository command.
 
 ## Design principles
 

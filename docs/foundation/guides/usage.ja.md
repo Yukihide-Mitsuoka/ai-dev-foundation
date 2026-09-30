@@ -151,11 +151,8 @@ agent profileとproject overlayを保護対象にしてください。
 `[project] build: not applicable — no deployable artifact` のように、利用先が所有する
 明示的な対象外結果へ置き換えてください。テンプレートのプレースホルダーは残しません。
 
-ADR-0024の移行中は、`task doctor`がルートの`Makefile`も検査します。Make検証が
-撤去されるまで互換ターゲットを維持してください。`make doctor`も実行できますが、
-コマンドの意味を定義するのはTask契約です。
-
-利用先のTask定義と暫定Makefileを整えた後、定期同期を有効にする前に`task doctor`を実行します。
+`task doctor`はルートの`Taskfile.yml`を必須として検査します。Make互換入口は撤去済みです。
+利用先のTask定義を整えた後、定期同期を有効にする前に`task doctor`を実行します。
 
 ### 7. GitHub ガバナンスを点検
 

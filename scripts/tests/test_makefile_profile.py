@@ -1,5 +1,6 @@
 import os
 import re
+import shutil
 import subprocess
 import tempfile
 import unittest
@@ -147,6 +148,20 @@ class FoundationMakeShimTest(unittest.TestCase):
         result = self.run_make_with_fake_task("test", task_exit_code=7)
         self.assertNotEqual(result.returncode, 0)
         self.assertEqual(result.stdout, "[test]\n")
+
+    def test_installed_task_accepts_make_compatibility_calls(self):
+        if shutil.which("task") is None:
+            self.skipTest("Task CLI is not installed locally; CI installs pinned Task")
+        for arguments in (("help",), ("lint", "FILE=src/example.py")):
+            with self.subTest(arguments=arguments):
+                result = subprocess.run(
+                    ["make", *arguments],
+                    cwd=REPOSITORY_ROOT,
+                    capture_output=True,
+                    text=True,
+                    check=False,
+                )
+                self.assertEqual(result.returncode, 0, result.stderr)
 
     def test_taskfile_test_targets_execute_regression_suites(self):
         self.assertIn("- task: test-unit", self.taskfile)

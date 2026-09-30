@@ -1,7 +1,7 @@
 ---
 id: usage-ja
 title: 使い方（日本語）— 新しいPC / 別アカウント / 新規プロジェクト
-updated: 2026-09-29
+updated: 2026-09-30
 ---
 
 # 使い方（日本語セットアップ手順書）
@@ -144,7 +144,6 @@ agent profileとproject overlayを保護対象にしてください。
 
 利用先が所有するルートの`Taskfile.yml`を
 [継承されるTask契約](../../../.ai/contracts/foundation/task-targets.md)に従って実装します。
-任意の`profiles/`内のMakefileは過去のコマンド例であり、Taskfileへそのままコピーしません。
 `task setup`より先に[公式手順](https://taskfile.dev/docs/installation)でTaskを導入します。
 インスタンス化後は必須taskの欠落や`not wired yet`実装が残っていると`task doctor`が
 失敗します。対象外のtaskは、たとえば

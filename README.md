@@ -20,7 +20,6 @@ direct, decide, and review.
 | Enforcement L2 | [`.pre-commit-config.yaml`](.pre-commit-config.yaml) | Any committer: secret scan, branch guard, lint, unit tests |
 | Enforcement L3 | [`.github/workflows/`](.github/workflows/) | CI, CodeQL, secrets/deps/license scan, container, IaC, DAST, Scorecard, release+SBOM |
 | Stable command interface | [`Taskfile.yml`](Taskfile.yml) | Foundation CI, local hooks, and agent instructions use `task` exclusively ([ADR-0024](docs/foundation/adr/0024-adopt-taskfile-as-the-canonical-task-runner.md)) |
-| Stack profiles | [`profiles/`](profiles/) | Optional historical Makefile examples; binding semantics are in the [inherited Task target contract](.ai/contracts/foundation/task-targets.md) |
 | Decisions | [`docs/foundation/adr/`](docs/foundation/adr/) | Synchronized foundation ADRs + decision log |
 | Knowledge | [`docs/`](docs/) | Architecture, domain, API, deployment, operations, runbook, troubleshooting, roadmap, glossary |
 | GitHub scaffolding | [`.github/`](.github/) | Issue forms, PR template, CODEOWNERS, labels-as-code, and Dependabot security settings; version updates use `renovate.json` exclusively |
@@ -37,8 +36,7 @@ direct, decide, and review.
    the new `OWNER/REPOSITORY`.
 3. **Wire the Taskfile**: implement the required tasks in the root
    [`Taskfile.yml`](Taskfile.yml) for your stack before relying on hooks or CI.
-   The [`profiles/`](profiles/) Makefiles are legacy reference examples, not active
-   task definitions.
+   Binding semantics live in the [inherited Task target contract](.ai/contracts/foundation/task-targets.md).
 4. **Inspect GitHub governance**: run `python3 scripts/github_governance.py plan --root .
    --repo OWNER/REPOSITORY` after `gh auth login`. It reports policy drift without
    changing settings. Use `audit` for a CI-suitable nonzero drift result. After reviewing

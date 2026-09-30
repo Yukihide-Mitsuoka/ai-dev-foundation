@@ -28,8 +28,8 @@ internals — cross-module calls use the target's MODULE.md public API or events
 [`modules/catalog/`](modules/catalog/MODULE.md) is a small reference module (Python)
 demonstrating the four layers, DDD value objects/aggregates, ports + adapters, and the
 testing conventions. **Imitate its shape** (COD-050); it is not wired into the no-op
-template Makefile. Delete it and `tests/modules/catalog/` when starting a real project.
-Run its tests with the python-uv profile, or ad hoc: `PYTHONPATH=. pytest tests/modules/catalog`.
+template Taskfile. Delete it and `tests/modules/catalog/` when starting a real project.
+Wire the example tests into `task test` if retained; ad hoc: `PYTHONPATH=. pytest tests/modules/catalog`.
 
 ## MODULE.md template
 

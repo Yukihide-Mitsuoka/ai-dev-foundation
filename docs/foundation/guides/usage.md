@@ -158,12 +158,8 @@ required tasks. If a task does not apply, replace it with an explicit
 repository-owned result such as `[project] build: not applicable — no deployable
 artifact`; do not retain the template placeholder.
 
-During the remaining ADR-0024 transition, `task doctor` also checks the root
-`Makefile`. Keep its compatibility targets wired until the Make check is removed;
-`make doctor` remains available, but Task owns the command semantics.
-
-Run `task doctor` after both local task definitions and the transitional Makefile
-are wired, before enabling scheduled synchronization.
+`task doctor` requires the root `Taskfile.yml`; Make compatibility is removed.
+Run it after local task definitions are wired, before enabling scheduled synchronization.
 
 ### 7. Inspect GitHub governance
 

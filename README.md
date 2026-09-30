@@ -19,8 +19,8 @@ direct, decide, and review.
 | Enforcement L1 | [`.claude/`](.claude/) | Claude Code hooks (command guard + auto format/lint), a read-only command allow-list, native skill wrappers, and a read-only `code-reviewer` subagent |
 | Enforcement L2 | [`.pre-commit-config.yaml`](.pre-commit-config.yaml) | Any committer: secret scan, branch guard, lint, unit tests |
 | Enforcement L3 | [`.github/workflows/`](.github/workflows/) | CI, CodeQL, secrets/deps/license scan, container, IaC, DAST, Scorecard, release+SBOM |
-| Stable command interface | [`Taskfile.yml`](Taskfile.yml), [`Makefile`](Makefile) | Foundation CI and local hooks use `task`; agent instructions and compatibility callers are moving in reviewed stages under [ADR-0024](docs/foundation/adr/0024-adopt-taskfile-as-the-canonical-task-runner.md) |
-| Stack profiles | [`profiles/`](profiles/) | Optional reference Makefiles; binding semantics are in the [inherited Make target contract](.ai/contracts/foundation/make-targets.md) |
+| Stable command interface | [`Taskfile.yml`](Taskfile.yml) | Foundation CI, local hooks, and agent instructions use `task`; [`Makefile`](Makefile) is temporary compatibility under [ADR-0024](docs/foundation/adr/0024-adopt-taskfile-as-the-canonical-task-runner.md) |
+| Stack profiles | [`profiles/`](profiles/) | Optional historical Makefile examples; binding semantics are in the [inherited Task target contract](.ai/contracts/foundation/task-targets.md) |
 | Decisions | [`docs/foundation/adr/`](docs/foundation/adr/) | Synchronized foundation ADRs + decision log |
 | Knowledge | [`docs/`](docs/) | Architecture, domain, API, deployment, operations, runbook, troubleshooting, roadmap, glossary |
 | GitHub scaffolding | [`.github/`](.github/) | Issue forms, PR template, CODEOWNERS, labels-as-code, and Dependabot security settings; version updates use `renovate.json` exclusively |
@@ -60,8 +60,8 @@ Full walkthrough (new machine, different account, gotchas):
 During the Task migration, install Task separately using the
 [official installation guide](https://taskfile.dev/docs/installation) before running
 `task test` or `task doctor`. `task setup` cannot install the runner needed to invoke
-it. The current `make` commands remain supported until protected callers and active
-descendants have moved through reviewed PRs.
+it. The current `make` commands remain transitional compatibility, not an alternative
+standard. Use `task` for new instructions and callers.
 
 ## Design principles
 
